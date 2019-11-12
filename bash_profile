@@ -71,6 +71,7 @@ export GIT_EDITOR="$EDITOR"
 # Aliases
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:]"
 alias suuidgen="uuidgen | cut -d- -f1"
+alias gs="git status"
 alias k=kubectl
 alias t=tmc
 alias mk=minikube
