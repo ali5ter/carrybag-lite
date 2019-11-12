@@ -72,7 +72,7 @@ export GIT_EDITOR="$EDITOR"
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:]"
 alias suuidgen="uuidgen | cut -d- -f1"
 alias k=kubectl
-alias mc=mctl
+alias t=tmc
 alias mk=minikube
 
 # Completion
@@ -86,8 +86,8 @@ source /Users/bowena/Documents/Projects/VMware/DX/cli_taxo/exp4/results/velero_c
 source <(kubectl completion bash)
 complete -F __start_kubectl k
 # shellcheck disable=SC1090
-source <(mctl completion bash)
-complete -F __start_mctl mc
+source <(tmc completion bash)
+complete -F __start_mctl t
 # shellcheck disable=SC1090
 source <(minikube completion bash)
 complete -F __start_minikube mk
