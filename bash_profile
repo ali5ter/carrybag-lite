@@ -18,7 +18,12 @@ source ~/.colors.bash
 # Bookmarking
 [ -f ~/.jump.sh ] || curl -s -o ~/.jump.sh https://raw.githubusercontent.com/ali5ter/jump/master/jump.sh
 # shellcheck disable=SC1090
-source ~/.jump.sh
+#source ~/.jump.sh
+
+# Word string
+[ -f ~/.generate_word_string.sh ] || curl -s -o ~/.generate_word_string.sh https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string
+# shellcheck disable=SC1090
+source ~/.generate_word_string.sh
 
 # K8s prompt
 # https://github.com/jonmosco/kube-ps1
