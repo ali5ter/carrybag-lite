@@ -88,7 +88,7 @@ source <(kubectl completion bash)
 complete -F __start_kubectl k
 # shellcheck disable=SC1090
 source <(tmc completion bash)
-complete -F __start_mctl t
+complete -F __start_tmc t
 # shellcheck disable=SC1090
 source <(minikube completion bash)
 complete -F __start_minikube mk
