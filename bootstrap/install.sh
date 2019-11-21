@@ -21,6 +21,7 @@ bi git bash-completion bash-completion@2
 bi node
 bi jq bat
 bi install kubernetes-cli kube-ps1 minikube
+minikube config set memory 4096
 
 # GUI applications
 # https://formulae.brew.sh/cask/
