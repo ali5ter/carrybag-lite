@@ -8,6 +8,7 @@ shopt -s histappend     # append history instead of overwriting it
 shopt -s cdspell        # corrected minor spelling errors during cd
 # https://www.linuxjournal.com/content/using-bash-history-more-efficiently-histcontrol
 HISTCONTROL=ignoreboth
+CDATE=$(date '+%Y%m%d')
 
 # Colors
 # shellcheck disable=SC1090
@@ -85,7 +86,7 @@ alias mk=minikube
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d
 # shellcheck disable=SC1091
-source /usr/local/etc/profile.d/bash_completion.sh
+[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 # shellcheck disable=SC1091
 source /Users/bowena/Documents/Projects/VMware/DX/cli_taxo/exp4/results/velero_completion.sh
 # shellcheck disable=SC1090
@@ -110,6 +111,17 @@ kubeconf() {
     env | grep KUBECONFIG
 }
 kubeconf >/dev/null
+
+brew_update() { brew update && brew upgrade; }
+
+UPDATE_DATE="$HOME/.last_update"
+[ -f "$UPDATE_DATE" ] || echo "00" > "$UPDATE_DATE"
+if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
+    echo "$CDATE" > "$UPDATE_DATE"
+    # shellcheck disable=SC2154
+    echo -e "Checking homebrew..."
+    brew_update
+fi
 
 # Prompts
 # https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
