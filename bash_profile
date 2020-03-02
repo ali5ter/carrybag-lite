@@ -66,6 +66,13 @@ if [ -f "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh" ]; then
     # TODO: Remove space in 1st column
 fi
 
+# Node version management
+export NVM_DIR="$HOME/.nvm"
+# shellcheck disable=SC1091
+[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+# shellcheck disable=SC1091
+[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+
 # Paths
 export PATH="/usr/local/sbin:$PATH"
 
