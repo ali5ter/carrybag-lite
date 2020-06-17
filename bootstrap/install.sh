@@ -20,7 +20,7 @@ bi bash shellcheck vim watch
 bi git bash-completion bash-completion@2
 bi node
 bi jq bat
-bi install kubernetes-cli kube-ps1 minikube
+bi install kubernetes-cli kube-ps1 minikube kind
 minikube config set memory 4096
 
 # GUI applications
@@ -35,7 +35,7 @@ bci charles little-snitch
 bci cleanmymac
 bci docker
 # bci axure-rp
-bci sketch sketch-toolbox
+# bci sketch sketch-toolbox
 bci figma
 bci skype
 bci slack
@@ -46,8 +46,9 @@ bci tunnelblick
 bci visual-studio-code
 # bci xscope
 # bci webstorm
-bci caskroom/versions/microsoft-remote-desktop-beta
-bci minikube
+# bci caskroom/versions/microsoft-remote-desktop-beta
+bci vnc-viewer
+# bci minikube
 
 # no cask for:
 # MacAppBlocker
