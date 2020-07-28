@@ -89,7 +89,6 @@ alias more=bat
 alias less=bat
 alias k=kubectl
 alias mk=minikube
-alias t=tmc
 
 # Completion
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
@@ -101,9 +100,6 @@ source /Users/bowena/Documents/Projects/VMware/DX/cli_taxo/exp4/results/velero_c
 # shellcheck disable=SC1090
 source <(kubectl completion bash)
 complete -F __start_kubectl k
-# shellcheck disable=SC1090
-source <(tmc completion bash)
-complete -F __start_tmc t
 # shellcheck disable=SC1090
 source <(minikube completion bash)
 complete -F __start_minikube mk
@@ -144,11 +140,3 @@ PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 # Additional configurations/overrides
 # shellcheck disable=SC1090
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
-
-
-# TODO: Seperate this out to a google runcom and have a generic include here
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
