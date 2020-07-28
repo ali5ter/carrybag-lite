@@ -85,9 +85,11 @@ export GIT_EDITOR="$EDITOR"
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:]"
 alias suuidgen="uuidgen | cut -d- -f1"
 alias gs="git status"
+alias more=bat
+alias less=bat
 alias k=kubectl
-alias t=tmc
 alias mk=minikube
+alias t=tmc
 
 # Completion
 # https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
@@ -137,3 +139,16 @@ fi
 PS1="\$(kube_ps1)\n${cyan}§${normal} "
 PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
+
+#
+# Additional configurations/overrides
+# shellcheck disable=SC1090
+[ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
+
+
+# TODO: Seperate this out to a google runcom and have a generic include here
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
