@@ -84,6 +84,7 @@ export GIT_EDITOR="$EDITOR"
 # Aliases
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:]"
 alias suuidgen="uuidgen | cut -d- -f1"
+alias datestamp="date '+%F %T %z %Z'"
 alias gs="git status"
 alias more=bat
 alias less=bat
