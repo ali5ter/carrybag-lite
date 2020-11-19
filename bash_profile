@@ -10,6 +10,11 @@ shopt -s cdspell        # corrected minor spelling errors during cd
 HISTCONTROL=ignoreboth
 CDATE=$(date '+%Y%m%d')
 
+# OS specific settings (perhaps check for platform before applything)
+# Turn on Touch ID for sudo auth
+# https://sixcolors.com/post/2020/11/quick-tip-enable-touch-id-for-sudo/
+# sudo echo 'auth sufficient pam_tid.so' >> /etc/pam.d/sudo
+
 # Colors
 # shellcheck disable=SC1090
 [ -f ~/.colors.bash ] || curl -s -o ~/.colors.bash https://raw.githubusercontent.com/Bash-it/bash-it/master/themes/colors.theme.bash
@@ -30,7 +35,6 @@ source ~/.generate_word_string.sh
 function _update_ps1() {
     PS1=$(powerline-shell $?)
 }
-
 if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
 fi
@@ -128,6 +132,7 @@ kubeconf() {
 }
 kubeconf >/dev/null
 
+# TODO: Check for OS before applying Darwin specific stuff
 brew_update() { brew update && brew upgrade; }
 
 UPDATE_DATE="$HOME/.last_update"
