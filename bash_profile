@@ -144,6 +144,15 @@ if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
     brew_update
 fi
 
+vmw_whois() {
+    #ref https://source.vmware.com/portal/search/people?q=alister&aq=(@cnbd%3D%22alister%22%20OR%20@ucnbd%3D%22alister%22)&client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606940050&allPeople=true
+    local url_base="https://source.vmware.com/portal/search/people?"
+    local url_query_attributes="client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606938064&allPeople=true"
+    local name="${*// /%20}"
+    local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
+    open "${url_base}${url_query}&${url_query_attributes}"
+}
+
 # Prompts
 # https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
