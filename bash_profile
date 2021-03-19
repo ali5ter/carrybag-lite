@@ -32,8 +32,19 @@ source ~/.jump.sh
 source ~/.generate_word_string.sh
 
 # Powerline prompt
+# https://github.com/b-ryan/powerline-shell
+# function _update_ps1() {
+#     PS1=$(powerline-shell $?)
+# }
+# if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
+#     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+# fi
+
+# Powerline prompt
+# https://github.com/justjanne/powerline-go
 function _update_ps1() {
-    PS1=$(powerline-shell $?)
+    # shellcheck disable=SC2046
+    PS1="$(powerline-go -hostname-only-if-ssh -error $? -cwd-max-depth 3 -jobs $(jobs -p | wc -l))"
 }
 if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
@@ -133,7 +144,7 @@ kubeconf() {
 kubeconf >/dev/null
 
 # TODO: Check for OS before applying Darwin specific stuff
-brew_update() { brew update && brew upgrade; }
+brew_update() { brew update && brew upgrade && brew cleanup; }
 
 UPDATE_DATE="$HOME/.last_update"
 [ -f "$UPDATE_DATE" ] || echo "00" > "$UPDATE_DATE"
@@ -145,10 +156,11 @@ if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
 fi
 
 vmw_whois() {
+    local name="$*"
     #ref https://source.vmware.com/portal/search/people?q=alister&aq=(@cnbd%3D%22alister%22%20OR%20@ucnbd%3D%22alister%22)&client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606940050&allPeople=true
-    local url_base="https://source.vmware.com/portal/search/people?"
+    local url_base='https://source.vmware.com/portal/search/people?'
     local url_query_attributes="client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606938064&allPeople=true"
-    local name="${*// /%20}"
+    name="${name//+([[:space:]])/%20}"
     local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
     open "${url_base}${url_query}&${url_query_attributes}"
 }
@@ -163,5 +175,5 @@ PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
 #
 # Additional configurations/overrides
-# shellcheck disable=SC1090
+# shellcheck disable=SC1091
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
