@@ -32,19 +32,10 @@ source ~/.jump.sh
 source ~/.generate_word_string.sh
 
 # Powerline prompt
-# https://github.com/b-ryan/powerline-shell
-# function _update_ps1() {
-#     PS1=$(powerline-shell $?)
-# }
-# if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
-#     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
-# fi
-
-# Powerline prompt
 # https://github.com/justjanne/powerline-go
 function _update_ps1() {
     # shellcheck disable=SC2046
-    PS1="$(powerline-go -hostname-only-if-ssh -error $? -cwd-max-depth 3 -jobs $(jobs -p | wc -l))"
+    PS1="$(powerline-go -truncate-segment-width 8 -hostname-only-if-ssh -error $? -cwd-max-depth 4 -jobs $(jobs -p | wc -l))"
 }
 if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
@@ -63,31 +54,6 @@ fi
 #     source "$(brew --prefix)/opt/kube-ps1/share/kube-ps1.sh"
 #     kubeoff
 #     # TODO: recover color to default prompt
-# fi
-
-# git prompt
-# https://github.com/magicmonty/bash-git-prompt
-# if [ -f "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh" ]; then
-#     # shellcheck disable=SC2034
-#     __GIT_PROMPT_DIR=$(brew --prefix)/opt/bash-git-prompt/share
-#     # shellcheck disable=SC2034
-#     GIT_PROMPT_ONLY_IN_REPO=1
-#     # shellcheck disable=SC2034
-#     GIT_PROMPT_START_USER="\n\$(kube_ps1)"
-#     # shellcheck disable=SC2034
-#     GIT_PROMPT_END_USER="\n\[\e[36m\]§\[\e[0m\]\] "
-#     # shellcheck disable=SC2034
-#     # shellcheck disable=SC2154
-#     GIT_PROMPT_BRANCH="${Cyan}"
-#     # shellcheck disable=SC2034
-#     # shellcheck disable=SC2154
-#     GIT_PROMPT_CHANGED="${Yellow}✚ "
-#     # shellcheck disable=SC2034
-#     # shellcheck disable=SC2154
-#     GIT_PROMPT_CLEAN="${BoldGreen}✔"
-#     # shellcheck disable=SC1090
-#     source "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh"
-#     # TODO: Remove space in 1st column
 # fi
 
 # Node version management
@@ -138,6 +104,7 @@ source <(minikube completion bash)
 complete -F __start_minikube mk
 
 # Functions
+
 kubeconf() {
     # Merge all kubeconfig files in ~/.kube into KUBECONFIG
     # https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
@@ -150,9 +117,12 @@ kubeconf() {
 }
 kubeconf >/dev/null
 
+brew_update() {
+    # Additional homebrew housekeeping
+    brew update && brew upgrade && brew cleanup; 
+}
+# Automate homebrew update
 # TODO: Check for OS before applying Darwin specific stuff
-brew_update() { brew update && brew upgrade && brew cleanup; }
-
 UPDATE_DATE="$HOME/.last_update"
 [ -f "$UPDATE_DATE" ] || echo "00" > "$UPDATE_DATE"
 if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
@@ -163,6 +133,8 @@ if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
 fi
 
 vmw_whois() {
+    # VMware specific whois
+    # TODO: Migrate to seperate tool under vmware scripts
     local name="$*"
     #ref https://source.vmware.com/portal/search/people?q=alister&aq=(@cnbd%3D%22alister%22%20OR%20@ucnbd%3D%22alister%22)&client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606940050&allPeople=true
     local url_base='https://source.vmware.com/portal/search/people?'
@@ -171,6 +143,7 @@ vmw_whois() {
     local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
     open "${url_base}${url_query}&${url_query_attributes}"
 }
+
 
 # Prompts
 # https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
