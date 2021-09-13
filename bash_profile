@@ -144,7 +144,6 @@ vmw_whois() {
     open "${url_base}${url_query}&${url_query_attributes}"
 }
 
-
 # Prompts
 # https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
@@ -153,7 +152,21 @@ vmw_whois() {
 PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
-#
+# Configure histiry manager hstr
+# @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
+alias hh=hstr                    # hh to be alias for hstr
+export HSTR_CONFIG=hicolor       # get more colors
+shopt -s histappend              # append new history items to .bash_history
+export HISTCONTROL=ignorespace   # leading space hides commands from history
+export HISTFILESIZE=10000        # increase history file size (default is 500)
+export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
+# ensure synchronization between bash memory and history file
+export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
+# if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
+if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
+# if this is interactive shell, then bind 'kill last command' to Ctrl-x k
+if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
+
 # Additional configurations/overrides
 # shellcheck disable=SC1091
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"

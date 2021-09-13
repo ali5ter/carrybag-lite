@@ -20,7 +20,7 @@ bi bash # latest bash
 bi shellcheck vim watch    # editing
 bi bash-completion bash-completion@2    # auto-completion
 bi git node # dev
-bi jq bat   # misc tools
+bi jq bat hst   # misc tools
 bi kubectl kustomize helm kube-ps1 kind skaffold    # k8s tooling
 # bi minikube
 # minikube config set memory 4096
