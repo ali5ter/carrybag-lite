@@ -63,6 +63,8 @@ alias fixcamera="sudo killall AppleCameraAssistant;sudo killall VDCAssistant"
 alias more=bat
 alias less=bat
 alias k=kubectl
+alias kc=kubectx
+alias kn=kubens
 alias mk=minikube
 
 # Completion
@@ -127,6 +129,7 @@ function _update_ps1() {
     PS1="$(powerline-go \
         -newline \
         -modules "venv,user,host,kube,ssh,cwd,perms,git,hg,jobs,exit" \
+        -git-mode "compact" \
         -truncate-segment-width 8 \
         -hostname-only-if-ssh \
         -error $? \
