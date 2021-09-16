@@ -31,31 +31,6 @@ source ~/.jump.sh
 # shellcheck disable=SC1090
 source ~/.generate_word_string.sh
 
-# Powerline prompt
-# https://github.com/justjanne/powerline-go
-function _update_ps1() {
-    # shellcheck disable=SC2046
-    PS1="$(powerline-go -truncate-segment-width 8 -hostname-only-if-ssh -error $? -cwd-max-depth 4 -jobs $(jobs -p | wc -l))"
-}
-if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
-    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
-fi
-
-# K8s prompt
-# https://github.com/jonmosco/kube-ps1
-# if [ -f "$(brew --prefix)/opt/kube-ps1/share/kube-ps1.sh" ]; then
-#     # shellcheck disable=SC2034
-#     KUBE_PS1_PREFIX='['
-#     # shellcheck disable=SC2034
-#     KUBE_PS1_SUFFIX='] '
-#     # shellcheck disable=SC2034
-#     KUBE_PS1_SEPARATOR=''
-#     # shellcheck disable=SC1090
-#     source "$(brew --prefix)/opt/kube-ps1/share/kube-ps1.sh"
-#     kubeoff
-#     # TODO: recover color to default prompt
-# fi
-
 # Node version management
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
@@ -79,6 +54,7 @@ export EDITOR='vim'
 export GIT_EDITOR="$EDITOR"
 
 # Aliases
+alias source_=". ~/.bash_profile"
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:] | tee >(pbcopy)"
 alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
@@ -145,6 +121,21 @@ vmw_whois() {
 }
 
 # Prompts
+# https://github.com/justjanne/powerline-go
+function _update_ps1() {
+    # shellcheck disable=SC2046
+    PS1="$(powerline-go \
+        -newline \
+        -modules "venv,user,host,kube,ssh,cwd,perms,git,hg,jobs,exit" \
+        -truncate-segment-width 8 \
+        -hostname-only-if-ssh \
+        -error $? \
+        -cwd-max-depth 4 \
+        -jobs $(jobs -p | wc -l))"
+}
+if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
+    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+fi
 # https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
 #DEFAULT_PS1="\n[${red}\u@\h${normal}|${cyan}\W${normal}] "
@@ -152,7 +143,7 @@ vmw_whois() {
 PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
-# Configure histiry manager hstr
+# History manager
 # @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
 alias hh=hstr                    # hh to be alias for hstr
 export HSTR_CONFIG=hicolor       # get more colors
