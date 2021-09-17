@@ -85,6 +85,15 @@ fi
 
 # Functions
 
+ostype() {
+    # Echo the flavor of OS
+    if [[ "$OSTYPE" == 'darwin'* ]]; then
+        sw_vers
+    else
+        lsb_release -a
+    fi
+}
+
 kubeconf() {
     # Merge all kubeconfig files in ~/.kube into KUBECONFIG
     # https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
