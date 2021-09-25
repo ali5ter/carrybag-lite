@@ -29,6 +29,7 @@ minikube config set memory 4096
 # https://formulae.brew.sh/cask/
 
 alias bci='brew cask install'
+bci iterm2  # preferred terminal
 bci google-chrome-canary    # browser
 bci 1password dropbox   # password vault
 bci caffeine divvy bartender    # windowing tools
