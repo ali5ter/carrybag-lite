@@ -9,6 +9,8 @@ set -eou pipefail
 
 oIFS=$IFS
 IFS=$(echo -en "\n\b")
+USER="${1-null}"
+IP="${2-null}"
 
 transfer() {
 	local dir="$1"
@@ -16,16 +18,25 @@ transfer() {
 	ssh "$USER"@"$IP" 'find '"$dir"' -xdev -print | cpio -o' | cpio -vid
 }
 
-# Remote system
-USER="$1"
-IP="$2"
+if [[ "$USER" == 'null' ]]; then
+    read -p "✋ You forgot to give me the username for the remote system? " -r
+    echo
+    USER="$REPLY"
+fi
 
-cd ~
+if [[ "$IP" == 'null' ]]; then
+    read -p "✋ You forgot to give me the FQDN or IP for the remote system? " -r
+    echo
+    IP="$REPLY"
+fi
+
+cd ~ || exit 1
 transfer ./bin force
 transfer ./Documents/Projects/Personal force
 transfer ./Documents/Projects/VMware force
 transfer ./Documents/Resources force
-#transfer ./Desktop
+transfer ./Desktop
 #transfer "./Documents/Virtual\ Machines.localized/win-7-32-ent-ws65"
+transfer ./Pictures/headshots 
 
 IFS=$oIFS

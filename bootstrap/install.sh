@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # @file install.sh
-# Script to install macOS apps I want
+# Simple bootstrap for my mac(s)
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 [[ -n $DEBUG ]] && set -x
@@ -22,8 +22,8 @@ bi bash-completion bash-completion@2    # auto-completion
 bi git node # dev
 bi jq bat hst   # misc tools
 bi kubectl kustomize helm kube-ps1 kind skaffold    # k8s tooling
-# bi minikube
-# minikube config set memory 4096
+bi minikube
+minikube config set memory 4096
 
 # GUI applications
 # https://formulae.brew.sh/cask/
@@ -48,8 +48,11 @@ bci visual-studio-code sourcetree pyenv  # dev
 # bci caskroom/versions/microsoft-remote-desktop-beta
 bci turbovnc-viewer  # remote access
 
-# no cask for:
-# MacAppBlocker
+# Tools from git
+[[ -d ~/Documents/projects ]] && mkdir ~/Documents/projects && cd ~/Documents/projects
+git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
+ln bash_profile ~/.bash_profile
+ln bash_local_work ~/.bash_local
 
 # Get powerline fonts
 git clone https://github.com/powerline/fonts.git --depth=1
