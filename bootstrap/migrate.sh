@@ -7,36 +7,55 @@
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
-oIFS=$IFS
-IFS=$(echo -en "\n\b")
 USER="${1-null}"
 IP="${2-null}"
 
-transfer() {
+transfer_using_cpio() {
+    # cpio method
 	local dir="$1"
-	[ "$2" == 'force' ] && rm -fR "$dir"
+	if [ "$2" == 'force' ]; then rm -fR "$dir"; fi
+    local oIFS=$IFS
+    IFS=$(echo -en "\n\b")
 	ssh "$USER"@"$IP" 'find '"$dir"' -xdev -print | cpio -o' | cpio -vid
+    IFS=$oIFS
 }
 
-if [[ "$USER" == 'null' ]]; then
-    read -p "✋ You forgot to give me the username for the remote system? " -r
+transfer_using_rsync() {
+    # rsync method
+    local dir="$1"
+    local force="${2-existing}"
+    local oDir="$PWD"
+    cd ~ || exit
+    if [ -e "$dir" ]; then mkdir "$dir"
+    rsync -ax --"$force" -e ssh "$USER"@"$IP":"$dir" .
+    cd "$oDir" || exit
+}
+
+promptForNull() {
+    local value="$1"; shift
+    local msg="$@"
+    if [[ "$value" == 'null' ]]; then
+        read -p "✋ $msg " -r
+        echo
+        value="$REPLY"
+    fi 
+    echo "$value"
+}
+
+promptMigration() {
+    local path="$1"
+    local force="${2-}"
+    read -p "✋ Do you want to migrate $path? [y/N] " -n 1 -r
     echo
-    USER="$REPLY"
-fi
+    if [[ $REPLY =~ ^[Yy]$ ]]; then transfer_using_cpio "$path" "$force"; fi
+}
 
-if [[ "$IP" == 'null' ]]; then
-    read -p "✋ You forgot to give me the FQDN or IP for the remote system? " -r
-    echo
-    IP="$REPLY"
-fi
+USER=$(promptForNull "$USER" "You forgot to give me the username for the remote system?")
+IP=$(promptForNull "$IP" "You forgot to give me the FQDN or IP for the remote system?")
 
-cd ~ || exit 1
-transfer ./bin force
-transfer ./Documents/Projects/Personal force
-transfer ./Documents/Projects/VMware force
-transfer ./Documents/Resources force
-transfer ./Desktop
-#transfer "./Documents/Virtual\ Machines.localized/win-7-32-ent-ws65"
-transfer ./Pictures/headshots 
-
-IFS=$oIFS
+cd ~ || exit
+promptMigration ./bin force
+promptMigration ./Documents/Projects/Personal force
+promptMigration ./Documents/Projects/VMware force
+promptMigration ./Documents/Resources force
+promptMigration ./Pictures/headshots force
