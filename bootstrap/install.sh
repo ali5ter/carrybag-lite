@@ -7,32 +7,36 @@
 set -eou pipefail
 
 bi() { brew install "$@"; }
-bci() { brew install "$@"; }
+bci() { brew install --cask "$@"; }
 
 # Bootstrap brew and cask
-# https://brew.sh/
+# @ref https://brew.sh/
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 brew tap homebrew/cask
 brew tap homebrew/cask-versions
+brew tap homebrew/cask-fonts
 
 # CMDL applications
-# https://formulae.brew.sh/formula/
+# @ref https://formulae.brew.sh/formula/
 
 bi bash # latest bash
 bi shellcheck vim watch # editing
 bi bash-completion  # auto-completion
-bi git node go python  # dev
+bi starship # prompt
+# bi powerline-go # prompt
+bi git svn node go python  # dev
 brew unlink python && brew link python
-bi powerline-go
-bi jq bat hstr  # misc tools
+bi glances lazydocker   # monitoring
+bi jq bat hstr tree # misc tools
+bi ncdu # disk management
 bi speedtest-cli    # network tools
 bi kubectl kustomize helm kube-ps1 skaffold # k8s tooling
 bi minikube kind    # vrtual k8s cluster
 minikube config set memory 4096
 
 # GUI applications
-# https://formulae.brew.sh/cask/
+# @ref https://formulae.brew.sh/cask/
 
 bci iterm2  # preferred terminal
 bci google-chrome-canary    # browser
@@ -62,12 +66,16 @@ bci turbovnc-viewer  # remote access
 #ln bash_profile ~/.bash_profile
 #ln bash_local_work ~/.bash_local
 
-# Get powerline fonts
-git clone https://github.com/powerline/fonts.git --depth=1
-cd fonts
-./install.sh
-cd - || exit
-rm -rf fonts
+# Powerline fonts
+# git clone https://github.com/powerline/fonts.git --depth=1
+# cd fonts
+# ./install.sh
+# cd - || exit
+# rm -rf fonts
+
+# Nerd fonts
+# @ref https://www.nerdfonts.com/font-downloads
+bci font-source-code-pro
 
 # Preferences
-mkdir -p ~/.jump && cp ../preferences/jump.bookmarks ~/.jump/bookmarks
+# mkdir -p ~/.jump && cp ../preferences/jump.bookmarks ~/.jump/bookmarks

@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 
 # Options
-# https://www.computerhope.com/unix/bash/shopt.htm
+# @ref https://www.computerhope.com/unix/bash/shopt.htm
 shopt -s checkwinsize   # check the window size after each command
 shopt -s dotglob        # include file names beginning with a '.' in pathnames
 shopt -s histappend     # append history instead of overwriting it
 shopt -s cdspell        # corrected minor spelling errors during cd
-# https://www.linuxjournal.com/content/using-bash-history-more-efficiently-histcontrol
+# @ref https://www.linuxjournal.com/content/using-bash-history-more-efficiently-histcontrol
 HISTCONTROL=ignoreboth
 CDATE=$(date '+%Y%m%d')
 
 # OS specific settings (perhaps check for platform before applything)
 # Turn on Touch ID for sudo auth
-# https://sixcolors.com/post/2020/11/quick-tip-enable-touch-id-for-sudo/
+# @ref https://sixcolors.com/post/2020/11/quick-tip-enable-touch-id-for-sudo/
 # sudo echo 'auth sufficient pam_tid.so' >> /etc/pam.d/sudo
 
 # Colors
@@ -22,9 +22,15 @@ CDATE=$(date '+%Y%m%d')
 source ~/.colors.bash
 
 # Bookmarking
-[ -f ~/.jump.sh ] || curl -s -o ~/.jump.sh https://raw.githubusercontent.com/ali5ter/jump/master/jump.sh
+# @ref https://github.com/ali5ter/jump
+# [ -f ~/.jump.sh ] || curl -s -o ~/.jump.sh https://raw.githubusercontent.com/ali5ter/jump/master/jump.sh
+# # shellcheck disable=SC1090
+# source ~/.jump.sh
+# @ref https://github.com/rupa/z
+[ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
+source ~/.z.sh
 # shellcheck disable=SC1090
-source ~/.jump.sh
+_Z_CMD=jump
 
 # Word string
 [ -f ~/.generate_word_string.sh ] || curl -s -o ~/.generate_word_string.sh https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string
@@ -39,7 +45,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
 # Safe Python version management using pyenv
-# https://opensource.com/article/19/5/python-3-default-mac
+# @ref https://opensource.com/article/19/5/python-3-default-mac
 if command -v pyenv 1>/dev/null 2>&1; then
     PATH="$(pyenv root)/shims:$PATH"
     eval "$(pyenv init -)"
@@ -68,7 +74,7 @@ alias kn=kubens
 alias mk=minikube
 
 # Completion
-# https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
+# @ref https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
@@ -96,7 +102,7 @@ ostype() {
 
 kubeconf() {
     # Merge all kubeconfig files in ~/.kube into KUBECONFIG
-    # https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
+    # @ref https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
     local confs=''
     for file in ~/.kube/*config*; do
         confs="${confs}$file:";
@@ -124,22 +130,26 @@ kubeconf >/dev/null
 
 # Prompts
 # https://github.com/justjanne/powerline-go
-function _update_ps1() {
-    # shellcheck disable=SC2046
-    PS1="$(powerline-go \
-        -newline \
-        -modules "venv,user,host,kube,ssh,cwd,perms,git,hg,jobs,exit" \
-        -git-mode "compact" \
-        -truncate-segment-width 8 \
-        -hostname-only-if-ssh \
-        -error $? \
-        -cwd-max-depth 4 \
-        -jobs $(jobs -p | wc -l))"
-}
-if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
-    PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+# function _update_ps1() {
+#     # shellcheck disable=SC2046
+#     PS1="$(powerline-go \
+#         -newline \
+#         -modules "venv,user,host,kube,ssh,cwd,perms,git,hg,jobs,exit" \
+#         -git-mode "compact" \
+#         -truncate-segment-width 8 \
+#         -hostname-only-if-ssh \
+#         -error $? \
+#         -cwd-max-depth 4 \
+#         -jobs $(jobs -p | wc -l))"
+# }
+# if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
+#     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+# fi
+# @ref https://starship.rs/
+if command -v starship 1>/dev/null 2>&1; then
+    eval "$(starship init bash)"
 fi
-# https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
+# @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
 #DEFAULT_PS1="\n[${red}\u@\h${normal}|${cyan}\W${normal}] "
 # PS1="\$(kube_ps1)\n${cyan}§${normal} "
