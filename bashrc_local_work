@@ -1,26 +1,5 @@
 #!/usr/bin/env bash
 
-# Auto completion for Velero
-[ -f ~/.velero_completion.sh ] || curl -s -o ~/.velero_completion.sh https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp4/results/velero_completion.sh
-# shellcheck disable=SC1090
-source ~/.velero_completion.sh
-
-# Tanzu Mission Control access
-# shellcheck disable=SC1090
-source <(tmc completion bash)
-
-# Tanzu Mission Control access
-# shellcheck disable=SC1090
-source <(tanzu completion bash)
-
-# The next line updates PATH for the Google Cloud SDK.
-# shellcheck disable=SC1091
-if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-# shellcheck disable=SC1091
-if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
-
 vmw_whois() {
     # VMware specific whois
     local name="$*"
@@ -31,3 +10,30 @@ vmw_whois() {
     local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
     open "${url_base}${url_query}&${url_query_attributes}"
 }
+
+# Velero CLI
+[ -f ~/.velero_completion.sh ] || curl -s -o ~/.velero_completion.sh https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp4/results/velero_completion.sh
+# shellcheck disable=SC1090
+source ~/.velero_completion.sh
+
+# TKG CLI
+# shellcheck disable=SC1090
+# source <(tmc completion bash)
+
+# TMC CLI
+# shellcheck disable=SC1090
+source <(tmc completion bash)
+
+# Tanzu (TCE) CLI
+# @ref https://github.com/vmware-tanzu/community-edition
+if ! command -v tanzu 1>/dev/null 2>&1; then
+    brew tap vmware-tanzu/tanzu
+    brew install tanzu-community-edition
+    /usr/local/Cellar/tanzu-community-edition/v0.9.1/libexec/configure-tce.sh
+fi
+
+# GCloud CLI
+# shellcheck disable=SC1091
+if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/path.bash.inc'; fi
+# shellcheck disable=SC1091
+if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
