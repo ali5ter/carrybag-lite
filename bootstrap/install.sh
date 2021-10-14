@@ -79,3 +79,8 @@ bci font-source-code-pro
 
 # Preferences
 # mkdir -p ~/.jump && cp ../preferences/jump.bookmarks ~/.jump/bookmarks
+[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
+cat << EOF > ~/.config/starship.toml
+[kubernetes]
+disabled = false
+EOF

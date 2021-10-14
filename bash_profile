@@ -24,6 +24,7 @@ source ~/.colors.bash
 # Bookmarking
 # @ref https://github.com/rupa/z
 [ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
+[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
 source ~/.z.sh
 # shellcheck disable=SC1090
 _Z_CMD=jump
