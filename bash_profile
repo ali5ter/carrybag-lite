@@ -22,10 +22,6 @@ CDATE=$(date '+%Y%m%d')
 source ~/.colors.bash
 
 # Bookmarking
-# @ref https://github.com/ali5ter/jump
-# [ -f ~/.jump.sh ] || curl -s -o ~/.jump.sh https://raw.githubusercontent.com/ali5ter/jump/master/jump.sh
-# # shellcheck disable=SC1090
-# source ~/.jump.sh
 # @ref https://github.com/rupa/z
 [ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
 source ~/.z.sh
@@ -75,7 +71,7 @@ alias mk=minikube
 
 # Completion
 # @ref https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
-export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d
+export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 if command -v kubectl 1>/dev/null 2>&1; then
@@ -129,30 +125,12 @@ kubeconf >/dev/null
 }
 
 # Prompts
-# https://github.com/justjanne/powerline-go
-# function _update_ps1() {
-#     # shellcheck disable=SC2046
-#     PS1="$(powerline-go \
-#         -newline \
-#         -modules "venv,user,host,kube,ssh,cwd,perms,git,hg,jobs,exit" \
-#         -git-mode "compact" \
-#         -truncate-segment-width 8 \
-#         -hostname-only-if-ssh \
-#         -error $? \
-#         -cwd-max-depth 4 \
-#         -jobs $(jobs -p | wc -l))"
-# }
-# if [[ $TERM != linux && ! $PROMPT_COMMAND =~ _update_ps1 ]]; then
-#     PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
-# fi
 # @ref https://starship.rs/
 if command -v starship 1>/dev/null 2>&1; then
     eval "$(starship init bash)"
 fi
 # @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
-#DEFAULT_PS1="\n[${red}\u@\h${normal}|${cyan}\W${normal}] "
-# PS1="\$(kube_ps1)\n${cyan}§${normal} "
 PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
