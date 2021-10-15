@@ -28,12 +28,12 @@ transfer_using_rsync() {
     local force="${2-existing}"
     local oDir="$PWD"
     local err=''
-    [ -e "$dir" ] || mkdir -p "$dir"
+    #[ -e "$dir" ] || mkdir -p "$dir"
     echo "🚛 Migrating $dir"
     while true ; do
         rsync -avW --timeout="$CON_ALIVE" --progress --"$force" \
             -e "ssh -o ServerAliveInterval=$CON_ALIVE" \
-            "$USER"@"$IP":"$dir" "$dir" && break
+            "$USER"@"$IP":"$dir" $(dirname "$dir") && break
         echo "🎬 Retrying migration $dir..."
         sleep 10
     done
@@ -77,3 +77,5 @@ promptMigration ./Documents/Projects/Personal force
 promptMigration ./Documents/Projects/VMware force
 promptMigration ./Documents/Resources force
 promptMigration ./Pictures/headshots force
+promptMigration ./Library/Fonts force
+promptMigration ./tmp force

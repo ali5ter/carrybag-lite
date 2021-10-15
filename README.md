@@ -18,3 +18,7 @@ Move your existing runcom aside and link to this one...
 
     cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
     ln -sf $PWD/bash_profile ~/.bash_profile
+
+To use local runcom...
+
+    ln -sf $PWD/bashrc_local_work ~/.bashrc_local
