@@ -77,10 +77,22 @@ bci turbovnc-viewer  # remote access
 # @ref https://www.nerdfonts.com/font-downloads
 bci font-source-code-pro
 
+# Install legacy pip for non-migrated python tools
+curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
+ln -sf ~/Library/Python/2.7/bin/pip /usr/local/bin/pip
+
 # Preferences
 # mkdir -p ~/.jump && cp ../preferences/jump.bookmarks ~/.jump/bookmarks
 [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
 cat << EOF > ~/.config/starship.toml
+format = "$all${custom.tmc}$character"
+
 [kubernetes]
+disabled = false
+
+[custom.tmc]
+description = "Display the current tmc context"
+command = "tmc system context list -o json | jq -r .[].full_name.name"
+when= "command -v tmc 1>/dev/null 2>&1"
 disabled = false
 EOF
