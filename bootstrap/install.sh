@@ -31,7 +31,7 @@ bi glances lazydocker   # monitoring
 bi jq yq bat hstr tree # misc tools
 bi ncdu # disk management
 bi speedtest-cli    # network tools
-bi kubectl kustomize helm kube-ps1 skaffold # k8s tooling
+bi kubectl kubectx kustomize helm skaffold  # k8s tooling
 bi minikube kind    # vrtual k8s cluster
 minikube config set memory 4096
 
