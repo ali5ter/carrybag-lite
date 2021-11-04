@@ -26,7 +26,7 @@ source <(tmc completion bash)
 
 # TMC prompt
 # shellcheck disable=SC1091
-source "$HOME/Projects/VMware/tmc-prompt/tmc_prompt.sh"
+source "$HOME/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh"
 
 # Tanzu (TCE) CLI
 # @ref https://github.com/vmware-tanzu/community-edition
