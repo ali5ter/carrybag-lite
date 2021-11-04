@@ -24,6 +24,10 @@ source ~/.velero_completion.sh
 # shellcheck disable=SC1090
 source <(tmc completion bash)
 
+# TMC prompt
+# shellcheck disable=SC1091
+source "$HOME/Projects/VMware/tmc-prompt/tmc_prompt.sh"
+
 # Tanzu (TCE) CLI
 # @ref https://github.com/vmware-tanzu/community-edition
 if ! command -v tanzu 1>/dev/null 2>&1; then
@@ -31,15 +35,18 @@ if ! command -v tanzu 1>/dev/null 2>&1; then
     brew install tanzu-community-edition
     /usr/local/Cellar/tanzu-community-edition/v0.9.1/libexec/configure-tce.sh
 fi
+# shellcheck disable=SC1090
 source <(tanzu completion bash)
 
 # Clarity fonts
 # @ref https://clarity.design/get-started/design/
+# shellcheck disable=SC2012
 [ "$(ls -1qA ~/Library/Fonts/ClarityCity* 2>/dev/null | wc -l)" -eq "0" ] && {
     git clone git@github.com:vmware/clarity-city.git
     cp clarity-city/TrueType/ClarityCity* ~/Library/Fonts/
     rm -fR clarity-city
 }
+# shellcheck disable=SC2012
 [ "$(ls -1qA ~/Library/Fonts/Consolas* 2>/dev/null | wc -l)" -eq "0"  ] && {
     echo "✋ Download and install the Consolas font from https://fontsgeek.com/fonts/Consolas-Regular"
 }

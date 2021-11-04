@@ -25,8 +25,9 @@ source ~/.colors.bash
 # @ref https://github.com/rupa/z
 [ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
 [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
-source ~/.z.sh
-# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+source "$HOME/.z.sh"
+# shellcheck disable=SC2034
 _Z_CMD=jump
 
 # Word string

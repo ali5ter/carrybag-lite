@@ -28,7 +28,7 @@ bi starship # prompt
 bi git svn node go python  # dev
 brew unlink python && brew link python
 bi glances lazydocker   # monitoring
-bi jq yq bat hstr tree # misc tools
+bi jq yq bat hstr tree asciinema    # misc tools
 bi ncdu # disk management
 bi speedtest-cli    # network tools
 bi kubectl kubectx kustomize helm skaffold  # k8s tooling
@@ -85,14 +85,14 @@ ln -sf ~/Library/Python/2.7/bin/pip /usr/local/bin/pip
 # mkdir -p ~/.jump && cp ../preferences/jump.bookmarks ~/.jump/bookmarks
 [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
 cat << EOF > ~/.config/starship.toml
-format = "$all${custom.tmc}$character"
+format = "${custom.tmc}$all"
 
 [kubernetes]
 disabled = false
 
 [custom.tmc]
 description = "Display the current tmc context"
-command = "tmc current | yq e '.full_name.name' -"
+command = ". /Users/bowena/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh; tmc_prompt"
 when= "command -v tmc 1>/dev/null 2>&1"
 disabled = false
 EOF
