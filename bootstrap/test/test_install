@@ -8,7 +8,7 @@ CONTAINER_NAME='test-install'
 stand_up() {
 	docker run -td --name "$CONTAINER_NAME" \
 		--rm ubuntu:18.04
-    docker cp "install.sh" "$CONTAINER_NAME":/
+    docker cp "../install.sh" "$CONTAINER_NAME":/
 	docker exec -it "$CONTAINER_NAME" "/install.sh"
 }
 

@@ -1,4 +1,4 @@
-#!/usr/installn/env bash
+#!/usr/bin/env bash
 # @file install.sh
 # Simple bootstrap for my mac(s)
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
@@ -84,7 +84,7 @@ bootstrap_mac() {
 
 bootstrap_linux() {
     sudo apt update && sudo apt upgrade && sudo dist_upgrade
-    
+
     sudo apt clean
 }
 
