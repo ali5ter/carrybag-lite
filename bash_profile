@@ -9,6 +9,8 @@ shopt -s cdspell        # corrected minor spelling errors during cd
 # @ref https://www.linuxjournal.com/content/using-bash-history-more-efficiently-histcontrol
 HISTCONTROL=ignoreboth
 CDATE=$(date '+%Y%m%d')
+# Enable ls colors
+export CLICOLOR=1
 
 # OS specific settings (perhaps check for platform before applything)
 # Turn on Touch ID for sudo auth

@@ -27,13 +27,12 @@ transfer_using_rsync() {
     local dir="$1"
     local force="${2-existing}"
     local oDir="$PWD"
-    local err=''
     #[ -e "$dir" ] || mkdir -p "$dir"
     echo "🚛 Migrating $dir"
     while true ; do
         rsync -avW --timeout="$CON_ALIVE" --progress --"$force" \
             -e "ssh -o ServerAliveInterval=$CON_ALIVE" \
-            "$USER"@"$IP":"$dir" $(dirname "$dir") && break
+            "$USER"@"$IP":"$dir" "$(dirname "$dir")" && break
         echo "🎬 Retrying migration $dir..."
         sleep 10
     done
@@ -42,6 +41,7 @@ transfer_using_rsync() {
 
 promptForNull() {
     local value="$1"; shift
+    # shellcheck disable=2124
     local msg="$@"
     if [[ "$value" == 'null' ]]; then
         read -p "✋ $msg " -r
@@ -68,7 +68,7 @@ IP=$(promptForNull "$IP" "You forgot to give me the FQDN or IP for the remote sy
     ssh-keygen -q -b 2048 -t rsa -N "" -f ~/.ssh/id_rsa
 }
 echo "🔐 Copying ssh key file to remote system"
-ssh-copy-id $USER@$IP
+ssh-copy-id "$USER@$IP"
 
 cd ~ || exit
 
