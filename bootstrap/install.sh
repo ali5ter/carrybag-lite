@@ -3,13 +3,8 @@
 # Simple bootstrap for my mac(s)
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-[[ -n $DEBUG ]] && set -x
-set -eou pipefail
-
-IS_MAC=$([[ "$OSTYPE" =~ 'darwin' ]])
-
 install() {
-    if $IS_MAC; then
+    if [[ "$OSTYPE" == "darwin"* ]]; then
         brew install "$@"
         # use `install --cask` for brew cask install
     else
@@ -18,18 +13,18 @@ install() {
 }
 
 src_dir() {
-    if [[ $IS_MAC ]]; then
-        [[ -d ~/Documents/projects ]] && mkdir -p ~/Documents/projects
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        [[ -d ~/Documents/projects ]] || mkdir -p ~/Documents/projects
         echo ~/Documents/projects
     else
-        [[ -d ~/src ]] && mkdir -p ~/src
+        [[ -d ~/src ]] || mkdir -p ~/src
         echo ~/src
     fi
 }
 
 install_brew() {
     # @ref https://brew.sh/
-    /installn/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     brew tap homebrew/cask
     brew tap homebrew/cask-versions
     brew tap homebrew/cask-fonts
@@ -43,7 +38,6 @@ bootstrap_mac() {
     install bash # latest bash
     install shellcheck vim watch # editing
     install bash-completion  # auto-completion
-    install starship # prompt
     # install powerline-go # prompt
     install git svn node go python  # dev
     brew unlink python && brew link python
@@ -66,8 +60,6 @@ bootstrap_mac() {
     install --cask charles little-snitch tunnelblick fing  # network tools
     # install --cask wireshark # Issue https://github.com/caskroom/homebrew-cask/issues/40867
     install --cask cleanmymac  # housekeeping
-    install --cask docker  # container support
-    # install --cask rancher-desktop # alt container support
     # install --cask axure-rp    # wire-framing/prototyping
     # install --cask sketch sketch-toolbox   # wire-framing/prototyping
     install --cask figma miro  # wire-framing/prototyping
@@ -83,17 +75,30 @@ bootstrap_mac() {
 }
 
 bootstrap_linux() {
-    sudo apt update && sudo apt upgrade && sudo dist_upgrade
+    if ! type sudo >/dev/null 2>/dev/null; then
+        apt upgrade && apt update
+        apt install -y sudo
+    fi
+    sudo apt update && sudo apt upgrade
 
-    sudo apt clean
+    install curl    # download
+    install shellcheck vim watch    # editing
+    install git python  # dev
+    # install nodejs npm golang # more dev
+    install speedtest-cli    # network tools
+    install fontconfig  # font tools
+
+    bash -c "$(curl -fsSL https://starship.rs/install.sh)" -- -y
+
+    sudo apt autoremove && sudo apt clean
 }
 
 install_carrybag() {
     cd "$(src_dir)" || exit 1
     git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
     ln bash_profile ~/.bash_profile
-    ln bash_local_work ~/.bash_local
-    [[ $IS_MAC ]] || ln ~/.bash_profile .bashrc_aliases
+    ln bashrc_local_work ~/.bashrc_local
+    [[ "$OSTYPE" == "darwin"* ]] || ln ~/.bash_profile .bashrc_aliases
 }
 
 install_powerline_fonts() {
@@ -104,7 +109,26 @@ install_powerline_fonts() {
 
 install_nerd_fonts() {
     # @ref https://www.nerdfonts.com/font-downloads
-    [[ $IS_MAC ]] && install --cask font-source-code-pro
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install --cask font-source-code-pro
+    else
+        [[ -d ~/.fonts ]] || mkdir -p ~/.fonts
+        cd ~/.fonts || exit
+        curl -fLo "Source Code Pro Nerd Font Complete.ttf" \
+            https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf
+        sudo fc-cache
+    fi
+}
+
+install_docker() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install --cask docker  # container support
+        # install --cask rancher-desktop # alt container support
+    else
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        bash get-docker.sh && rm -f get-docker.sh
+        usermod -aG docker "$(whoami)"
+    fi
 }
 
 # Install legacy pip for non-migrated python tools
@@ -113,10 +137,14 @@ install_legacy_pip() {
     ln -sf ~/Library/Python/2.7/installn/pip /usr/local/installn/pip
 }
 
-config_starship() {
+install_starship() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install starship
+    else
+        bash -c "$(curl -fsSL https://starship.rs/install.sh)" -- -y
+    fi
     [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
-    # shellcheck disable=2154
-    cat << EOF > ~/.config/starship.toml
+    cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
 format = "${custom.tmc}$all"
 
 [kubernetes]
@@ -127,17 +155,23 @@ description = "Display the current tmc context"
 command = ". /Users/bowena/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh; tmc_prompt"
 when= "command -v tmc 1>/dev/null 2>&1"
 disabled = false
-EOF
+END_OF_STARSHIP_CONFIG
 }
 
 main() {
-    if [[ $IS_MAC ]]; then
+    [[ -n $DEBUG ]] && set -x
+    set -eou pipefail
+
+    if [[ "$OSTYPE" == "darwin"* ]]; then
         bootstrap_mac
     else
         bootstrap_linux
     fi
+    install_carrybag
     install_nerd_fonts
-    config_starship
+    install_starship
+    install_docker
 }
 
-main "$@"
+# Run script is it is not sourced
+[ "${BASH_SOURCE[0]}" -ef "$0" ] && main "$@"
