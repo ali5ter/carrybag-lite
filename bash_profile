@@ -46,7 +46,7 @@ export NVM_DIR="$HOME/.nvm"
 
 # Safe Python version management using pyenv
 # @ref https://opensource.com/article/19/5/python-3-default-mac
-if command -v pyenv 1>/dev/null 2>&1; then
+if ! type pyenv >/dev/null 2>&1; then
     PATH="$(pyenv root)/shims:$PATH"
     eval "$(pyenv init -)"
 fi
@@ -78,12 +78,12 @@ alias mk=minikube
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
-if command -v kubectl 1>/dev/null 2>&1; then
+if ! type kubectl >/dev/null 2>&1; then
     # shellcheck disable=SC1090
     source <(kubectl completion bash)
     complete -F __start_kubectl k
 fi
-if command -v minikube 1>/dev/null 2>&1; then
+if ! type minikube >/dev/null 2>&1; then
 # shellcheck disable=SC1090
     source <(minikube completion bash)
     complete -F __start_minikube mk
@@ -130,7 +130,7 @@ kubeconf >/dev/null
 
 # Prompts
 # @ref https://starship.rs/
-if command -v starship 1>/dev/null 2>&1; then
+if type starship >/dev/null 2>&1; then
     eval "$(starship init bash)"
 fi
 # @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
@@ -140,7 +140,7 @@ PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
 # History manager
 # @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
-if command -v hstr 1>/dev/null 2>&1; then
+if type hstr >/dev/null 2>&1; then
     alias hh=hstr                    # hh to be alias for hstr
     export HSTR_CONFIG=hicolor       # get more colors
     shopt -s histappend              # append new history items to .bash_history

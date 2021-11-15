@@ -5,6 +5,7 @@
 
 install() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        type brew >/dev/null 2>/dev/null || install_brew
         brew install "$@"
         # use `install --cask` for brew cask install
     else
@@ -31,7 +32,7 @@ install_brew() {
 }
 
 bootstrap_mac() {
-    install_brew
+    brew update && brew upgrade && brew cleanup;
 
     # CMDL applications
     # @ref https://formulae.brew.sh/formula/
@@ -42,7 +43,7 @@ bootstrap_mac() {
     install git svn node go python  # dev
     brew unlink python && brew link python
     install glances lazydocker   # monitoring
-    install jq yq bat hstr tree asciinema    # misc tools
+    install jq yq bat tree asciinema    # misc tools
     install ncdu # disk management
     install speedtest-cli    # network tools
     install kubectl kubectx kustomize helm skaffold  # k8s tooling
@@ -81,27 +82,30 @@ bootstrap_linux() {
     fi
     sudo apt update && sudo apt upgrade
 
-    install curl    # download
+    install curl wget gnupg # download & certs
     install shellcheck vim watch    # editing
     install git python  # dev
     # install nodejs npm golang # more dev
     install speedtest-cli    # network tools
     install fontconfig  # font tools
 
-    bash -c "$(curl -fsSL https://starship.rs/install.sh)" -- -y
-
     sudo apt autoremove && sudo apt clean
 }
 
 install_carrybag() {
+    # @ref https://github.com/ali5ter/carrybag-lite
     cd "$(src_dir)" || exit 1
     git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
-    ln bash_profile ~/.bash_profile
-    ln bashrc_local_work ~/.bashrc_local
-    [[ "$OSTYPE" == "darwin"* ]] || ln ~/.bash_profile .bashrc_aliases
+    ln -sf "$PWD/bash_profile" ~/.bash_profile
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        ln -sf "$PWD/bashrc_local_work" ~/.bashrc_local
+    else 
+        ln -sf ~/.bash_profile ~/.bash_aliases
+    fi
 }
 
 install_powerline_fonts() {
+    # @ref https://github.com/powerline/fonts
     cd "$(src_dir)" || exit 1
     git clone https://github.com/powerline/fonts.git --depth=1 && cd fonts
     ./install.sh
@@ -125,6 +129,7 @@ install_docker() {
         install --cask docker  # container support
         # install --cask rancher-desktop # alt container support
     else
+        # @ref https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script
         curl -fsSL https://get.docker.com -o get-docker.sh
         bash get-docker.sh && rm -f get-docker.sh
         usermod -aG docker "$(whoami)"
@@ -138,6 +143,7 @@ install_legacy_pip() {
 }
 
 install_starship() {
+    # @ref https://starship.rs
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install starship
     else
@@ -158,6 +164,19 @@ disabled = false
 END_OF_STARSHIP_CONFIG
 }
 
+install_hstr() {
+    # @ref https://github.com/dvorka/hstr
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install hstr
+    else
+        # shellcheck disable=SC2024
+        sudo echo -e "\ndeb https://www.mindforger.com/debian stretch main" >> /etc/apt/sources.list
+        wget -qO - https://www.mindforger.com/gpgpubkey.txt | sudo apt-key add -
+        sudo apt update
+        sudo apt install hstr
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -170,6 +189,7 @@ main() {
     install_carrybag
     install_nerd_fonts
     install_starship
+    install_hstr
     install_docker
 }
 
