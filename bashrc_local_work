@@ -1,44 +1,47 @@
 #!/usr/bin/env bash
 
-vmw_whois() {
-    # VMware specific whois
-    local name="$*"
-    #ref https://source.vmware.com/portal/search/people?q=alister&aq=(@cnbd%3D%22alister%22%20OR%20@ucnbd%3D%22alister%22)&client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606940050&allPeople=true
-    local url_base='https://source.vmware.com/portal/search/people?'
-    local url_query_attributes="client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606938064&allPeople=true"
-    name="${name//+([[:space:]])/%20}"
-    local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
-    open "${url_base}${url_query}&${url_query_attributes}"
+# Completion
+
+# @ref https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
+type kubectl >/dev/null 2>&1 || {
+    # shellcheck disable=SC1090
+    source <(kubectl completion bash)
+    [[ -f /usr/local/etc/bash_completion.d/kubectl ]] || kubectl completion bash >/usr/local/etc/bash_completion.d/kubectl
+    complete -F __start_kubectl k
 }
 
-# Velero CLI
+type minikube >/dev/null 2>&1 || {
+# shellcheck disable=SC1090
+    source <(minikube completion bash)
+    [[ -f /usr/local/etc/bash_completion.d/minikube ]] || minikube completion bash >/usr/local/etc/bash_completion.d/minikube
+    complete -F __start_minikube mk
+}
+
 [ -f ~/.velero_completion.sh ] || curl -s -o ~/.velero_completion.sh https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp4/results/velero_completion.sh
 # shellcheck disable=SC1090
 source ~/.velero_completion.sh
 
-# TKG CLI
-# shellcheck disable=SC1090
-# source <(tmc completion bash)
-
-# TMC CLI
-# shellcheck disable=SC1090
-source <(tmc completion bash)
-
-# TMC prompt
-# shellcheck disable=SC1091
-source "$HOME/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh"
-
-# Tanzu (TCE) CLI
 # @ref https://github.com/vmware-tanzu/community-edition
-if ! command -v tanzu 1>/dev/null 2>&1; then
+type tanzu >/dev/null 2>&1 || {
     brew tap vmware-tanzu/tanzu
     brew install tanzu-community-edition
     /usr/local/Cellar/tanzu-community-edition/v0.9.1/libexec/configure-tce.sh
-fi
+}
 # shellcheck disable=SC1090
 source <(tanzu completion bash)
+[[ -f /usr/local/etc/bash_completion.d/tanzu ]] || minikube completion bash >/usr/local/etc/bash_completion.d/tanzu
+    
+# shellcheck disable=SC1090
+source <(tmc completion bash)
+[[ -f /usr/local/etc/bash_completion.d/tmc ]] || minikube completion bash >/usr/local/etc/bash_completion.d/tmc
 
-# Clarity fonts
+# Prompt
+
+# shellcheck disable=SC1091
+source "$HOME/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh"
+
+# Fonts
+
 # @ref https://clarity.design/get-started/design/
 # shellcheck disable=SC2012
 [ "$(ls -1qA ~/Library/Fonts/ClarityCity* 2>/dev/null | wc -l)" -eq "0" ] && {
@@ -46,6 +49,7 @@ source <(tanzu completion bash)
     cp clarity-city/TrueType/ClarityCity* ~/Library/Fonts/
     rm -fR clarity-city
 }
+
 # shellcheck disable=SC2012
 [ "$(ls -1qA ~/Library/Fonts/Consolas* 2>/dev/null | wc -l)" -eq "0"  ] && {
     echo "✋ Download and install the Consolas font from https://fontsgeek.com/fonts/Consolas-Regular"
@@ -56,3 +60,16 @@ source <(tanzu completion bash)
 if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/path.bash.inc'; fi
 # shellcheck disable=SC1091
 if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
+
+# Functions
+
+vmw_whois() {
+    # VMware specific whois
+    local name="$*"
+    #ref https://source.vmware.com/portal/search/people?q=alister&aq=(@cnbd%3D%22alister%22%20OR%20@ucnbd%3D%22alister%22)&client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606940050&allPeople=true
+    local url_base='https://source.vmware.com/portal/search/people?'
+    local url_query_attributes="client=InternalPeopleSearch&Tab=vmwarepeople&start=0&num=20&sid=1606938064&allPeople=true"
+    name="${name//+([[:space:]])/%20}"
+    local url_query="q=${name}&aq=(@cnbd%3D%22${name}%22%20OR%20@ucnbd%3D%22${name}%22)"
+    open "${url_base}${url_query}&${url_query_attributes}"
+}

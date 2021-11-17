@@ -38,7 +38,7 @@ bootstrap_mac() {
     # @ref https://formulae.brew.sh/formula/
     install bash # latest bash
     install shellcheck vim watch # editing
-    install bash-completion  # auto-completion
+    install bash-completion@2  # auto-completion
     # install powerline-go # prompt
     install git svn node go python  # dev
     brew unlink python && brew link python

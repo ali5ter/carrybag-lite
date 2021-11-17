@@ -46,10 +46,10 @@ export NVM_DIR="$HOME/.nvm"
 
 # Safe Python version management using pyenv
 # @ref https://opensource.com/article/19/5/python-3-default-mac
-if ! type pyenv >/dev/null 2>&1; then
+type pyenv >/dev/null 2>&1 || {
     PATH="$(pyenv root)/shims:$PATH"
     eval "$(pyenv init -)"
-fi
+}
 
 # Paths
 export PATH="/usr/local/sbin:$PATH"
@@ -66,27 +66,42 @@ alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
 alias gs="git status"
 alias fixcamera="sudo killall AppleCameraAssistant;sudo killall VDCAssistant"
-alias more=bat
-alias less=bat
-alias k=kubectl
-alias kc=kubectx
-alias kn=kubens
-alias mk=minikube
+type bat >/dev/null 2>&1 || {
+    alias more=bat
+    alias less=bat
+}
 
 # Completion
-# @ref https://kubernetes.io/docs/tasks/tools/install-kubectl/#optional-kubectl-configurations
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
-if ! type kubectl >/dev/null 2>&1; then
-    # shellcheck disable=SC1090
-    source <(kubectl completion bash)
-    complete -F __start_kubectl k
-fi
-if ! type minikube >/dev/null 2>&1; then
-# shellcheck disable=SC1090
-    source <(minikube completion bash)
-    complete -F __start_minikube mk
+
+# Prompts
+
+# @ref https://starship.rs/
+type starship >/dev/null 2>&1 || {
+    eval "$(starship init bash)"
+}
+# @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
+# shellcheck disable=SC2154
+PS2="${cyan}…${normal} "            # continuation
+PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
+
+# History manager
+# @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
+if type hstr >/dev/null 2>&1; then
+    alias hh=hstr                    # hh to be alias for hstr
+    export HSTR_CONFIG=hicolor       # get more colors
+    shopt -s histappend              # append new history items to .bash_history
+    export HISTCONTROL=ignorespace   # leading space hides commands from history
+    export HISTFILESIZE=10000        # increase history file size (default is 500)
+    export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
+    # ensure synchronization between bash memory and history file
+    export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
+    # if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
+    if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
+    # if this is interactive shell, then bind 'kill last command' to Ctrl-x k
+    if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
 fi
 
 # Functions
@@ -127,33 +142,6 @@ kubeconf >/dev/null
         brew_update
     fi
 }
-
-# Prompts
-# @ref https://starship.rs/
-if type starship >/dev/null 2>&1; then
-    eval "$(starship init bash)"
-fi
-# @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
-# shellcheck disable=SC2154
-PS2="${cyan}…${normal} "            # continuation
-PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
-
-# History manager
-# @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
-if type hstr >/dev/null 2>&1; then
-    alias hh=hstr                    # hh to be alias for hstr
-    export HSTR_CONFIG=hicolor       # get more colors
-    shopt -s histappend              # append new history items to .bash_history
-    export HISTCONTROL=ignorespace   # leading space hides commands from history
-    export HISTFILESIZE=10000        # increase history file size (default is 500)
-    export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
-    # ensure synchronization between bash memory and history file
-    export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
-    # if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
-    if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
-    # if this is interactive shell, then bind 'kill last command' to Ctrl-x k
-    if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
-fi
 
 # Additional configurations/overrides
 # shellcheck disable=SC1091
