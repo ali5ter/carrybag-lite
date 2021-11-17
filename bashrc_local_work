@@ -7,14 +7,12 @@ type kubectl >/dev/null 2>&1 || {
     # shellcheck disable=SC1090
     source <(kubectl completion bash)
     [[ -f /usr/local/etc/bash_completion.d/kubectl ]] || kubectl completion bash >/usr/local/etc/bash_completion.d/kubectl
-    complete -F __start_kubectl k
 }
 
 type minikube >/dev/null 2>&1 || {
 # shellcheck disable=SC1090
     source <(minikube completion bash)
     [[ -f /usr/local/etc/bash_completion.d/minikube ]] || minikube completion bash >/usr/local/etc/bash_completion.d/minikube
-    complete -F __start_minikube mk
 }
 
 [ -f ~/.velero_completion.sh ] || curl -s -o ~/.velero_completion.sh https://raw.githubusercontent.com/ali5ter/cli_taxo/master/exp4/results/velero_completion.sh
