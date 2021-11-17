@@ -115,18 +115,6 @@ ostype() {
     fi
 }
 
-kubeconf() {
-    # Merge all kubeconfig files in ~/.kube into KUBECONFIG
-    # @ref https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
-    local confs=''
-    for file in ~/.kube/*config*; do
-        confs="${confs}$file:";
-    done
-    export KUBECONFIG="$confs"
-    env | grep KUBECONFIG
-}
-kubeconf >/dev/null
-
 [[ "$OSTYPE" == 'darwin'* ]] && {
     brew_update() {
         # Additional homebrew housekeeping
