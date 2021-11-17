@@ -27,11 +27,11 @@ type tanzu >/dev/null 2>&1 || {
 }
 # shellcheck disable=SC1090
 source <(tanzu completion bash)
-[[ -f /usr/local/etc/bash_completion.d/tanzu ]] || minikube completion bash >/usr/local/etc/bash_completion.d/tanzu
+[[ -f /usr/local/etc/bash_completion.d/tanzu ]] || tanzu completion bash >/usr/local/etc/bash_completion.d/tanzu
     
 # shellcheck disable=SC1090
 source <(tmc completion bash)
-[[ -f /usr/local/etc/bash_completion.d/tmc ]] || minikube completion bash >/usr/local/etc/bash_completion.d/tmc
+[[ -f /usr/local/etc/bash_completion.d/tmc ]] || tmc completion bash >/usr/local/etc/bash_completion.d/tmc
 
 # Prompt
 
