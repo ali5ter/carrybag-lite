@@ -177,6 +177,15 @@ install_hstr() {
     fi
 }
 
+install_pyenv() {
+    # @ref https://github.com/pyenv/pyenv-installer
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install pyenv
+    else
+        curl https://pyenv.run | bash
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -187,6 +196,7 @@ main() {
         bootstrap_linux
     fi
     install_carrybag
+    install_pyenv
     install_nerd_fonts
     install_starship
     install_hstr
