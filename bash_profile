@@ -46,7 +46,7 @@ export NVM_DIR="$HOME/.nvm"
 
 # Safe Python version management using pyenv
 # @ref https://opensource.com/article/19/5/python-3-default-mac
-type pyenv >/dev/null 2>&1 || {
+type pyenv >/dev/null 2>&1 && {
     PATH="$(pyenv root)/shims:$PATH"
     eval "$(pyenv init -)"
 }
@@ -66,7 +66,7 @@ alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
 alias gs="git status"
 alias fixcamera="sudo killall AppleCameraAssistant;sudo killall VDCAssistant"
-type bat >/dev/null 2>&1 || {
+type bat >/dev/null 2>&1 && {
     alias more=bat
     alias less=bat
 }
@@ -79,7 +79,7 @@ export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # Prompts
 
 # @ref https://starship.rs/
-type starship >/dev/null 2>&1 || {
+type starship >/dev/null 2>&1 && {
     eval "$(starship init bash)"
 }
 # @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
@@ -89,7 +89,7 @@ PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
 # History manager
 # @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
-if type hstr >/dev/null 2>&1; then
+type hstr >/dev/null 2>&1 && {
     alias hh=hstr                    # hh to be alias for hstr
     export HSTR_CONFIG=hicolor       # get more colors
     shopt -s histappend              # append new history items to .bash_history
@@ -102,7 +102,7 @@ if type hstr >/dev/null 2>&1; then
     if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
     # if this is interactive shell, then bind 'kill last command' to Ctrl-x k
     if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
-fi
+}
 
 # Functions
 
