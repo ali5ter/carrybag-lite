@@ -96,9 +96,9 @@ install_carrybag() {
     # @ref https://github.com/ali5ter/carrybag-lite
     cd "$(src_dir)" || exit 1
     git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
-    ln -sf "$PWD/bash_profile" ~/.bash_profile
+    ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        ln -sf "$PWD/bashrc_local_work" ~/.bashrc_local
+        ln -sf "$(src_dir)/carrybag-lite/bashrc_local_work" ~/.bashrc_local
     else 
         ln -sf ~/.bash_profile ~/.bash_aliases
     fi
