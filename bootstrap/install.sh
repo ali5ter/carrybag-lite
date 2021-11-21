@@ -169,8 +169,7 @@ install_hstr() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install hstr
     else
-        # shellcheck disable=SC2024
-        sudo echo -e "\ndeb https://www.mindforger.com/debian stretch main" >> /etc/apt/sources.list
+        sudo echo -e "\ndeb https://www.mindforger.com/debian stretch main" | sudo tee -a /etc/apt/sources.list
         wget -qO - https://www.mindforger.com/gpgpubkey.txt | sudo apt-key add -
         sudo apt update
         sudo apt install hstr

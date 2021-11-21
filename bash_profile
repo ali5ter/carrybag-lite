@@ -72,6 +72,7 @@ type bat >/dev/null 2>&1 && {
 }
 
 # Completion
+# @ref https://github.com/scop/bash-completion
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
