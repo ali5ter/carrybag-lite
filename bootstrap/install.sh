@@ -3,16 +3,6 @@
 # Simple bootstrap for my mac(s)
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-install() {
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        type brew >/dev/null 2>/dev/null || install_brew
-        brew install "$@"
-        # use `install --cask` for brew cask install
-    else
-        sudo apt install -y "$@"
-    fi
-}
-
 src_dir() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         [[ -d ~/Documents/projects ]] || mkdir -p ~/Documents/projects
@@ -31,17 +21,54 @@ install_brew() {
     brew tap homebrew/cask-fonts
 }
 
+install() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        type brew >/dev/null 2>/dev/null || install_brew
+        brew install "$@"
+        # use `install --cask` for brew cask install
+    else
+        sudo apt install -y "$@"
+    fi
+}
+
+install_pyenv() {
+    # @ref https://github.com/pyenv/pyenv-installer
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install pyenv
+    else
+        # @ref https://bgasparotto.com/install-pyenv-ubuntu-debian
+        install make build-essential libssl-dev zlib1g-dev libbz2-dev \
+            libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+            xz-utils tk-dev libffi-dev liblzma-dev
+        curl https://pyenv.run | bash
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+    fi
+    eval "$(pyenv init -)"
+    # Lastest version of python at time of commit
+    # Use `pyenv install --list` for latest
+    # @ref https://opensource.com/article/20/4/pyenv
+    pyenv install 3.10.0
+    pyenv install 2.7.18    # last version of 2
+    pyenv global 3.10.0
+    pyenv versions    # confirm current version is set
+
+    # can set a local version of python for particular projects using
+    # pyenv local <version>
+}
+
 bootstrap_mac() {
     brew update && brew upgrade && brew cleanup;
 
     # CMDL applications
     # @ref https://formulae.brew.sh/formula/
     install bash # latest bash
+    install git svn # dwonload
+    install_pyenv   # do python install right
     install shellcheck vim watch # editing
     install bash-completion@2  # auto-completion
     # install powerline-go # prompt
-    install git svn node go python  # dev
-    brew unlink python && brew link python
+    install node go # dev
     install glances lazydocker   # monitoring
     install jq yq bat tree asciinema    # misc tools
     install ncdu # disk management
@@ -82,10 +109,10 @@ bootstrap_linux() {
     fi
     sudo apt update && sudo apt upgrade
 
-    install curl wget gnupg # download & certs
-    install shellcheck vim watch    # editing
-    install git python  # dev
+    install curl wget gnupg git # download & certs
+    install_pyenv   # do python install right
     # install nodejs npm golang # more dev
+    install shellcheck vim watch    # editing
     install speedtest-cli    # network tools
     install fontconfig  # font tools
 
@@ -176,15 +203,6 @@ install_hstr() {
     fi
 }
 
-install_pyenv() {
-    # @ref https://github.com/pyenv/pyenv-installer
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        install pyenv
-    else
-        curl https://pyenv.run | bash
-    fi
-}
-
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -195,7 +213,6 @@ main() {
         bootstrap_linux
     fi
     install_carrybag
-    install_pyenv
     install_nerd_fonts
     install_starship
     install_hstr
