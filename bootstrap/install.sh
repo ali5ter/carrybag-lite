@@ -159,7 +159,7 @@ install_docker() {
         # @ref https://docs.docker.com/engine/install/debian/#install-using-the-convenience-script
         curl -fsSL https://get.docker.com -o get-docker.sh
         bash get-docker.sh && rm -f get-docker.sh
-        usermod -aG docker "$(whoami)"
+        sudo usermod -aG docker "$(whoami)"
     fi
 }
 
