@@ -124,7 +124,16 @@ ostype() {
     fi
 }
 
+function cwc() {
+    local clue="$*"
+    open "http://danword.com/crossword/$clue"
+}
+
 [[ "$OSTYPE" == 'darwin'* ]] && {
+    if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
+        # shellcheck disable=SC2155
+        export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
+    fi
     brew_update() {
         # Additional homebrew housekeeping
         brew update && brew upgrade && brew cleanup; 
@@ -143,3 +152,9 @@ ostype() {
 # Additional configurations/overrides
 # shellcheck disable=SC1091
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/bowena/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/Downloads/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/bowena/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/Downloads/google-cloud-sdk/completion.bash.inc'; fi

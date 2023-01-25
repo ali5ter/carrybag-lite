@@ -99,7 +99,7 @@ bootstrap_mac() {
     # install --cask xscope
     # install --cask webstorm
     # install --cask caskroom/versions/microsoft-remote-desktop-beta
-    install --cask turbovnc-viewer  # remote access
+    install --cask vnc-viewer  # remote access
 }
 
 bootstrap_linux() {

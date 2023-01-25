@@ -28,7 +28,10 @@ type tanzu >/dev/null 2>&1 || {
 # shellcheck disable=SC1090
 source <(tanzu completion bash)
 [[ -f /usr/local/etc/bash_completion.d/tanzu ]] || tanzu completion bash >/usr/local/etc/bash_completion.d/tanzu
-    
+
+# @ref https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-install-general.html#tanzu-cli-clean-install
+export TANZU_CLI_NO_INIT=true
+
 # shellcheck disable=SC1090
 source <(tmc completion bash)
 [[ -f /usr/local/etc/bash_completion.d/tmc ]] || tmc completion bash >/usr/local/etc/bash_completion.d/tmc
