@@ -48,13 +48,14 @@ export NVM_DIR="$HOME/.nvm"
 if [[ "$OSTYPE" == "darwin"* ]]; then
     type pyenv >/dev/null 2>&1 && {
         # @ref https://opensource.com/article/19/5/python-3-default-mac
-        PATH="$(pyenv root)/shims:$PATH"
+        eval "$(pyenv init --path)"
         eval "$(pyenv init -)"
     }
 else
     [[ -f "$HOME/.pyenv/bin/pyenv" ]] && {
         export PYENV_ROOT="$HOME/.pyenv"
         export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init --path)"
         eval "$(pyenv init -)"
     }
 fi
