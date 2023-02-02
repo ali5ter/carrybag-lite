@@ -70,16 +70,20 @@ type sheepctl >/dev/null 2>&1 && {
     [ -z "$SHEPERD_LOCAL_NAMESPACE" ] && export SHEPHERD_LOCK_NAMESPACE=tmc-crow
     [ -z "$SHEPHERD_LOCK_STORE" ] && export SHEPHERD_LOCK_STORE="$HOME/.config/shepherd_lock_ids.txt"
     [ -e "$SHEPHERD_LOCK_STORE" ] || touch "$SHEPHERD_LOCK_STORE"
-    shepherd_pools_list() {
+    .shepherd_pools_list() {
         sheepctl pool -n "$SHEPHERD_LOCK_NAMESPACE" list -j | \
             jq -r '.[] | select(.available > 0) | .name' | sort
     }
-    shepherd_lock_list() {
+    .shepherd_lock_list() {
         sort -t ':' -k 2,1 "$SHEPHERD_LOCK_STORE"
+    }
+    shepherd_current_lock() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
+        echo "✅ Current lock $SHEPHERD_LOCK_ID for pool $SHEPHERD_POOL in namespace $SHEPHERD_LOCK_NAMESPACE"
     }
     shepherd_lock_select() {
         # shellcheck disable=SC2155
-        local lock_entry="$(shepherd_lock_list | fzf --height 10 --layout=reverse --prompt="Select a lock: ")"
+        local lock_entry="$(.shepherd_lock_list | fzf --height 10 --layout=reverse --prompt="Select a lock: ")"
         # shellcheck disable=SC2155
         export SHEPHERD_LOCK_ID="$(echo "$lock_entry" | cut -d ':' -f 1)"
         # shellcheck disable=SC2155
@@ -92,13 +96,11 @@ type sheepctl >/dev/null 2>&1 && {
     }
     [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
     shepherd_lock() {
-        set -x
         local pool lock_id
-        pool=$(shepherd_pools_list | fzf --height 10 --layout=reverse --prompt="Select a pool: ")
-        lock_id=$(sheepctl pool lock "$SHEPHERD_POOL" -n "$SHEPHERD_LOCK_NAMESPACE" --lifetime 1d -t=false 2>&1 | grep 'with ID' | cut -d' ' -f9)
+        pool=$(.shepherd_pools_list | fzf --height 10 --layout=reverse --prompt="Select a pool: ")
+        lock_id=$(sheepctl pool lock "$SHEPHERD_POOL" -n "$SHEPHERD_LOCK_NAMESPACE" -t=false 2>&1 | grep 'with ID' | cut -d' ' -f9)
         export SHEPHERD_POOL="$pool"
         export SHEPHERD_LOCK_ID="$lock_id"
-        set +x
         echo "$SHEPHERD_LOCK_ID:$SHEPHERD_POOL:$SHEPHERD_LOCK_NAMESPACE" >> "$SHEPHERD_LOCK_STORE"
         echo "✅ Created lock $SHEPHERD_LOCK_ID for pool $SHEPHERD_POOL in namespace $SHEPHERD_LOCK_NAMESPACE"
         echo "🔋 Use 'shepherd_extend' to extend the lease of an environment"
@@ -118,6 +120,10 @@ type sheepctl >/dev/null 2>&1 && {
     }
     shepherd_kubeconfig() {
         sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" kubeconfig "$SHEPHERD_LOCK_ID"
+    }
+    shepherd_delete() {
+        sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" delete "$SHEPHERD_LOCK_ID"
+        echo "✅ Deleted lock $SHEPHERD_LOCK_ID for pool $SHEPHERD_POOL in namespace $SHEPHERD_LOCK_NAMESPACE"
     }
 }
 
