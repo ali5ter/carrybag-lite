@@ -61,7 +61,6 @@ if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/b
 
 # shepherd config
 # @ref https://via.vmw.com/TKP-CreateMgmtCluster
-# TODO - installation of shepherd
 type sheepctl >/dev/null 2>&1 || {
     echo "✋ Install shepherd"
     brew tap vmware/internal git@gitlab.eng.vmware.com:homebrew/internal.git && \
