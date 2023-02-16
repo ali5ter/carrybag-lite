@@ -94,7 +94,6 @@ type sheepctl >/dev/null 2>&1 && {
         echo "🚀 Use 'shepherd_lock' to create an environment to host a TKG management cluster"
         echo "⏳ Use 'shepherd_staus' to check the status of and environment"
     }
-    [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
     shepherd_lock() {
         local pool lock_id
         pool=$(.shepherd_pools_list | fzf --height 10 --layout=reverse --prompt="Select a pool: ")
@@ -108,20 +107,25 @@ type sheepctl >/dev/null 2>&1 && {
         echo "🔑 Use 'shepherd_kubeconfig' to get the kubeconfig of the TKG management cluster in an environment"
     }
 	shepherd_status() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
 	    sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" get "$SHEPHERD_LOCK_ID"
     }
     shepherd_extend() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
         local duration="${1:-5d}"
 	    sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" extend "$SHEPHERD_LOCK_ID" -t "$duration"
         echo "✅ Extended lock $SHEPHERD_LOCK_ID for pool $SHEPHERD_POOL in namespace $SHEPHERD_LOCK_NAMESPACE for $duration"
     }
     shepherd_ssh() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
         sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" ssh "$SHEPHERD_LOCK_ID"
     }
     shepherd_kubeconfig() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
         sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" kubeconfig "$SHEPHERD_LOCK_ID"
     }
     shepherd_delete() {
+        [ -z "$SHEPHERD_LOCK_ID" ] && shepherd_lock_select
         sheepctl lock -n "$SHEPHERD_LOCK_NAMESPACE" delete "$SHEPHERD_LOCK_ID"
         echo "✅ Deleted lock $SHEPHERD_LOCK_ID for pool $SHEPHERD_POOL in namespace $SHEPHERD_LOCK_NAMESPACE"
     }
