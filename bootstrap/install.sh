@@ -63,6 +63,11 @@ bootstrap_mac() {
     # CMDL applications
     # @ref https://formulae.brew.sh/formula/
     install bash # latest bash
+    # ref: https://support.apple.com/en-us/HT208050
+    export BASH_SILENCE_DEPRECATION_WARNING=1
+    # ref: https://dev.to/bphogan/use-modern-bash-shell-on-macos-22a6
+    # echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells;
+    # chsh -s "$(brew --prefix)/bin/bash"
     install git svn # dwonload
     install_pyenv   # do python install right
     install shellcheck vim watch # editing
