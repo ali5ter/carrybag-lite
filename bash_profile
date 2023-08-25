@@ -19,9 +19,9 @@ export CLICOLOR=1
 
 # Colors
 # shellcheck disable=SC1090
-[ -f ~/.colors.bash ] || curl -s -o ~/.colors.bash https://raw.githubusercontent.com/Bash-it/bash-it/master/themes/colors.theme.bash
+#[ -f ~/.colors.bash ] || curl -s -o ~/.colors.bash https://raw.githubusercontent.com/Bash-it/bash-it/master/themes/colors.theme.bash
 # shellcheck disable=SC1090
-source ~/.colors.bash
+#source ~/.colors.bash
 
 # Bookmarking
 # @ref https://github.com/rupa/z
@@ -61,7 +61,13 @@ else
 fi
 
 # Paths
-export PATH="/usr/local/sbin:$PATH"
+pathadd() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        PATH="${PATH:+"$PATH:"}$1"
+    fi
+}
+pathadd "/usr/local/sbin:$PATH"
+pathadd "/opt/homebrew/bin:$PATH"
 
 # Editors
 set -o vi
