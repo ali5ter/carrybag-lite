@@ -137,7 +137,7 @@ function cwc() {
     fi
     brew_update() {
         # Additional homebrew housekeeping
-        brew update && brew upgrade && brew cleanup; 
+        brew update && brew upgrade && brew autoremove && brew cleanup; 
     }
     # Automate homebrew update
     UPDATE_DATE="$HOME/.last_update"
