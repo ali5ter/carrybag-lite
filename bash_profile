@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+# Paths
+pathadd() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        PATH="${PATH:+"$PATH:"}$1"
+    fi
+}
+pathadd "/usr/local/sbin"
+pathadd "/opt/homebrew/bin" # Apple Silicon architecture
+
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
 shopt -s checkwinsize   # check the window size after each command
@@ -59,15 +68,6 @@ else
         eval "$(pyenv init -)"
     }
 fi
-
-# Paths
-pathadd() {
-    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
-        PATH="${PATH:+"$PATH:"}$1"
-    fi
-}
-pathadd "/usr/local/sbin:$PATH"
-pathadd "/opt/homebrew/bin:$PATH"
 
 # Editors
 set -o vi
@@ -145,6 +145,9 @@ function cwc() {
         # Additional homebrew housekeeping
         brew update && brew upgrade && brew cleanup; 
     }
+    # Remove annying Apple msg
+    # https://support.apple.com/en-us/HT208050
+    export BASH_SILENCE_DEPRECATION_WARNING=1
     # Automate homebrew update
     UPDATE_DATE="$HOME/.last_update"
     [ -f "$UPDATE_DATE" ] || echo "00" > "$UPDATE_DATE"

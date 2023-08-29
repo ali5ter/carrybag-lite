@@ -35,6 +35,21 @@ source <(tmc completion bash)
 
 # Prompt
 
+[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
+    cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
+format = "${custom.tmc}$all"
+
+[kubernetes]
+disabled = false
+
+[custom.tmc]
+description = "Display the current tmc context"
+command = ". /Users/bowena/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh; tmc_prompt"
+when= "command -v tmc 1>/dev/null 2>&1"
+disabled = false
+END_OF_STARSHIP_CONFIG
+}
+
 # shellcheck disable=SC1091
 source "$HOME/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh"
 

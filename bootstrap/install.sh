@@ -68,13 +68,13 @@ bootstrap_mac() {
     # ref: https://dev.to/bphogan/use-modern-bash-shell-on-macos-22a6
     # echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells;
     # chsh -s "$(brew --prefix)/bin/bash"
-    install git svn # dwonload
+    install git svn # download
     install_pyenv   # do python install right
     install shellcheck vim watch # editing
     install bash-completion@2  # auto-completion
     # install powerline-go # prompt
     install node go # dev
-    install glances lazydocker   # monitoring
+    # install glances lazydocker   # monitoring
     install jq yq bat tree asciinema    # misc tools
     install ncdu # disk management
     install speedtest-cli    # network tools
@@ -87,20 +87,20 @@ bootstrap_mac() {
     # GUI applications
     # @ref https://formulae.brew.sh/cask/
     install --cask iterm2  # preferred terminal
-    install --cask google-chrome-canary    # browser
+    # install --cask google-chrome-canary    # browser
     install --cask 1password dropbox   # password vault
     install --cask caffeine divvy bartender    # windowing tools
-    install --cask charles little-snitch tunnelblick fing  # network tools
+    # install --cask charles little-snitch tunnelblick fing  # network tools
     # install --cask wireshark # Issue https://github.com/caskroom/homebrew-cask/issues/40867
     install --cask cleanmymac  # housekeeping
     # install --cask axure-rp    # wire-framing/prototyping
     # install --cask sketch sketch-toolbox   # wire-framing/prototyping
-    install --cask figma miro  # wire-framing/prototyping
+    # install --cask figma miro  # wire-framing/prototyping
     install --cask skype   # video
     # install --cask slack   # chat
     # install --cask reeder  # rss/atom-feeds
-    install --cask screenflow  # screen recording
-    install --cask visual-studio-code sourcetree pyenv  # dev
+    # install --cask screenflow  # screen recording
+    install --cask visual-studio-code sourcetree  # dev
     # install --cask xscope
     # install --cask webstorm
     # install --cask caskroom/versions/microsoft-remote-desktop-beta
@@ -171,7 +171,8 @@ install_docker() {
 # Install legacy pip for non-migrated python tools
 install_legacy_pip() {
     curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
-    ln -sf ~/Library/Python/2.7/installn/pip /usr/local/installn/pip
+    python get-pip.py
+    # ln -sf ~/Library/Python/2.7/installn/pip /usr/local/installn/pip
 }
 
 install_starship() {
@@ -183,16 +184,8 @@ install_starship() {
     fi
     [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
-format = "${custom.tmc}$all"
-
-[kubernetes]
-disabled = false
-
-[custom.tmc]
-description = "Display the current tmc context"
-command = ". /Users/bowena/Documents/Projects/VMware/tmc-prompt/tmc_prompt.sh; tmc_prompt"
-when= "command -v tmc 1>/dev/null 2>&1"
-disabled = false
+[battery]
+disabled = true
 END_OF_STARSHIP_CONFIG
 }
 
