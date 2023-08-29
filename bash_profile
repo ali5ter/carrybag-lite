@@ -143,7 +143,7 @@ function cwc() {
     fi
     brew_update() {
         # Additional homebrew housekeeping
-        brew update && brew upgrade && brew cleanup; 
+        brew update && brew upgrade && brew autoremove && brew cleanup; 
     }
     # Remove annying Apple msg
     # https://support.apple.com/en-us/HT208050
