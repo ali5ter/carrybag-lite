@@ -35,7 +35,8 @@ source <(tmc completion bash)
 
 # Prompt
 
-[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
+[ -f ~/.config/starship.toml ] || {
+    mkdir -p ~/.config && touch ~/.config/starship.toml
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
 format = "${custom.tmc}$all"
 
