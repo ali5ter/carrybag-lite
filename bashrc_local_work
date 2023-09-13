@@ -29,6 +29,18 @@ source <(tanzu completion bash)
 # @ref https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-install-general.html#tanzu-cli-clean-install
 export TANZU_CLI_NO_INIT=true
 
+tanzu_update() {
+    tanzu plugin sync 
+}
+LAST_TANZU_UPDATE="$HOME/.last_tanzu_update"
+[ -f "$LAST_TANZU_UPDATE" ] || echo "00" > "$LAST_TANZU_UPDATE"
+if [ "$CDATE" != "$(head -n 1 "$LAST_TANZU_UPDATE")" ]; then
+    echo "$CDATE" > "$LAST_TANZU_UPDATE"
+    # shellcheck disable=SC2154
+    echo -e "Checking Tanzu CLI..."
+    tanzu_update
+fi
+
 # shellcheck disable=SC1090
 # source <(tmc completion bash)
 # [[ -f /usr/local/etc/bash_completion.d/tmc ]] || tmc completion bash >/usr/local/etc/bash_completion.d/tmc

@@ -149,10 +149,10 @@ function cwc() {
     # https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
     # Automate homebrew update
-    UPDATE_DATE="$HOME/.last_update"
-    [ -f "$UPDATE_DATE" ] || echo "00" > "$UPDATE_DATE"
-    if [ "$CDATE" != "$(head -n 1 "$UPDATE_DATE")" ]; then
-        echo "$CDATE" > "$UPDATE_DATE"
+    LAST_BREW_UPDATE="$HOME/.last_brew_update"
+    [ -f "$LAST_BREW_UPDATE" ] || echo "00" > "$LAST_BREW_UPDATE"
+    if [ "$CDATE" != "$(head -n 1 "$LAST_BREW_UPDATE")" ]; then
+        echo "$CDATE" > "$LAST_BREW_UPDATE"
         # shellcheck disable=SC2154
         echo -e "Checking homebrew..."
         brew_update
