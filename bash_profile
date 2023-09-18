@@ -162,9 +162,3 @@ function cwc() {
 # Additional configurations/overrides
 # shellcheck disable=SC1091
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
-
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/bowena/Downloads/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/Downloads/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/bowena/Downloads/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/Downloads/google-cloud-sdk/completion.bash.inc'; fi

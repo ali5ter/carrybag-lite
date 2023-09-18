@@ -25,6 +25,7 @@ source ~/.velero_completion.sh
 # shellcheck disable=SC1090
 source <(tanzu completion bash)
 [[ -f /usr/local/etc/bash_completion.d/tanzu ]] || tanzu completion bash >/usr/local/etc/bash_completion.d/tanzu
+alias t=tanzu && complete -o default -F __start_tanzu t
 
 # @ref https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-install-general.html#tanzu-cli-clean-install
 export TANZU_CLI_NO_INIT=true
@@ -48,7 +49,6 @@ fi
 # Prompt
 
 [ -f ~/.config/starship.toml ] || {
-    set -x
     mkdir -p ~/.config && touch ~/.config/starship.toml
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
 format = "${custom.tanzu}$all"
@@ -62,7 +62,6 @@ command = ". /Users/bowena/Documents/Projects/Personal/vmware_scripts/tanzu/tanz
 when= "command -v tanzu 1>/dev/null 2>&1"
 disabled = false
 END_OF_STARSHIP_CONFIG
-    set +x
 }
 
 # shellcheck disable=SC1091
