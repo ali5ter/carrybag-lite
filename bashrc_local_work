@@ -53,6 +53,8 @@ fi
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
 format = "${custom.tanzu}$all"
 
+command_timeout = 10000
+
 [kubernetes]
 disabled = false
 
