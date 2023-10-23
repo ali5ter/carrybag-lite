@@ -78,7 +78,6 @@ bootstrap_mac() {
     install jq yq bat tree asciinema    # misc tools
     install ncdu # disk management
     install speedtest-cli    # network tools
-    install lsyncd    # file sync
     install kubectl kubectx kustomize helm skaffold  # k8s tooling
     install minikube kind    # vrtual k8s cluster
     minikube config set memory 4096
