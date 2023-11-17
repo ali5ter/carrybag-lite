@@ -10,7 +10,7 @@
 set -eou pipefail
 
 XW_SOLVER_SERVICE="https://www.danword.com/crossword"
-CLUE="$1"
+CLUE="$*"
 
 fetch_soln() {
     local clue="$1"
