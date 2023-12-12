@@ -60,14 +60,14 @@ disabled = false
 
 [custom.tanzu]
 description = "Display the current tanzu CLI context"
-command = ". /Users/bowena/Documents/Projects/Personal/vmware_scripts/tanzu/tanzu_prompt.sh; tanzu_prompt"
+command = ". /Users/bowena/Documents/Projects/Work/vmware_scripts/tanzu/tanzu_prompt.sh; tanzu_prompt"
 when= "command -v tanzu 1>/dev/null 2>&1"
 disabled = false
 END_OF_STARSHIP_CONFIG
 }
 
 # shellcheck disable=SC1091
-source "$HOME/Documents/Projects/Personal/vmware_scripts/tanzu/tanzu_prompt.sh"
+source "$HOME/Documents/Projects/Work/vmware_scripts/tanzu/tanzu_prompt.sh"
 
 # Fonts
 
