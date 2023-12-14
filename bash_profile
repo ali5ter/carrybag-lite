@@ -81,6 +81,7 @@ alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
 alias gs="git status"
 alias fixcamera="sudo killall AppleCameraAssistant;sudo killall VDCAssistant"
+alias housekeeping="sudo periodic daily weekly monthly && sudo purge"
 type bat >/dev/null 2>&1 && {
     alias more=bat
     alias less=bat
