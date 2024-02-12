@@ -134,7 +134,11 @@ ostype() {
 
 function cwc() {
     local clue="$*"
-    open "http://danword.com/crossword/$clue"
+    local url=''
+    clue=$(echo "$clue" | tr ' ' '_')
+    url="https://www.danword.com/crossword/$clue"
+    echo "Opening $url"
+    open "$url"
 }
 
 [[ "$OSTYPE" == 'darwin'* ]] && {
