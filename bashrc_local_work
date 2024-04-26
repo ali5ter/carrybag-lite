@@ -90,9 +90,41 @@ if [ -f '/Users/bowena/google-cloud-sdk/path.bash.inc' ]; then . '/Users/bowena/
 # shellcheck disable=SC1091
 if [ -f '/Users/bowena/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/bowena/google-cloud-sdk/completion.bash.inc'; fi
 
+# Accessing EKS test account using infractl
+# @ref https://gitlab.eng.vmware.com/olympus/managed-k8s-provider/-/wikis/Steps-for-accessing-EKS-test-account-(666099245364)-using-infractl
+type infractl >/dev/null 2>&1 || {
+    brew install wireguard-tools
+    brew tap olympus/homebrew-tap ssh://git@gitlab.eng.vmware.com/olympus/homebrew-tap.git
+    brew install infractl
+}
+export CLOUDGATE_ACCOUNTS="$HOME/.config/infractl/cloudgate-accounts.toml"
+[[ -f "$CLOUDGATE_ACCOUNTS" ]] || {
+    mkdir -p ~/.config/infractl && touch "$CLOUDGATE_ACCOUNTS"
+    cat > "$CLOUDGATE_ACCOUNTS" <<'END_OF_CLOUDGATE_ACCOUNTS_CONFIG'
+[eks-test]
+connector = "e06d08ed-823f-43c3-bda7-c1e730aa9a96"
+account_id = "666099245364"
+ou_id = "ou-kw69-b3ecodpz"
+role = "PowerUser"
+region = "us-west-2"
+END_OF_CLOUDGATE_ACCOUNTS_CONFIG
+}
+# shellcheck disable=SC2155
+export CLOUDGATE_KEY_ID=$(jq -r .id ~/.config/cloudgate_api_client.json)
+# shellcheck disable=SC2155
+export CLOUDGATE_KEY_SECRET=$(jq -r .secret ~/.config/cloudgate_api_client.json)
+# shellcheck disable=SC1090
+source <(infractl environment export)
+## List aws profiles
+# infractl aws profiles-list
+## Get URL to use authenticated session
+# infractl aws login bluesky-developer --stdout
+# infractl aws login eks-test --stdout
+cg_aws() { infractl aws login eks-test --stdout; }
+
 # shepherd config
 # @ref https://via.vmw.com/TKP-CreateMgmtCluster
-type sheepctl >/dev/null 2>&1 || {
+type sheepctl >/dev/null 2>&1 || { 
     echo "✋ Install shepherd"
     brew tap vmware/internal git@gitlab.eng.vmware.com:homebrew/internal.git && \
         brew install shepherd
