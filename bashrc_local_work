@@ -30,6 +30,9 @@ alias t=tanzu && complete -o default -F __start_tanzu t
 # @ref https://docs.vmware.com/en/Tanzu-Application-Platform/1.1/tap/GUID-install-general.html#tanzu-cli-clean-install
 export TANZU_CLI_NO_INIT=true
 
+# shellcheck disable=SC2155
+export GITLAB_API_TOKEN=$(cat ~/.config/gitlab_api_token)
+
 tanzu_update() {
     tanzu plugin sync 
 }
