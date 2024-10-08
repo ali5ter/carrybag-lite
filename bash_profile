@@ -144,6 +144,7 @@ function cwc() {
 [[ "$OSTYPE" == 'darwin'* ]] && {
     if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
         # shellcheck disable=SC2155
+        # shellcheck disable=SC2086
         export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
     fi
     brew_update() {
