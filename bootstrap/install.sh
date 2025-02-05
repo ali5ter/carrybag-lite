@@ -75,7 +75,7 @@ bootstrap_mac() {
     # install powerline-go # prompt
     install node go # dev
     # install glances lazydocker   # monitoring
-    install jq yq bat tree asciinema    # misc tools
+    install jq yq bat tree asciinema fzf    # misc tools
     install ncdu # disk management
     install speedtest-cli    # network tools
     install kubectl kubectx kustomize helm skaffold  # k8s tooling
