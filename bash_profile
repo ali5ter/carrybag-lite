@@ -132,7 +132,7 @@ ostype() {
     fi
 }
 
-function cwc() {
+cwc() {
     local clue="$*"
     local url=''
     clue=$(echo "$clue" | tr ' ' '_')
@@ -151,7 +151,7 @@ function cwc() {
         # Additional homebrew housekeeping
         brew update && brew upgrade && brew autoremove && brew cleanup; 
     }
-    # Remove annying Apple msg
+    # Remove annoying Apple msg
     # https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
     # Automate homebrew update
@@ -163,6 +163,12 @@ function cwc() {
         echo -e "Checking homebrew..."
         brew_update
     fi
+}
+
+[[ "$OSTYPE" == 'darwin'* ]] && {
+    uninstall() {
+        mdfind -name "$*" | fzf -m | xargs -I {} rm -rf {}
+    }
 }
 
 # Additional configurations/overrides
