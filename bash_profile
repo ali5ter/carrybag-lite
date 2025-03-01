@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 
 # Paths
-pathadd() {
-    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
-        PATH="${PATH:+"$PATH:"}$1"
-    fi
-}
-pathadd "/usr/local/sbin"
-pathadd "/opt/homebrew/bin" # Apple Silicon architecture
+export PATH="/usr/local/sbin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH"
 
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
