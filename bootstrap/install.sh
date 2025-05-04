@@ -93,10 +93,12 @@ bootstrap_mac() {
     # install --cask charles little-snitch tunnelblick fing  # network tools
     # install --cask wireshark # Issue https://github.com/caskroom/homebrew-cask/issues/40867
     install --cask cleanmymac  # housekeeping
+    install --cask figma # wire-framing/prototyping
     # install --cask axure-rp    # wire-framing/prototyping
     # install --cask sketch sketch-toolbox   # wire-framing/prototyping
     # install --cask figma miro  # wire-framing/prototyping
-    install --cask skype   # video
+    # install --cask skype   # video
+    install --cask microsoft-teams   # video
     # install --cask slack   # chat
     # install --cask reeder  # rss/atom-feeds
     # install --cask screenflow  # screen recording
@@ -105,6 +107,7 @@ bootstrap_mac() {
     # install --cask webstorm
     # install --cask caskroom/versions/microsoft-remote-desktop-beta
     install --cask vnc-viewer  # remote access
+    install --cask obsidian # note taking
 }
 
 bootstrap_linux() {
