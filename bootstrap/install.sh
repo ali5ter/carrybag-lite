@@ -108,6 +108,7 @@ bootstrap_mac() {
     # install --cask caskroom/versions/microsoft-remote-desktop-beta
     install --cask vnc-viewer  # remote access
     install --cask obsidian # note taking
+    install --cask chatgpt # chatgpt
 }
 
 bootstrap_linux() {
