@@ -74,7 +74,6 @@ cd ~ || exit
 
 promptMigration ./bin force
 promptMigration ./Documents/Projects/Personal force
-promptMigration ./Documents/Projects/VMware force
 promptMigration ./Documents/Resources force
 promptMigration ./Pictures/headshots force
 promptMigration ./Library/Fonts force

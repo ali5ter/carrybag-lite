@@ -27,6 +27,7 @@ install() {
         brew install "$@"
         # use `install --cask` for brew cask install
     else
+        # TODO: Check for Rasperry Pi and use apt-get instead
         sudo apt install -y "$@"
     fi
 }
@@ -49,9 +50,9 @@ install_pyenv() {
     # Use `pyenv install --list` for latest
     # @ref https://opensource.com/article/20/4/pyenv
     pyenv install 3.10.0
-    pyenv install 2.7.18    # last version of 2
+    pyenv install 2.7.18 # last version of 2
     pyenv global 3.10.0
-    pyenv versions    # confirm current version is set
+    pyenv versions # confirm current version is set
 
     # can set a local version of python for particular projects using
     # pyenv local <version>
@@ -65,57 +66,31 @@ bootstrap_mac() {
     install bash # latest bash
     # ref: https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
-    # ref: https://dev.to/bphogan/use-modern-bash-shell-on-macos-22a6
-    # echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells;
-    # chsh -s "$(brew --prefix)/bin/bash"
-    install git svn # download
-    install_pyenv   # do python install right
+    install git # souce control
+    install_pyenv # do python install right
     install shellcheck vim watch # editing
-    install bash-completion@2  # auto-completion
-    # install powerline-go # prompt
+    install bash-completion@2 # auto-completion
     install node go # dev
-    # install glances lazydocker   # monitoring
-    install jq yq bat tree asciinema fzf    # misc tools
+    install jq yq bat tree fzf # misc tools
     install ncdu # disk management
-    install speedtest-cli    # network tools
-    install kubectl kubectx kustomize helm skaffold  # k8s tooling
-    install minikube kind    # vrtual k8s cluster
-    minikube config set memory 4096
-
-    install_legacy_pip
+    install nmap # network tools
 
     # GUI applications
     # @ref https://formulae.brew.sh/cask/
-    install --cask iterm2  # preferred terminal
-    # install --cask google-chrome-canary    # browser
-    install --cask 1password dropbox   # password vault
-    install --cask caffeine divvy bartender    # windowing tools
-    # install --cask charles little-snitch tunnelblick fing  # network tools
-    # install --cask wireshark # Issue https://github.com/caskroom/homebrew-cask/issues/40867
+    install --cask iterm2 # preferred terminal
+    install --cask 1password # password vault
+    install --cask dropbox # file storage
+    #install --cask caffeine divvy bartender # windowing tools (optional)
     install --cask cleanmymac  # housekeeping
     install --cask figma # wire-framing/prototyping
-    # install --cask axure-rp    # wire-framing/prototyping
-    # install --cask sketch sketch-toolbox   # wire-framing/prototyping
-    # install --cask figma miro  # wire-framing/prototyping
-    # install --cask skype   # video
-    install --cask microsoft-teams   # video
-    # install --cask slack   # chat
-    # install --cask reeder  # rss/atom-feeds
-    # install --cask screenflow  # screen recording
-    install --cask visual-studio-code sourcetree  # dev
-    # install --cask xscope
-    # install --cask webstorm
-    # install --cask caskroom/versions/microsoft-remote-desktop-beta
-    install --cask vnc-viewer  # remote access
-    install --cask obsidian # note taking
-    install --cask chatgpt # chatgpt
+    install --cask microsoft-teams whatsapp # messaging
+    install --cask visual-studio-code # dev
+    #install --cask chatgpt # chatgpt (only works on metal)
 }
 
 bootstrap_linux() {
-    if ! type sudo >/dev/null 2>/dev/null; then
-        apt upgrade && apt update
-        apt install -y sudo
-    fi
+    ## Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
+    ## TODO: Check for Rasperry Pi and use update-full instead
     sudo apt update && sudo apt upgrade
 
     install curl wget gnupg git # download & certs
@@ -138,13 +113,6 @@ install_carrybag() {
     else 
         ln -sf ~/.bash_profile ~/.bash_aliases
     fi
-}
-
-install_powerline_fonts() {
-    # @ref https://github.com/powerline/fonts
-    cd "$(src_dir)" || exit 1
-    git clone https://github.com/powerline/fonts.git --depth=1 && cd fonts
-    ./install.sh
 }
 
 install_nerd_fonts() {
@@ -170,13 +138,6 @@ install_docker() {
         bash get-docker.sh && rm -f get-docker.sh
         sudo usermod -aG docker "$(whoami)"
     fi
-}
-
-# Install legacy pip for non-migrated python tools
-install_legacy_pip() {
-    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
-    python get-pip.py
-    # ln -sf ~/Library/Python/2.7/installn/pip /usr/local/installn/pip
 }
 
 install_starship() {
