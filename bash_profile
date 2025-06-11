@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
+# ~/.bash_profile
+# This file is sourced by bash when it is started as a login shell.
+# It is used to set environment variables, aliases, and other configurations.
+# @ref https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html
+#
+# MacOS comes with an old verion of Bash and defaults to zsh. Use Homebrew to
+# install the latest version of Bash by running:
+# brew install bash
+#
+# If you want to use this file, you need to configure your terminal application
+# to use bash as the default shell. Set the default shell to bash by running:
+# chsh -s $(brew --prefix)/bin/bash
 
 # Paths
 export PATH="/usr/local/sbin:$PATH"
-export PATH="/opt/homebrew/bin:$PATH"
 
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
@@ -16,30 +27,22 @@ CDATE=$(date '+%Y%m%d')
 # Enable ls colors
 export CLICOLOR=1
 
-# OS specific settings (perhaps check for platform before applything)
-# Turn on Touch ID for sudo auth
-# @ref https://sixcolors.com/post/2020/11/quick-tip-enable-touch-id-for-sudo/
-# sudo echo 'auth sufficient pam_tid.so' >> /etc/pam.d/sudo
-
-# Colors
-# shellcheck disable=SC1090
-#[ -f ~/.colors.bash ] || curl -s -o ~/.colors.bash https://raw.githubusercontent.com/Bash-it/bash-it/master/themes/colors.theme.bash
-# shellcheck disable=SC1090
-#source ~/.colors.bash
+# OS specific settings
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # Turn on Touch ID for sudo auth
+    # @ref https://sixcolors.com/post/2020/11/quick-tip-enable-touch-id-for-sudo/
+    if ! grep -q 'pam_tid.so' /etc/pam.d/sudo; then
+        echo 'auth sufficient pam_tid.so' | sudo tee -a /etc/pam.d/sudo > /dev/null
+    fi
+fi
 
 # Bookmarking
 # @ref https://github.com/rupa/z
 [ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
-[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
 # shellcheck disable=SC1091
 source "$HOME/.z.sh"
 # shellcheck disable=SC2034
 _Z_CMD=jump
-
-# Word string
-[ -f ~/.generate_word_string.sh ] || curl -s -o ~/.generate_word_string.sh https://raw.githubusercontent.com/ali5ter/vmware_scripts/master/tools/generate_word_string
-# shellcheck disable=SC1090
-source ~/.generate_word_string.sh
 
 # Node version management
 export NVM_DIR="$HOME/.nvm"
@@ -89,8 +92,8 @@ export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 
 # Prompts
-
 # @ref https://starship.rs/
+[ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
 type starship >/dev/null 2>&1 && {
     eval "$(starship init bash)"
 }
@@ -128,6 +131,7 @@ ostype() {
 }
 
 cwc() {
+    # Open a crossword clue in DanWord
     local clue="$*"
     local url=''
     clue=$(echo "$clue" | tr ' ' '_')
@@ -137,6 +141,9 @@ cwc() {
 }
 
 [[ "$OSTYPE" == 'darwin'* ]] && {
+    # Homebrew environment
+    # @ref https://brew.sh/
+    export PATH="$(brew --prefix)/bin:$PATH"
     if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
         # shellcheck disable=SC2155
         # shellcheck disable=SC2086
@@ -158,12 +165,6 @@ cwc() {
         echo -e "Checking homebrew..."
         brew_update
     fi
-}
-
-[[ "$OSTYPE" == 'darwin'* ]] && {
-    uninstall() {
-        mdfind -name "$*" | fzf -m | xargs -I {} rm -rf {}
-    }
 }
 
 # Additional configurations/overrides
