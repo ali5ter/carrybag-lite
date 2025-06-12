@@ -27,7 +27,6 @@ install() {
         brew install "$@"
         # use `install --cask` for brew cask install
     else
-        # TODO: Check for Rasperry Pi and use apt-get instead
         sudo apt install -y "$@"
     fi
 }
@@ -90,8 +89,12 @@ bootstrap_mac() {
 
 bootstrap_linux() {
     ## Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
-    ## TODO: Check for Rasperry Pi and use update-full instead
-    sudo apt update && sudo apt upgrade
+    sudo apt update
+    if [[ -f /etc/rpi-issue ]]; then
+        sudo apt full-upgrade # for Raspberry Pi OS
+    else
+        sudo apt upgrade
+    fi
 
     install curl wget gnupg git # download & certs
     install_pyenv   # do python install right
@@ -107,11 +110,11 @@ install_carrybag() {
     # @ref https://github.com/ali5ter/carrybag-lite
     cd "$(src_dir)" || exit 1
     git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
-    ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        ln -sf "$(src_dir)/carrybag-lite/bashrc_local_work" ~/.bashrc_local
-    else 
-        ln -sf ~/.bash_profile ~/.bash_aliases
+        ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
+    else
+        ln -sf "$(src_dir)/carrybag-lite/bashrc" ~/.bashrc
+        ln -sf ~/.bashrc ~/.bash_profile
     fi
 }
 
@@ -123,7 +126,7 @@ install_nerd_fonts() {
         [[ -d ~/.fonts ]] || mkdir -p ~/.fonts
         cd ~/.fonts || exit
         curl -fLo "Source Code Pro Nerd Font Complete.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/SourceCodePro/Regular/complete/Sauce%20Code%20Pro%20Nerd%20Font%20Complete.ttf
+            https://github.com/ryanoasis/nerd-fonts/tree/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
         sudo fc-cache
     fi
 }
@@ -145,7 +148,10 @@ install_starship() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install starship
     else
-        bash -c "$(curl -fsSL https://starship.rs/install.sh)" -- -y
+        curl -0 https://starship.rs/install.sh
+        chmod +x install.sh
+        ./install.sh -y 
+        rm -f install.sh
     fi
     [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
@@ -156,14 +162,7 @@ END_OF_STARSHIP_CONFIG
 
 install_hstr() {
     # @ref https://github.com/dvorka/hstr
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        install hstr
-    else
-        sudo echo -e "\ndeb https://www.mindforger.com/debian stretch main" | sudo tee -a /etc/apt/sources.list
-        wget -qO - https://www.mindforger.com/gpgpubkey.txt | sudo apt-key add -
-        sudo apt update
-        sudo apt install hstr
-    fi
+    install hstr
 }
 
 main() {
@@ -179,7 +178,7 @@ main() {
     install_nerd_fonts
     install_starship
     install_hstr
-    install_docker
+    #install_docker # uncomment to install docker
 }
 
 # Run script is it is not sourced
