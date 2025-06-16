@@ -3,17 +3,11 @@
 # This file is sourced by bash when it is started as a login shell.
 # It is used to set environment variables, aliases, and other configurations.
 # @ref https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html
-#
-# MacOS comes with an old verion of Bash and defaults to zsh. Use Homebrew to
-# install the latest version of Bash by running:
-# brew install bash
-#
-# If you want to use this file, you need to configure your terminal application
-# to use bash as the default shell. Set the default shell to bash by running:
-# chsh -s $(brew --prefix)/bin/bash
 
 # Paths
 export PATH="/usr/local/sbin:$PATH"
+export PATH="/opt/homebrew/bin:$PATH" # For Apple Silicon Macs
+export PATH="/usr/local/homebrew/bin:$PATH" # For Intel Macs
 
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
@@ -78,8 +72,6 @@ alias uuidgen="\uuidgen | tr [:upper:] [:lower:] | tee >(pbcopy)"
 alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
 alias gs="git status"
-alias fixcamera="sudo killall AppleCameraAssistant;sudo killall VDCAssistant"
-alias housekeeping="sudo periodic daily weekly monthly && sudo purge"
 type bat >/dev/null 2>&1 && {
     alias more=bat
     alias less=bat
@@ -143,6 +135,7 @@ cwc() {
 [[ "$OSTYPE" == 'darwin'* ]] && {
     # Homebrew environment
     # @ref https://brew.sh/
+    # shellcheck disable=SC2155
     export PATH="$(brew --prefix)/bin:$PATH"
     if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
         # shellcheck disable=SC2155
@@ -165,6 +158,12 @@ cwc() {
         echo -e "Checking homebrew..."
         brew_update
     fi
+    # Fix for Apple Camera Assistant
+    # @ref https://www.macrumors.com/2020/11/17/apple-camera-assistant-bug-fix/
+    fixcamera() {
+        sudo killall AppleCameraAssistant
+        sudo killall VDCAssistant
+    }
 }
 
 # Additional configurations/overrides

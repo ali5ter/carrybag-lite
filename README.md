@@ -13,7 +13,7 @@ Unlike [the original](https://github.com/ali5ter/carrybag), this version is pare
 
 Tested on macOS Sequoia (15.5) and Debian Bookwork.
 
-# Pre-reqs
+# MacOS Pre-reqs
 MacOS comes with an old verion of Bash and defaults to zsh. Use Homebrew to install the latest version of Bash by running:
 
     brew install bash
@@ -28,7 +28,3 @@ Move your existing runcom aside and link to this one...
 
     cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
     ln -sf $PWD/bash_profile ~/.bash_profile
-
-To use local runcom...
-
-    ln -sf $PWD/bashrc_local_work ~/.bashrc_local
