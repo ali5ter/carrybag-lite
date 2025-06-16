@@ -160,10 +160,10 @@ cwc() {
     fi
     # Fix for Apple Camera Assistant
     # @ref https://www.macrumors.com/2020/11/17/apple-camera-assistant-bug-fix/
-    fixcamera() {
-        sudo killall AppleCameraAssistant
-        sudo killall VDCAssistant
-    }
+    # fixcamera() {
+    #     sudo killall AppleCameraAssistant
+    #     sudo killall VDCAssistant
+    # }
 }
 
 # Additional configurations/overrides
