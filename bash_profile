@@ -135,13 +135,12 @@ cwc() {
 [[ "$OSTYPE" == 'darwin'* ]] && {
     # Homebrew environment
     # @ref https://brew.sh/
-    # shellcheck disable=SC2155
-    export PATH="$(brew --prefix)/bin:$PATH"
     if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
         # shellcheck disable=SC2155
         # shellcheck disable=SC2086
         export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
     fi
+    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
     brew_update() {
         # Additional homebrew housekeeping
         brew update && brew upgrade && brew autoremove && brew cleanup; 
