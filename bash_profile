@@ -7,7 +7,7 @@
 # Paths
 export PATH="/usr/local/sbin:$PATH"
 export PATH="/opt/homebrew/bin:$PATH" # For Apple Silicon Macs
-export PATH="/usr/local/homebrew/bin:$PATH" # For Intel Macs
+export PATH="/usr/local/Homebrew/bin:$PATH" # For Intel Macs
 
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
