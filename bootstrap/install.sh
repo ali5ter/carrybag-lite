@@ -143,6 +143,26 @@ install_docker() {
     fi
 }
 
+configure_firewall() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS firewall configuration
+        # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+        # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
+        # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsignedapp on
+    else
+        # Linux firewall configuration (using ufw)
+        sudo apt install -y ufw
+        sudo ufw enable
+        sudo ufw default deny incoming
+        sudo ufw default allow outgoing
+        sudo ufw allow ssh # allow SSH connections
+        sudo ufw allow http # allow HTTP connections
+        sudo ufw allow https # allow HTTPS connections
+        sudo ufw allow 2375 # allow Docker API
+        sudo ufw status verbose
+    fi
+}
+
 install_starship() {
     # @ref https://starship.rs
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -179,6 +199,7 @@ main() {
     install_starship
     install_hstr
     #install_docker # uncomment to install docker
+    configure_firewall
 }
 
 # Run the script if it is being executed directly
