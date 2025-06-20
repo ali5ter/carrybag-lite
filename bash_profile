@@ -28,6 +28,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     if ! grep -q 'pam_tid.so' /etc/pam.d/sudo; then
         echo 'auth sufficient pam_tid.so' | sudo tee -a /etc/pam.d/sudo > /dev/null
     fi
+    # Fix for Apple Camera Assistant
+    # @ref https://www.macrumors.com/2020/11/17/apple-camera-assistant-bug-fix/
+    # fixcamera() {
+    #     sudo killall AppleCameraAssistant
+    #     sudo killall VDCAssistant
+    # }
 fi
 
 # Bookmarking
@@ -94,6 +100,54 @@ type starship >/dev/null 2>&1 && {
 PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
+# Package manager
+if [[ "$OSTYPE" == 'darwin'* ]] then
+    # Homebrew environment
+    # @ref https://brew.sh/
+    if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
+        # shellcheck disable=SC2155
+        # shellcheck disable=SC2086
+        export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
+    fi
+    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
+    brew_update() {
+        # Additional homebrew housekeeping
+        brew update && brew upgrade && brew autoremove && brew cleanup; 
+    }
+    # Remove annoying Apple msg
+    # https://support.apple.com/en-us/HT208050
+    export BASH_SILENCE_DEPRECATION_WARNING=1
+    # Automate homebrew update
+    LAST_BREW_UPDATE="$HOME/.last_brew_update"
+    [ -f "$LAST_BREW_UPDATE" ] || echo "00" > "$LAST_BREW_UPDATE"
+    if [ "$CDATE" != "$(head -n 1 "$LAST_BREW_UPDATE")" ]; then
+        echo "$CDATE" > "$LAST_BREW_UPDATE"
+        # shellcheck disable=SC2154
+        echo -e "Checking homebrew..."
+        brew_update
+    fi
+
+else
+    apt_update() {
+        sudo apt update
+        if [[ -f /etc/rpi-issue ]]; then
+            sudo apt full-upgrade # for Raspberry Pi OS
+        else
+            sudo apt upgrade
+        fi
+        sudo apt autoremove -y && sudo apt clean;
+    }
+    # Automate apt update
+    LAST_APT_UPDATE="$HOME/.last_apt_update"
+    [ -f "$LAST_APT_UPDATE" ] || echo "00" > "$LAST_APT_UPDATE"
+    if [ "$CDATE" != "$(head -n 1 "$LAST_APT_UPDATE")" ]; then
+        echo "$CDATE" > "$LAST_APT_UPDATE"
+        # shellcheck disable=SC2154
+        echo -e "Checking apt..."
+        apt_update
+    fi
+fi
+
 # History manager
 # @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
 type hstr >/dev/null 2>&1 && {
@@ -130,39 +184,6 @@ cwc() {
     url="https://www.danword.com/crossword/$clue"
     echo "Opening $url"
     open "$url"
-}
-
-[[ "$OSTYPE" == 'darwin'* ]] && {
-    # Homebrew environment
-    # @ref https://brew.sh/
-    if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
-        # shellcheck disable=SC2155
-        # shellcheck disable=SC2086
-        export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
-    fi
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
-    brew_update() {
-        # Additional homebrew housekeeping
-        brew update && brew upgrade && brew autoremove && brew cleanup; 
-    }
-    # Remove annoying Apple msg
-    # https://support.apple.com/en-us/HT208050
-    export BASH_SILENCE_DEPRECATION_WARNING=1
-    # Automate homebrew update
-    LAST_BREW_UPDATE="$HOME/.last_brew_update"
-    [ -f "$LAST_BREW_UPDATE" ] || echo "00" > "$LAST_BREW_UPDATE"
-    if [ "$CDATE" != "$(head -n 1 "$LAST_BREW_UPDATE")" ]; then
-        echo "$CDATE" > "$LAST_BREW_UPDATE"
-        # shellcheck disable=SC2154
-        echo -e "Checking homebrew..."
-        brew_update
-    fi
-    # Fix for Apple Camera Assistant
-    # @ref https://www.macrumors.com/2020/11/17/apple-camera-assistant-bug-fix/
-    # fixcamera() {
-    #     sudo killall AppleCameraAssistant
-    #     sudo killall VDCAssistant
-    # }
 }
 
 # Additional configurations/overrides

@@ -97,11 +97,11 @@ bootstrap_linux() {
     fi
 
     install curl wget gnupg git # download & certs
-    install_pyenv   # do python install right
-    # install nodejs npm golang # more dev
-    install shellcheck vim watch    # editing
-    install speedtest-cli    # network tools
-    install fontconfig  # font tools
+    install_pyenv # do python install right
+    # install nodejs npm golang # dev
+    install jq yq bat tree fzf # misc tools
+    install shellcheck vim watch # editing
+    install fontconfig # font tools
 
     sudo apt autoremove && sudo apt clean
 }
@@ -181,5 +181,5 @@ main() {
     #install_docker # uncomment to install docker
 }
 
-# Run script is it is not sourced
+# Run the script if it is being executed directly
 [ "${BASH_SOURCE[0]}" -ef "$0" ] && main "$@"
