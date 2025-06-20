@@ -82,6 +82,10 @@ type bat >/dev/null 2>&1 && {
     alias more=bat
     alias less=bat
 }
+type batcat >/dev/null 2>&1 && {
+    alias more=batcat
+    alias less=batcat
+}
 
 # Completion
 # @ref https://github.com/scop/bash-completion
