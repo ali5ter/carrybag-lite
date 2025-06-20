@@ -6,8 +6,8 @@
 
 # Paths
 export PATH="/usr/local/sbin:$PATH"
-export PATH="/opt/homebrew/bin:$PATH" # For Apple Silicon Macs
-export PATH="/usr/local/Homebrew/bin:$PATH" # For Intel Macs
+[ -x /opt/homebrew/bin/brew ] && export PATH="/opt/homebrew/bin:$PATH" # For Apple Silicon Macs
+[ -x /usr/local/Homebrew/bin/brew ] && export PATH="/usr/local/Homebrew/bin:$PATH" # For Intel Macs
 
 # Options
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
@@ -113,7 +113,8 @@ if [[ "$OSTYPE" == 'darwin'* ]] then
         # shellcheck disable=SC2086
         export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
     fi
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
+    [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null
+    [ -x /usr/local/bin/brew ] && eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
     brew_update() {
         # Additional homebrew housekeeping
         brew update && brew upgrade && brew autoremove && brew cleanup; 
