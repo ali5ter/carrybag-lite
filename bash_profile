@@ -131,7 +131,6 @@ if [[ "$OSTYPE" == 'darwin'* ]] then
         echo -e "Checking homebrew..."
         brew_update
     fi
-
 else
     apt_update() {
         sudo apt update
@@ -141,6 +140,12 @@ else
             sudo apt upgrade
         fi
         sudo apt autoremove -y && sudo apt clean;
+    }
+    rpi_firmware_update() {
+        if [[ -f /etc/rpi-issue ]]; then
+            sudo rpi-update
+            sudo reboot
+        fi
     }
     # Automate apt update
     LAST_APT_UPDATE="$HOME/.last_apt_update"
