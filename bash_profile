@@ -87,11 +87,15 @@ type batcat >/dev/null 2>&1 && {
     alias less=batcat
 }
 
-# Completion
+# Completion & key bindings
 # @ref https://github.com/scop/bash-completion
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
+type fzf >/dev/null 2>&1 && {
+    # Set up fzf key bindings and fuzzy completion
+    eval "$(fzf --bash)"
+}
 
 # Prompts
 # @ref https://starship.rs/
