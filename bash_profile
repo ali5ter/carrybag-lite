@@ -92,10 +92,6 @@ type batcat >/dev/null 2>&1 && {
 export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
-type fzf >/dev/null 2>&1 && {
-    # Set up fzf key bindings and fuzzy completion
-    eval "$(fzf --bash)"
-}
 
 # Prompts
 # @ref https://starship.rs/
@@ -109,7 +105,7 @@ PS2="${cyan}…${normal} "            # continuation
 PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
 
 # Package manager
-if [[ "$OSTYPE" == 'darwin'* ]] then
+if [[ "$OSTYPE" == 'darwin'* ]]; then
     # Homebrew environment
     # @ref https://brew.sh/
     if [[ -f "$HOME/.config/homebrew_github_api_token" ]]; then
