@@ -4,10 +4,6 @@
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 # @note Move this into /etc/profile.d/banner.sh
 
-[[ -n $DEBUG ]] && set -x
-set -eou pipefail
-
-
 HOSTNAME=$(hostname)
 UPTIME=$(uptime -p)
 ETH_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
