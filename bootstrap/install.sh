@@ -113,7 +113,8 @@ install_carrybag() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
-        ln -sf "$(src_dir)/carrybag-lite/bashrc" ~/.bashrc
+        cp ~/.bashrc ~/.bashrc.$(date +%Y%m%d%H%M%S)
+        ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bashrc
         ln -sf ~/.bashrc ~/.bash_profile
     fi
 }
