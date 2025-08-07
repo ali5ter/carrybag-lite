@@ -99,7 +99,7 @@ bootstrap_linux() {
     install curl wget gnupg git # download & certs
     install_pyenv # do python install right
     # install nodejs npm golang # dev
-    install jq yq bat tree fzf # misc tools
+    install jq yq bat tree fzf figlet # misc tools
     install shellcheck vim watch # editing
     install fontconfig # font tools
 
