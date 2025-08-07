@@ -169,7 +169,7 @@ install_starship() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install starship
     else
-        curl -0 https://starship.rs/install.sh
+        curl -0 https://starship.rs/install.sh -o install.sh
         chmod +x install.sh
         ./install.sh -y 
         rm -f install.sh
