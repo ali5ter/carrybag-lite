@@ -101,8 +101,8 @@ type starship >/dev/null 2>&1 && {
 }
 # @ref https://www.thegeekstuff.com/2008/09/bash-shell-take-control-of-ps1-ps2-ps3-ps4-and-prompt_command/
 # shellcheck disable=SC2154
-PS2="${cyan}…${normal} "            # continuation
-PS4="${cyan}$0.$LINENO ⨠${normal} " # tracing
+PS2="… "            # continuation
+PS4="$0.$LINENO ⨠ " # tracing
 
 # Package manager
 if [[ "$OSTYPE" == 'darwin'* ]]; then
@@ -195,6 +195,20 @@ cwc() {
     echo "Opening $url"
     open "$url"
 }
+
+colors() {
+    # enable color support of ls and also add handy aliases
+    if [ -x /usr/bin/dircolors ]; then
+        test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+        alias ls='ls --color=auto'
+        alias grep='grep --color=auto'
+        alias fgrep='fgrep --color=auto'
+        alias egrep='egrep --color=auto'
+    fi
+
+
+}
+colors
 
 # Additional configurations/overrides
 # shellcheck disable=SC1091
