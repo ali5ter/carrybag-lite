@@ -27,6 +27,7 @@ install() {
         brew install "$@"
         # use `install --cask` for brew cask install
     else
+        # Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
         sudo apt install -y "$@"
     fi
 }
@@ -45,7 +46,7 @@ install_pyenv() {
         export PATH="$PYENV_ROOT/bin:$PATH"
     fi
     eval "$(pyenv init -)"
-    # Lastest version of python at time of commit
+    # Latest version of python at time of commit
     # Use `pyenv install --list` for latest
     # @ref https://opensource.com/article/20/4/pyenv
     pyenv install 3.10.0
@@ -65,7 +66,7 @@ bootstrap_mac() {
     install bash # latest bash
     # ref: https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
-    install git # souce control
+    install git # source control
     install_pyenv # do python install right
     install shellcheck vim watch # editing
     install bash-completion@2 # auto-completion
@@ -95,9 +96,8 @@ bootstrap_linux() {
     else
         sudo apt upgrade
     fi
-
+    
     install curl wget gnupg git # download & certs
-    install_pyenv # do python install right
     # install nodejs npm golang # dev
     install jq yq bat tree fzf figlet # misc tools
     install shellcheck vim watch # editing
@@ -106,8 +106,19 @@ bootstrap_linux() {
     sudo apt autoremove && sudo apt clean
 }
 
+remote_management() {
+     # Raspberry Pi remote management tool
+    if [[ -f /etc/rpi-issue ]]; then
+        install rpi-connect-lite
+        rpi-connect on
+        loginctl enable-linger
+        rpi-connect signin
+    fi
+}
+
 install_carrybag() {
     # @ref https://github.com/ali5ter/carrybag-lite
+    install git
     cd "$(src_dir)" || exit 1
     git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -117,6 +128,14 @@ install_carrybag() {
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bashrc
         ln -sf ~/.bashrc ~/.bash_profile
     fi
+}
+
+install_pfb() {
+    # @ref https://github.com/ali5ter/pfb
+    install git
+    cd "$(src_dir)" || exit 1
+    git clone https://github.com/ali5ter/pfb.git && cd pfb
+    source ./pfb.sh
 }
 
 install_nerd_fonts() {
@@ -169,12 +188,12 @@ install_starship() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install starship
     else
-        curl -0 https://starship.rs/install.sh -o install.sh
+        curl -fsSL https://starship.rs/install.sh -o install.sh
         chmod +x install.sh
         ./install.sh -y 
         rm -f install.sh
     fi
-    [ -f ~/.config/starship.toml ] || mkdir -p ~/.config && touch ~/.config/starship.toml
+    [ -f ~/.config/starship.toml ] || { mkdir -p ~/.config && touch ~/.config/starship.toml; }
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
 [battery]
 disabled = true
@@ -190,17 +209,65 @@ main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
 
+    install_pfb
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        pfb heading "Bootstrapping your Mac" "🚀"
         bootstrap_mac
     else
+        pfb heading "Bootstrapping your Linux machine" "🚀"
         bootstrap_linux
     fi
+    pfb success "Bootstrap complete!"
+
+    pfb info "Setting up remote management..."
+    remote_management
+    echo; pfb warning "Press space or enter to continue..."
+    read -r -n1 -s
+
+    pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
+    echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        pfb info "Rebooting..."
+        sudo reboot
+    else
+        pfb info "Remember to reboot later for all changes to take effect."
+    fi
+
+    echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        install_pyenv
+        pfb success "pyenv installed!"
+    fi
+
+    pfb info "Installing carrybag-lite..."
     install_carrybag
+    pfb success "carrybag-lite installed!"
+
+    pfb info "Installing nerd fonts..."
     install_nerd_fonts
+    pfb success "Nerd fonts installed!"
+
+    pfb info "Installing starship prompt..."
     install_starship
+    pfb success "Starship prompt installed!"
+
+    pfb info "Installing hstr..."
     install_hstr
-    #install_docker # uncomment to install docker
+    pfb success "hstr installed!"
+
+    echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        install_docker
+        pfb success "Docker installed!"
+    fi
+   
+    pfb info "Configuring firewall..."
     configure_firewall
+    pfb success "Firewall configured!"
 }
 
 # Run the script if it is being executed directly
