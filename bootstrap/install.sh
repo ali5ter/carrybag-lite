@@ -156,7 +156,7 @@ install_banner() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         :
     else
-        cp "$(src_dir)/carrybag-lite/bootstrap/banner.sh" /etc/profile.d/banner.sh
+        sudo cp "$(src_dir)/carrybag-lite/bootstrap/banner.sh" /etc/profile.d/banner.sh
     fi
 }
 
