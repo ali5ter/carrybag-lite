@@ -2,7 +2,19 @@
 # @file install.sh
 # Simple bootstrap for my macOS and Linux machines.
 # Assumes that carrybag-lite has already been cloned to the local machine.
+#
+# Generating a new SSH key and adding it to ssh-agent:
+#   ssh-keygen -t ed25519 -C "your_email@example.com"
+#   eval "$(ssh-agent -s)"
+#   ssh-add -K ~/.ssh/id_ed25519  # macOS
+#   ssh-add ~/.ssh/id_ed25519     # Linux
+# Copy it and add to GitHub:
+#   pbcopy < ~/.ssh/id_ed25519.pub # macOS
+#   xclip -sel clip < ~/.ssh/id_ed25519.pub # Linux
+#
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+
+# 
 
 src_dir() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
