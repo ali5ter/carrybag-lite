@@ -14,8 +14,6 @@
 #
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-# 
-
 src_dir() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         [[ -d ~/Documents/projects ]] || mkdir -p ~/Documents/projects
