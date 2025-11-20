@@ -243,12 +243,46 @@ main() {
     fi
     install_banner
     pfb success "Bootstrap complete!"
-
+    echo
     pfb info "Setting up remote management..."
     remote_management
     echo; pfb warning "Press space or enter to continue..."
     read -r -n1 -s
-
+    echo
+    echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        install_pyenv
+        pfb success "pyenv installed!"
+    fi
+    echo
+    pfb info "Configure carrybag-lite..."
+    config_carrybag
+    pfb success "carrybag-lite configured!"
+    echo
+    pfb info "Installing nerd fonts..."
+    install_nerd_fonts
+    pfb success "Nerd fonts installed!"
+    echo
+    pfb info "Installing starship prompt..."
+    install_starship
+    pfb success "Starship prompt installed!"
+    echo
+    pfb info "Installing hstr..."
+    install_hstr
+    pfb success "hstr installed!"
+    echo
+    echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        install_docker
+        pfb success "Docker installed!"
+    fi
+    echo
+    pfb info "Configuring firewall..."
+    configure_firewall
+    pfb success "Firewall configured!"
+    echo
     pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
     echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
     pfb answer ${response:-$default}
@@ -258,40 +292,6 @@ main() {
     else
         pfb info "Remember to reboot later for all changes to take effect."
     fi
-
-    echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
-    pfb answer ${response:-$default}
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        install_pyenv
-        pfb success "pyenv installed!"
-    fi
-
-    pfb info "Configure carrybag-lite..."
-    config_carrybag
-    pfb success "carrybag-lite configured!"
-
-    pfb info "Installing nerd fonts..."
-    install_nerd_fonts
-    pfb success "Nerd fonts installed!"
-
-    pfb info "Installing starship prompt..."
-    install_starship
-    pfb success "Starship prompt installed!"
-
-    pfb info "Installing hstr..."
-    install_hstr
-    pfb success "hstr installed!"
-
-    echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
-    pfb answer ${response:-$default}
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        install_docker
-        pfb success "Docker installed!"
-    fi
-   
-    pfb info "Configuring firewall..."
-    configure_firewall
-    pfb success "Firewall configured!"
 }
 
 # Run the script if it is being executed directly
