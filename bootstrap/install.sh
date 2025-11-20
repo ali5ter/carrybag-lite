@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # @file install.sh
-# Simple bootstrap for my mac(s)
+# Simple bootstrap for my macOS and Linux machines.
+# Assumes that carrybag-lite has already been cloned to the local machine.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
 src_dir() {
@@ -116,19 +117,7 @@ remote_management() {
     fi
 }
 
-install_carrybag() {
-    # @ref https://github.com/ali5ter/carrybag-lite
-    install git
-    cd "$(src_dir)" || exit 1
-
-    if [[ ! -d carrybag-lite ]]; then
-        git clone https://github.com/ali5ter/carrybag-lite.git
-        cd carrybag-lite
-    else
-        cd carrybag-lite
-        git pull
-    fi
-
+config_carrybag() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
@@ -140,7 +129,6 @@ install_carrybag() {
 
 install_pfb() {
     # @ref https://github.com/ali5ter/pfb
-    install git
     cd "$(src_dir)" || exit 1
 
     if [[ ! -d pfb ]]; then
@@ -158,7 +146,7 @@ install_banner() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         :
     else
-        cp banner.sh /etc/profile.d/banner.sh
+        cp "$(src_dir)/carrybag-lite/bootstrap/banner.sh" /etc/profile.d/banner.sh
     fi
 }
 
@@ -268,9 +256,9 @@ main() {
         pfb success "pyenv installed!"
     fi
 
-    pfb info "Installing carrybag-lite..."
-    install_carrybag
-    pfb success "carrybag-lite installed!"
+    pfb info "Configure carrybag-lite..."
+    config_carrybag
+    pfb success "carrybag-lite configured!"
 
     pfb info "Installing nerd fonts..."
     install_nerd_fonts
