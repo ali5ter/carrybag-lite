@@ -120,7 +120,15 @@ install_carrybag() {
     # @ref https://github.com/ali5ter/carrybag-lite
     install git
     cd "$(src_dir)" || exit 1
-    git clone https://github.com/ali5ter/carrybag-lite.git  && cd carrybag-lite
+
+    if [[ ! -d carrybag-lite ]]; then
+        git clone https://github.com/ali5ter/carrybag-lite.git
+        cd carrybag-lite
+    else
+        cd carrybag-lite
+        git pull
+    fi
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
@@ -134,8 +142,24 @@ install_pfb() {
     # @ref https://github.com/ali5ter/pfb
     install git
     cd "$(src_dir)" || exit 1
-    git clone https://github.com/ali5ter/pfb.git && cd pfb
+
+    if [[ ! -d pfb ]]; then
+        git clone https://github.com/ali5ter/pfb.git
+        cd pfb
+    else
+        cd pfb
+        git pull
+    fi
+
     source ./pfb.sh
+}
+
+install_banner() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        :
+    else
+        cp banner.sh /etc/profile.d/banner.sh
+    fi
 }
 
 install_nerd_fonts() {
@@ -218,6 +242,7 @@ main() {
         pfb heading "Bootstrapping your Linux machine" "🚀"
         bootstrap_linux
     fi
+    install_banner
     pfb success "Bootstrap complete!"
 
     pfb info "Setting up remote management..."
