@@ -283,6 +283,8 @@ main() {
     configure_firewall
     pfb success "Firewall configured!"
     echo
+    pfb success "All done!"
+    echo
     pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
     echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
     pfb answer ${response:-$default}
