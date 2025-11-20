@@ -193,6 +193,7 @@ configure_firewall() {
         # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
         # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned on
         # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsignedapp on
+        :
     else
         # Linux firewall configuration (using ufw)
         sudo apt install -y ufw
