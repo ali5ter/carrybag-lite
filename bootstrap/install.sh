@@ -246,8 +246,6 @@ main() {
     echo
     pfb info "Setting up remote management..."
     remote_management
-    echo; pfb warning "Press space or enter to continue..."
-    read -r -n1 -s
     echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
     pfb answer ${response:-$default}
