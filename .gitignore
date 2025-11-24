@@ -1,2 +1,22 @@
 get-pip.py
 .DS_Store
+
+# Vim swap files
+*.swp
+*.swo
+*~
+
+# Editor directories
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Environment files
+.envrc
+.bashrc_local
+
+# CarryBag runtime state
+.last_brew_update
+.last_apt_update
