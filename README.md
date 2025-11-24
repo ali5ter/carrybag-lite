@@ -1,11 +1,12 @@
-
 # CarryBag Lite
 
-                             |                 |    o|         
-    ,---.,---.,---.,---.,   .|---.,---.,---.   |    .|--- ,---.
-    |    ,---||    |    |   ||   |,---||   |---|    ||    |---'
-    `---'`---^`    `    `---|`---'`---^`---|   `---'``---'`---'
-                        `---'          `---'                   
+```
+  ___                   ___              _    _ _
+ / __|__ _ _ _ _ _ _  _| _ ) __ _ __ _  | |  (_) |_ ___
+| (__/ _` | '_| '_| || | _ \/ _` / _` | | |__| |  _/ -_)
+ \___\__,_|_| |_|  \_, |___/\__,_\__, | |____|_|\__\___|
+                   |__/          |___/
+```
 
 **CarryBag is my collection of dot files, custom functions and theme settings
 used to create a bash shell environment I can carry from machine to machine.**
@@ -13,25 +14,116 @@ used to create a bash shell environment I can carry from machine to machine.**
 Unlike [the original](https://github.com/ali5ter/carrybag), this version is
 pared back. One file, no fuss, less mess.
 
-Tested on macOS Mojave (10.14), Sequoia (15.5) and Debian Bookworm.
+Tested on macOS Sequoia (15.7) and Debian Trixie.
 
-## MacOS Pre-reqs
+## Features
 
-MacOS comes with an old verion of Bash and defaults to zsh. Use Homebrew to
-install the latest version of Bash by running:
+- ✨ Single-file configuration (`bash_profile`)
+- 🚀 Automated bootstrap for macOS and Linux/Raspberry Pi
+- 🐍 Python version management (pyenv)
+- 📦 Node version management (nvm)
+- ⭐ Starship prompt with custom themes
+- 📁 Directory jumper (z.sh)
+- 🔍 Enhanced history search (hstr)
+- 🎨 Syntax highlighting (bat)
+- 🔄 Automatic daily package updates
 
-    brew install bash
+## Quick Install
 
-If you want to use this file, you need to configure your terminal application
-to use bash as the default login shell.
+### Option 1: Automated Bootstrap (Recommended)
 
-Set the default shell to bash by running:
+```bash
+# macOS
+git clone https://github.com/ali5ter/carrybag-lite.git ~/Documents/projects/carrybag-lite
 
-    chsh -s $(brew --prefix)/bin/bash
+# Linux
+git clone https://github.com/ali5ter/carrybag-lite.git ~/src/carrybag-lite
 
-## Install
+# Run installer
+cd carrybag-lite
+./bootstrap/install.sh
+```
 
-Move your existing runcom aside and link to this one...
+This installs all dependencies, links configuration, and sets up tools.
 
-    cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
-    ln -sf $PWD/bash_profile ~/.bash_profile
+### Option 2: Manual Install
+
+For macOS, install latest bash first:
+
+```bash
+brew install bash
+chsh -s $(brew --prefix)/bin/bash
+```
+
+Then link the configuration:
+
+```bash
+cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
+ln -sf $PWD/bash_profile ~/.bash_profile
+```
+
+## What Gets Installed
+
+**Command-line tools:**
+- `bash`, `git`, `vim`, `shellcheck`
+- `jq`, `yq`, `bat`, `tree`, `fzf`
+- `starship` (prompt), `hstr` (history), `z` (directory jumper)
+
+**Development:**
+- `pyenv` (Python version management) - optional
+- `nvm` (Node version management)
+- `docker` - optional
+
+**macOS GUI apps:**
+- iTerm2, Visual Studio Code, Figma
+- 1Password, Dropbox, CleanMyMac
+- Microsoft Teams, WhatsApp
+
+**Raspberry Pi extras:**
+- rpi-connect-lite (remote management)
+- Custom banner with system info
+
+## Additional Tools
+
+### Machine Migration
+
+Transfer configurations from old machine to new:
+
+```bash
+./bootstrap/migrate.sh <username> <remote-host>
+```
+
+### Testing (Raspberry Pi Simulation)
+
+Test bootstrap in Docker before deploying:
+
+```bash
+./test_rpi.sh
+```
+
+### Local Backup
+
+Sync home directory to external drive:
+
+```bash
+./tools/sync
+```
+
+## Customization
+
+Add personal overrides without modifying `bash_profile`:
+
+```bash
+# Create local overrides file
+echo "alias myalias='echo hello'" >> ~/.bashrc_local
+```
+
+The `bash_profile` automatically sources `~/.bashrc_local` if it exists.
+
+## Documentation
+
+See [CLAUDE.md](CLAUDE.md) for architecture details and development workflows.
+
+## License
+
+MIT
