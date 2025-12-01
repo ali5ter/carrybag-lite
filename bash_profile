@@ -89,7 +89,13 @@ type batcat >/dev/null 2>&1 && {
 
 # Completion & key bindings
 # @ref https://github.com/scop/bash-completion
-export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d 2>/dev/null
+if [ -d "/opt/homebrew/etc/bash_completion.d" ]; then
+    export BASH_COMPLETION_COMPAT_DIR=/opt/homebrew/etc/bash_completion.d
+elif [ -d "/usr/local/etc/bash_completion.d" ]; then
+    export BASH_COMPLETION_COMPAT_DIR=/usr/local/etc/bash_completion.d
+fi
+# shellcheck disable=SC1091
+[[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
 # shellcheck disable=SC1091
 [[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && . "/usr/local/etc/profile.d/bash_completion.sh"
 
