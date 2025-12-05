@@ -74,6 +74,9 @@ export GIT_EDITOR="$EDITOR"
 
 # Aliases
 alias source_=". ~/.bash_profile"
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
 alias uuidgen="\uuidgen | tr [:upper:] [:lower:] | tee >(pbcopy)"
 alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
@@ -215,8 +218,6 @@ colors() {
         alias fgrep='fgrep --color=auto'
         alias egrep='egrep --color=auto'
     fi
-
-
 }
 colors
 

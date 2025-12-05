@@ -3,52 +3,89 @@
 # Using Docker to simulate Raspberry Pi OS environment for testing.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 
-#!/usr/bin/env bash
+[[ -n $DEBUG ]] && set -x
 set -euo pipefail
 
+# Host-side repo
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Docker details
 IMAGE="debian:stable"
 PLATFORM="linux/arm64"
+CONTAINER_NAME="carrybag-test"
 
-# Path INSIDE the container that simulates the real Pi environment
+# Path inside the container
 CONTAINER_HOME="/root"
 CONTAINER_SRC="$CONTAINER_HOME/src"
 CONTAINER_REPO="$CONTAINER_SRC/carrybag-lite"
-INSTALL_SCRIPT="$CONTAINER_REPO/bootstrap/install.sh"
 
-echo "==> Simulating Raspberry Pi environment"
-echo "==> Image: $IMAGE ($PLATFORM)"
-echo "==> Host repo: $SCRIPT_DIR"
-echo "==> Inside container repo will live at: $CONTAINER_REPO"
+INSTALL_SCRIPT="$CONTAINER_REPO/bootstrap/install.sh"
+PFB_DIR="$CONTAINER_REPO/bootstrap/pfb"
+PFB_SCRIPT="$PFB_DIR/pfb.sh"
+
+source bootstrap/pfb/pfb.sh 2>/dev/null || true
+
+pfb heading "Raspberry Pi OS Simulation Environment for bootstrap/install.sh testing" 🚀
+pfb subheading "Using Docker image '$IMAGE' on platform '$PLATFORM'"
+pfb subheading "for container named '$CONTAINER_NAME',"
+pfb subheading "and mounting repo from '$CONTAINER_REPO'"
 echo
 
-docker run --rm -it \
+# Remove any previous container so we start clean
+docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+
+docker run -it \
   --platform "$PLATFORM" \
+  --name "$CONTAINER_NAME" \
   -v "$SCRIPT_DIR":$CONTAINER_REPO \
-  "$IMAGE" \
+  $IMAGE \
   bash -c "
-    echo '==> Updating package index...'
     apt-get update -y >/dev/null
+    apt-get install -y bash curl git sudo iproute2 >/dev/null
 
-    echo '==> Installing minimal dependencies...'
-    apt-get install -y bash curl git sudo >/dev/null
+    cd $CONTAINER_REPO
 
-    echo '==> Ensuring directory structure exists...'
-    mkdir -p $CONTAINER_SRC
-
-    echo '==> Verifying install script at $INSTALL_SCRIPT'
-    if [ ! -f $INSTALL_SCRIPT ]; then
-        echo 'ERROR: install.sh not found at expected location!'
+    git submodule update --init --recursive
+    if [ ! -f '$PFB_SCRIPT' ]; then
+        echo 'ERROR: pfb submodule did not initialize correctly.'
         exit 1
     fi
+    echo '' >> /root/.bashrc
+    echo '# Load pfb prompt' >> /root/.bashrc
+    echo 'source $PFB_SCRIPT' >> /root/.bashrc
+    source $PFB_SCRIPT 2>/dev/null || true
 
-    echo '==> Running install script...'
+    echo
+    pfb success 'Package index and dependency installation complete for test environment'
+    echo
+
+    pfb heading 'Ensuring directory structure exists…' 📁
+    mkdir -p $CONTAINER_SRC
+    echo
+
+    pfb heading 'Simulating Raspberry Pi network interfaces…' 🌐
+    ip link add wlan0 type dummy
+    ip addr add 192.168.10.50/24 dev wlan0
+    ip link set wlan0 up
+    ip link add eth1 type dummy
+    ip addr add 10.0.0.50/24 dev eth1
+    ip link set eth1 up
+    echo
+
+    pfb heading 'Running install script…' 🚀
+    pfb subheading 'This is the start of the install.sh output.'
+    pfb subheading 'When the test is complete, the container will remain alive for inspection.'
+    pfb subheading 'Instructions to connect will be provided at the end.'
+    pfb subheading '-----------------------------------------------------------------------------'
+    echo
     bash $INSTALL_SCRIPT
 
     echo
-    echo '==> Listing repo contents after install...'
-    ls -al $CONTAINER_REPO
+    pfb success 'Test complete!'
+    pfb subheading 'You can now inspect the container environment.'
+    pfb subheading 'To connect to the container, run:'
+    pfb subheading \"  docker exec -it $CONTAINER_NAME bash\"
+    pfb subheading 'To tear down the container, run:'
+    pfb subheading \"  docker rm -f $CONTAINER_NAME\"
+    tail -f /dev/null
   "
-
-echo
-echo "==> Raspberry Pi test complete."
