@@ -127,6 +127,15 @@ remote_management() {
     fi
 }
 
+ethernet_over_wifi() {
+    # Prioritize ethernet over wifi if ethernet is available
+    if [[ -f /etc/rpi-issue ]]; then
+        mcli --fields autoconnect-priority,name connection
+        sudo nmcli connection modify "Wired connection 1" connection.autoconnect-priority 999
+        mcli --fields autoconnect-priority,name connection
+    fi
+}
+
 config_carrybag() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
@@ -243,6 +252,13 @@ main() {
     fi
     install_banner
     pfb success "Bootstrap complete!"
+    echo
+    echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
+    pfb answer ${response:-$default}
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        ethernet_over_wifi
+        pfb success "Network interfaces prioritized!"
+    fi
     echo
     pfb info "Setting up remote management..."
     remote_management
