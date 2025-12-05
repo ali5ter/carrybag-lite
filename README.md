@@ -62,6 +62,21 @@ cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
 ln -sf $PWD/bash_profile ~/.bash_profile
 ```
 
+## Submodule: pfb prompt framework
+
+This repository now includes the **pfb** prompt framework as a Git submodule under `bootstrap/pfb`.  
+After cloning the repository, be sure to initialize submodules before running the bootstrap installer:
+
+```bash
+git submodule update --init --recursive
+```
+
+Or clone in one step:
+
+```bash
+git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carrybag-lite
+```
+
 ## What Gets Installed
 
 **Command-line tools:**
@@ -93,12 +108,33 @@ Transfer configurations from old machine to new:
 ./bootstrap/migrate.sh <username> <remote-host>
 ```
 
-### Testing (Raspberry Pi Simulation)
+## Testing in a Raspberry Pi–like Docker Container
 
-Test bootstrap in Docker before deploying:
+You can test the bootstrap process inside a simulated Raspberry Pi ARM64 environment using:
 
 ```bash
-./test_rpi.sh
+./test-raspi.sh
+```
+
+This script will:
+
+- initialize the `pfb` submodule automatically  
+- mount the repo under `/root/src/carrybag-lite`  
+- enable the **pfb** prompt inside the container shell  
+- simulate Pi‑style network interfaces (`wlan0`, `eth1`)  
+- run `bootstrap/install.sh`  
+- keep the container alive for inspection  
+
+To inspect the running container:
+
+```bash
+docker exec -it carrybag-test bash
+```
+
+To stop and remove the test container:
+
+```bash
+docker rm -f carrybag-test
 ```
 
 ### Local Backup
