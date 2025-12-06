@@ -130,9 +130,9 @@ remote_management() {
 ethernet_over_wifi() {
     # Prioritize ethernet over wifi if ethernet is available
     if [[ -f /etc/rpi-issue ]]; then
-        mcli --fields autoconnect-priority,name connection
+        nmcli --fields autoconnect-priority,name connection
         sudo nmcli connection modify "Wired connection 1" connection.autoconnect-priority 999
-        mcli --fields autoconnect-priority,name connection
+        nmcli --fields autoconnect-priority,name connection
     fi
 }
 
