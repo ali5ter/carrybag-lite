@@ -123,7 +123,9 @@ remote_management() {
         install rpi-connect-lite
         rpi-connect on
         loginctl enable-linger
-        rpi-connect signin
+        # Signin will succeed or fail gracefully if already signed in
+        rpi-connect signin 2>&1 | \
+            grep -qE "(Signed in|Already signed in)" && return 0 || return 1
     fi
 }
 
@@ -261,7 +263,7 @@ main() {
     fi
     echo
     pfb info "Setting up remote management..."
-    remote_management
+    remote_management || pfb warning "Remote management setup failed"
     echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
     pfb answer ${response:-$default}
