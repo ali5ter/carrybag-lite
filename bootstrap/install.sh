@@ -142,6 +142,7 @@ config_carrybag() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
+        # shellcheck disable=SC2046
         cp ~/.bashrc ~/.bashrc.$(date +%Y%m%d%H%M%S)
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bashrc
         ln -sf ~/.bashrc ~/.bash_profile
@@ -229,7 +230,139 @@ install_starship() {
     fi
     [ -f ~/.config/starship.toml ] || { mkdir -p ~/.config && touch ~/.config/starship.toml; }
     cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
+[aws]
+disabled = true
 [battery]
+disabled = true
+[buf]
+disabled = true
+[bun]
+disabled = true
+[c]
+disabled = true
+[cpp]
+disabled = true
+[cmake]
+disabled = true
+[cobol]
+disabled = true
+[cmd_duration]
+disabled = true
+[conda]
+disabled = true
+[crystal]
+disabled = true
+[daml]
+disabled = true
+[dart]
+disabled = true
+[deno]
+disabled = true
+[dotnet]
+disabled = true
+[elixir]
+disabled = true
+[elm]
+disabled = true
+[erlang]
+disabled = true
+[fennel]
+disabled = true
+[fortran]
+disabled = true
+[fossil_branch]
+disabled = true
+[fossil_metrics]
+disabled = true
+[gcloud]
+disabled = true
+[gleam]
+disabled = true
+[golang]
+disabled = true
+[guix_shell]
+disabled = true
+[gradle]
+disabled = true
+[haskell]
+disabled = true
+[haxe]
+disabled = true
+[helm]
+disabled = true
+[java]
+disabled = true
+[julia]
+disabled = true
+[kotlin]
+disabled = true
+[lua]
+disabled = true
+[meson]
+disabled = true
+[mise]
+disabled = true
+[mojo]
+disabled = true
+[nats]
+disabled = true
+[nim]
+disabled = true
+[nix_shell]
+disabled = true
+[ocaml]
+disabled = true
+[odin]
+disabled = true
+[opa]
+disabled = true
+[openstack]
+disabled = true
+[os]
+disabled = true
+[package]
+disabled = true
+[perl]
+disabled = true
+[php]
+disabled = true
+[pixi]
+disabled = true
+[purescript]
+disabled = true
+[quarto]
+disabled = true
+[rlang]
+disabled = true
+[raku]
+disabled = true
+[red]
+disabled = true
+[ruby]
+disabled = true
+[rust]
+disabled = true
+[scala]
+disabled = true
+[singularity]
+disabled = true
+[solidity]
+disabled = true
+[spack]
+disabled = true
+[swift]
+disabled = true
+[typst]
+disabled = true
+[vagrant]
+disabled = true
+[vlang]
+disabled = true
+[vcsh]
+disabled = true
+[xmake]
+disabled = true
+[zig]
 disabled = true
 END_OF_STARSHIP_CONFIG
 }
