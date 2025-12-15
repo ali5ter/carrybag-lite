@@ -175,12 +175,17 @@ install_banner() {
 install_nerd_fonts() {
     # @ref https://www.nerdfonts.com/font-downloads
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        install --cask font-source-code-pro
+        install --cask font-sauce-code-pro-nerd-font
+        install --cask font-symbols-only-nerd-font
     else
         [[ -d ~/.fonts ]] || mkdir -p ~/.fonts
         cd ~/.fonts || exit
         curl -fLo "Source Code Pro Nerd Font Complete.ttf" \
             https://github.com/ryanoasis/nerd-fonts/tree/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
+        curl -fLo "Symbols Nerd Font-Regular.ttf" \
+            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf
+        curl -fLo "Symbols Nerd Font Mono-Regular.ttf" \
+            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf
         sudo fc-cache
     fi
 }
