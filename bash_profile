@@ -89,6 +89,14 @@ type batcat >/dev/null 2>&1 && {
     alias more=batcat
     alias less=batcat
 }
+type claude >/dev/null 2>&1 && {
+    # !! Suitable for the way I use claude-code
+    cmd="claude -r --dangerously-skip-permissions"
+    [[ -f ~/.claude/agents/pair-programmer.md ]] && \
+        cmd="$cmd --agent pair-programmer"
+    # shellcheck disable=SC2139
+    alias claudeit="$cmd"
+}
 
 # Completion & key bindings
 # @ref https://github.com/scop/bash-completion

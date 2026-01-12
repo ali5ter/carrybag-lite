@@ -85,6 +85,8 @@ bootstrap_mac() {
     install jq yq bat tree fzf # misc tools
     install ncdu # disk management
     install nmap # network tools
+    install claude-code gemini-cli codex # AI tools
+    install figlet # banner generation
 
     # GUI applications
     # @ref https://formulae.brew.sh/cask/
@@ -96,7 +98,6 @@ bootstrap_mac() {
     install --cask figma # wire-framing/prototyping
     install --cask microsoft-teams whatsapp # messaging
     install --cask visual-studio-code # dev
-    #install --cask chatgpt # chatgpt (only works on metal)
 }
 
 bootstrap_linux() {
