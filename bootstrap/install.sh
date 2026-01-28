@@ -298,7 +298,7 @@ disabled = true
 disabled = true
 [hostname]
 ssh_only = false
-aliases = { "Alisters-iMac.local" = "imac" }
+aliases = { "Alisters-iMac" = "imac", "Alisters-MacBook-Air" = "mb-air" }
 [java]
 disabled = true
 [julia]
