@@ -296,6 +296,9 @@ disabled = true
 disabled = true
 [helm]
 disabled = true
+[hostname]
+ssh_only = false
+aliases = { "Alisters-iMac.local" = "imac" }
 [java]
 disabled = true
 [julia]
@@ -360,6 +363,8 @@ disabled = true
 disabled = true
 [typst]
 disabled = true
+[username]
+show_always = true
 [vagrant]
 disabled = true
 [vlang]
