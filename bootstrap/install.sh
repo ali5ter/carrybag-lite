@@ -85,6 +85,7 @@ bootstrap_mac() {
     install jq yq bat tree fzf # misc tools
     install ncdu # disk management
     install nmap # network tools
+    install wakeonlan # wake-on-lan
     install claude-code gemini-cli codex # AI tools
     install figlet # banner generation
 
@@ -114,6 +115,7 @@ bootstrap_linux() {
     install jq yq bat tree fzf figlet # misc tools
     install shellcheck vim watch # editing
     install fontconfig # font tools
+    install wakeonlan # wake-on-lan
 
     sudo apt autoremove && sudo apt clean
 }
@@ -381,6 +383,21 @@ END_OF_STARSHIP_CONFIG
 install_hstr() {
     # @ref https://github.com/dvorka/hstr
     install hstr
+}
+
+config_ssh() {
+    [[ -f ~/.ssh/config ]] || { 
+        touch $HOME/.ssh/config
+        chmod 600 $HOME/.ssh/config
+    }
+    # Keep SSH connections alive
+    cat >> ~/.ssh/config <<EOT
+Host *
+    ServerAliveInterval 240
+    ServerAliveCountMax 2
+EOT
+    # Also set up Wake-on-LAN
+    # @ref https://www.ms8.com/using-wake-on-lan-from-the-command-line-on-macos/
 }
 
 main() {
