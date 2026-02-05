@@ -1,0 +1,23 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "alwaysThinkingEnabled": true,
+  "model": "sonnet",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Read the file ~/.claude/development-principles.md and internalize its development principles. Apply these standards automatically throughout this session without needing reminders.",
+            "once": true,
+            "statusMessage": "Loading development principles..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -411,6 +411,17 @@ install_claude_code() {
     fi
 }
 
+config_claude_code() {
+    # Configure Claude Code by symlinking configuration files
+    local repo_dir
+    repo_dir="$(src_dir)/carrybag-lite"
+    if [[ -d "$repo_dir/claude" ]]; then
+        "$repo_dir/claude/install.sh"
+    else
+        pfb warning "Claude Code configuration directory not found at $repo_dir/claude"
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -470,6 +481,10 @@ main() {
     pfb info "Installing Claude Code..."
     install_claude_code
     pfb success "Claude Code installed!"
+    echo
+    pfb info "Configuring Claude Code..."
+    config_claude_code
+    pfb success "Claude Code configured!"
     echo
     pfb info "Configuring firewall..."
     configure_firewall
