@@ -401,6 +401,16 @@ EOT
     # wakeonlan "$(arp -a | grep -i 192.168.1.16 | awk '{print $4}')"
 }
 
+install_claude_code() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install claude-code
+    else
+        curl -fsSL https://claude.ai/install.sh | bash
+        # shellcheck disable=SC2016
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.bashrc_local"
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -456,6 +466,10 @@ main() {
         install_docker
         pfb success "Docker installed!"
     fi
+    echo
+    pfb info "Installing Claude Code..."
+    install_claude_code
+    pfb success "Claude Code installed!"
     echo
     pfb info "Configuring firewall..."
     configure_firewall
