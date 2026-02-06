@@ -393,6 +393,7 @@ config_ssh() {
     # Keep SSH connections alive
     cat >> ~/.ssh/config <<EOT
 Host *
+    TCPKeepAlive=yes
     ServerAliveInterval 240
     ServerAliveCountMax 2
 EOT

@@ -98,6 +98,10 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 - rpi-connect-lite (remote management)
 - Custom banner with system info
 
+**Development tools configuration:**
+- Claude Code settings and development principles
+- Starship prompt configuration
+
 ## Additional Tools
 
 ### Machine Migration

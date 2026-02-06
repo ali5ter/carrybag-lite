@@ -31,6 +31,7 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 3. Interactive prompts for optional components (pyenv, Docker)
 4. Tool installations (Starship prompt, hstr, Nerd Fonts)
 5. Links bash_profile to appropriate location
+6. Configures Claude Code settings and development principles
 
 Functions are modular and can be sourced/tested individually:
 ```bash
@@ -140,6 +141,7 @@ Organized into sections:
 - **`bootstrap_linux()`:** Minimal package set, RPi-aware
 - **`remote_management()`:** Sets up `rpi-connect-lite` for remote Pi access
 - **`install_nerd_fonts()`:** Brew cask (macOS) vs manual download (Linux)
+- **`config_claude_code()`:** Symlinks Claude Code configuration from `claude/` directory to `~/.claude/`
 
 ### Migration Tool (migrate.sh)
 Two transfer methods available:
@@ -154,6 +156,20 @@ Predefined migration paths in `main()` can be edited to customize.
 - `~/.nvm/` - Node version manager
 - `~/.config/starship.toml` - Starship prompt config
 - `~/.fonts/` - Nerd Fonts (Linux only)
+
+### Claude Code Configuration
+The `claude/` directory contains Claude Code settings that get symlinked to `~/.claude/` during bootstrap:
+- **`settings.json`:** Claude Code settings with SessionStart hook to load development principles
+- **`development-principles.md`:** Global coding standards and best practices
+- **`statusline-command.sh`:** Custom statusline showing git branch and status
+- **`install.sh`:** Installation script with timestamped backup mechanism
+- **`README.md`:** Documentation for the Claude Code configuration component
+
+Installation handled by `config_claude_code()` in `bootstrap/install.sh`:
+- Creates backups of existing files (`.backup.YYYYMMDDHHMMSS` suffix)
+- Symlinks each file from `claude/` to `~/.claude/`
+- Idempotent - can be run multiple times safely
+- Uses pfb for formatted output consistent with carrybag-lite conventions
 
 ## Important Configuration Details
 
@@ -203,3 +219,26 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 | Shell config | `~/.bash_profile` | `~/.bashrc` → `~/.bash_profile` |
 | Homebrew | `/opt/homebrew` (AS) or `/usr/local` (Intel) | N/A |
 | Fonts | System | `~/.fonts` |
+| Claude Code | `~/.claude/` | `~/.claude/` |
+
+## Repository Structure
+
+```
+carrybag-lite/
+├── bash_profile              # Single-file bash configuration
+├── bootstrap/
+│   ├── install.sh           # Main bootstrap orchestrator
+│   ├── migrate.sh           # Machine-to-machine migration tool
+│   └── pfb/                 # Git submodule for formatted output
+├── claude/                  # Claude Code configuration (NEW)
+│   ├── settings.json        # Claude Code settings with SessionStart hook
+│   ├── development-principles.md  # Coding standards
+│   ├── statusline-command.sh      # Git status display
+│   ├── install.sh           # Installation script
+│   └── README.md            # Component documentation
+├── tools/
+│   └── sync                 # Local backup/sync utility
+├── test_rpi.sh              # Docker-based Raspberry Pi testing
+├── CLAUDE.md                # This file - AI project context
+└── README.md                # User-facing documentation
+```
