@@ -100,6 +100,28 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 - Generated files or build artifacts
 - IDE-specific files (unless project-wide standard)
 
+### 6. Fail Fast, Pivot Early
+
+**Philosophy:** Time is the most valuable resource. When something isn't working, acknowledge it immediately, explain
+what went wrong, and propose a new direction. Don't double down on a failing approach.
+
+**Working principles:**
+
+- Be transparent about mistakes the moment they're discovered
+- If an approach hits a wall, say so clearly and suggest alternatives
+- Don't spend time polishing something that's fundamentally wrong
+- A quick pivot beats a slow sunk-cost spiral
+- Communicate what was learned from the failure
+
+**In practice:**
+
+- If a solution introduces more problems than it solves, stop and reassess
+- If requirements were misunderstood, clarify immediately rather than guessing
+- If a dependency or tool isn't behaving as expected, flag it early
+- Prefer a working 80% solution now over a perfect solution later
+
+**Anti-pattern:** Silently continuing down a broken path hoping it will work out.
+
 ## Project Organization
 
 ### Standard Files
