@@ -45,4 +45,4 @@ model=$(echo "$input" | jq -r '.model.display_name')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 
 # Output format: hostname in directory [on git:branch]
-printf "%s in %s%s | 🤖 %s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$used"
+printf "%s in %s%s | %s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$used"
