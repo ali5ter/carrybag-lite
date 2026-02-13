@@ -1,5 +1,4 @@
 {
-  "model": "sonnet",
   "hooks": {
     "SessionStart": [
       {
@@ -19,5 +18,6 @@
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "skipDangerousModePermissionPrompt": true
 }
