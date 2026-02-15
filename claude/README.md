@@ -4,8 +4,8 @@ This directory contains Claude Code configuration files that are symlinked to `~
 
 ## Files
 
-- **development-principles.md** - Global development standards applied to all projects
-- **settings.json** - Claude Code settings including hooks and preferences
+- **CLAUDE.md** - Global development standards applied to all projects (user-level instructions)
+- **settings.json** - Claude Code settings and preferences
 - **statusline-command.sh** - Custom status line display script
 
 ## Installation
@@ -13,7 +13,7 @@ This directory contains Claude Code configuration files that are symlinked to `~
 The `install.sh` script is called automatically by `bootstrap/install.sh` and creates symlinks:
 
 ```bash
-~/.claude/development-principles.md -> carrybag-lite/claude/development-principles.md
+~/.claude/CLAUDE.md -> carrybag-lite/claude/CLAUDE.md
 ~/.claude/settings.json -> carrybag-lite/claude/settings.json
 ~/.claude/statusline-command.sh -> carrybag-lite/claude/statusline-command.sh
 ```

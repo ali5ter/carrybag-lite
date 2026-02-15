@@ -1,19 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": ".*",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Read the file ~/.claude/development-principles.md and internalize its development principles. Apply these standards automatically throughout this session without needing reminders.",
-            "statusMessage": "Loading development principles...",
-            "once": true
-          }
-        ]
-      }
-    ]
-  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"

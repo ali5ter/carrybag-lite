@@ -159,8 +159,8 @@ Predefined migration paths in `main()` can be edited to customize.
 
 ### Claude Code Configuration
 The `claude/` directory contains Claude Code settings that get symlinked to `~/.claude/` during bootstrap:
-- **`settings.json`:** Claude Code settings with SessionStart hook to load development principles
-- **`development-principles.md`:** Global coding standards and best practices
+- **`settings.json`:** Claude Code settings and preferences
+- **`CLAUDE.md`:** Global coding standards and best practices (user-level instructions loaded automatically)
 - **`statusline-command.sh`:** Custom statusline showing git branch and status
 - **`install.sh`:** Installation script with timestamped backup mechanism
 - **`README.md`:** Documentation for the Claude Code configuration component
@@ -231,8 +231,8 @@ carrybag-lite/
 │   ├── migrate.sh           # Machine-to-machine migration tool
 │   └── pfb/                 # Git submodule for formatted output
 ├── claude/                  # Claude Code configuration (NEW)
-│   ├── settings.json        # Claude Code settings with SessionStart hook
-│   ├── development-principles.md  # Coding standards
+│   ├── settings.json        # Claude Code settings and preferences
+│   ├── CLAUDE.md                  # User-level coding standards
 │   ├── statusline-command.sh      # Git status display
 │   ├── install.sh           # Installation script
 │   └── README.md            # Component documentation
