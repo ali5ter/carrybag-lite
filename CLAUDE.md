@@ -148,7 +148,7 @@ Two transfer methods available:
 - **`transfer_using_cpio()`:** Lower-level transfer
 - **`transfer_using_rsync()`:** Default, with retry logic and progress display
 
-Predefined migration paths in `main()` can be edited to customize.
+Uses pfb for formatted output. Predefined migration paths can be edited to customize.
 
 ### External Dependencies Auto-Downloaded
 - `~/.z.sh` - Directory jumper (downloaded on first bash_profile source)
@@ -159,9 +159,9 @@ Predefined migration paths in `main()` can be edited to customize.
 
 ### Claude Code Configuration
 The `claude/` directory contains Claude Code settings that get symlinked to `~/.claude/` during bootstrap:
-- **`settings.json`:** Claude Code settings and preferences
-- **`CLAUDE.md`:** Global coding standards and best practices (user-level instructions loaded automatically)
-- **`statusline-command.sh`:** Custom statusline showing git branch and status
+- **`CLAUDE.md`:** User-level coding standards (loaded automatically by Claude Code - no hooks needed)
+- **`settings.json`:** Claude Code preferences (statusLine, alwaysThinkingEnabled, skipDangerousModePermissionPrompt)
+- **`statusline-command.sh`:** Custom statusline showing hostname, directory, git branch, model, and usage %
 - **`install.sh`:** Installation script with timestamped backup mechanism
 - **`README.md`:** Documentation for the Claude Code configuration component
 
@@ -170,6 +170,9 @@ Installation handled by `config_claude_code()` in `bootstrap/install.sh`:
 - Symlinks each file from `claude/` to `~/.claude/`
 - Idempotent - can be run multiple times safely
 - Uses pfb for formatted output consistent with carrybag-lite conventions
+
+**Note:** Development principles are loaded via `~/.claude/CLAUDE.md` (Claude Code's built-in
+user-level instruction file), not via hooks. This provides zero-latency, zero-token-cost loading.
 
 ## Important Configuration Details
 
@@ -231,9 +234,9 @@ carrybag-lite/
 │   ├── migrate.sh           # Machine-to-machine migration tool
 │   └── pfb/                 # Git submodule for formatted output
 ├── claude/                  # Claude Code configuration
-│   ├── settings.json        # Claude Code settings and preferences
-│   ├── CLAUDE.md                  # User-level coding standards
-│   ├── statusline-command.sh      # Git status display
+│   ├── CLAUDE.md            # User-level coding standards
+│   ├── settings.json        # Claude Code preferences
+│   ├── statusline-command.sh # Git status display
 │   ├── install.sh           # Installation script
 │   └── README.md            # Component documentation
 ├── tools/
