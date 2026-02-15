@@ -58,7 +58,7 @@ echo
 
 # Files to symlink
 files=(
-    "development-principles.md"
+    "CLAUDE.md"
     "settings.json"
     "statusline-command.sh"
 )
@@ -82,9 +82,9 @@ pfb info "  Config location: $CLAUDE_DIR"
 pfb info "  Source location: $SCRIPT_DIR"
 echo
 
-if [[ -L "$CLAUDE_DIR/development-principles.md" ]] && \
+if [[ -L "$CLAUDE_DIR/CLAUDE.md" ]] && \
    [[ -L "$CLAUDE_DIR/settings.json" ]] && \
    [[ -L "$CLAUDE_DIR/statusline-command.sh" ]]; then
     pfb info "Symlinked files:"
-    ls -lh "$CLAUDE_DIR"/{development-principles.md,settings.json,statusline-command.sh} 2>/dev/null || true
+    ls -lh "$CLAUDE_DIR"/{CLAUDE.md,settings.json,statusline-command.sh} 2>/dev/null || true
 fi

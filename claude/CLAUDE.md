@@ -122,6 +122,42 @@ what went wrong, and propose a new direction. Don't double down on a failing app
 
 **Anti-pattern:** Silently continuing down a broken path hoping it will work out.
 
+## Language-Specific Standards
+
+### Node.js / JavaScript / TypeScript
+
+- Prefer TypeScript with `strict: true` for all new projects
+- No `any` - use `unknown` and narrow, or define proper types
+- Explicit return types on exported functions
+- Prefer ESM (`import`/`export`) over CommonJS
+- Use `const` by default, `let` only when reassignment needed
+- Async/await over raw promises; handle errors explicitly
+- JSDoc on exported functions (brief description, `@param`, `@returns`)
+- Prefer named exports over default exports
+- Node.js: use built-in `node:` prefix for core modules
+- Testing: colocate tests, descriptive names, test behavior not implementation
+- Package manager: follow what the project uses (check for lock files)
+
+### Python
+
+- Target Python 3.10+ (use modern syntax: `X | Y` unions, `match`/`case`)
+- Type hints on all function signatures (params and returns)
+- Use `ruff` for linting and formatting (replaces black, isort, flake8)
+- Follow PEP 8 naming: `snake_case` functions/vars, `PascalCase` classes
+- Docstrings: Google style (brief description, Args, Returns, Raises)
+- Prefer `pathlib.Path` over `os.path`
+- Use dataclasses or Pydantic for structured data
+- Virtual environments via `venv` or `pyenv-virtualenv`
+- Testing: pytest, descriptive test names, fixtures over setup/teardown
+
+### General (Cross-Language)
+
+- Error messages should be actionable (say what went wrong AND what to do)
+- Prefer standard library before reaching for dependencies
+- Keep functions focused - if it needs a comment explaining a section, extract it
+- Security: validate at system boundaries, never trust external input
+- Logging: structured where possible, appropriate levels
+
 ## Project Organization
 
 ### Standard Files
