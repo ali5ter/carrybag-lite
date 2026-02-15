@@ -14,7 +14,7 @@ SOURCE_DIR="${1:-$HOME/}"
 TARGET_DIR="${2:-/Volumes/Lacie/$HOSTNAME/}"
 
 sync_local() {
-    [ -d "$TARGET_DIR" ] || mkdir -p "$TARGET_DIR"]
+    [ -d "$TARGET_DIR" ] || mkdir -p "$TARGET_DIR"
     
     # rsync flags used:
     # -g preserve group

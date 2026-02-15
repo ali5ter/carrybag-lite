@@ -99,7 +99,7 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 - Custom banner with system info
 
 **Development tools configuration:**
-- Claude Code settings and development principles
+- Claude Code settings and user-level coding standards
 - Starship prompt configuration
 
 ## Additional Tools
@@ -117,7 +117,7 @@ Transfer configurations from old machine to new:
 You can test the bootstrap process inside a simulated Raspberry Pi ARM64 environment using:
 
 ```bash
-./test-raspi.sh
+./test_rpi.sh
 ```
 
 This script will:

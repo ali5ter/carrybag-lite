@@ -31,7 +31,7 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 3. Interactive prompts for optional components (pyenv, Docker)
 4. Tool installations (Starship prompt, hstr, Nerd Fonts)
 5. Links bash_profile to appropriate location
-6. Configures Claude Code settings and development principles
+6. Configures Claude Code settings and user-level coding standards
 
 Functions are modular and can be sourced/tested individually:
 ```bash
@@ -230,7 +230,7 @@ carrybag-lite/
 │   ├── install.sh           # Main bootstrap orchestrator
 │   ├── migrate.sh           # Machine-to-machine migration tool
 │   └── pfb/                 # Git submodule for formatted output
-├── claude/                  # Claude Code configuration (NEW)
+├── claude/                  # Claude Code configuration
 │   ├── settings.json        # Claude Code settings and preferences
 │   ├── CLAUDE.md                  # User-level coding standards
 │   ├── statusline-command.sh      # Git status display
