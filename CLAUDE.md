@@ -32,6 +32,7 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 4. Tool installations (Starship prompt, hstr, Nerd Fonts)
 5. Links bash_profile to appropriate location
 6. Configures Claude Code settings and user-level coding standards
+7. Configures Codex CLI (symlinks shared principles as `~/.codex/AGENTS.md`)
 
 Functions are modular and can be sourced/tested individually:
 ```bash
@@ -142,6 +143,7 @@ Organized into sections:
 - **`remote_management()`:** Sets up `rpi-connect-lite` for remote Pi access
 - **`install_nerd_fonts()`:** Brew cask (macOS) vs manual download (Linux)
 - **`config_claude_code()`:** Symlinks Claude Code configuration from `claude/` directory to `~/.claude/`
+- **`config_codex()`:** Delegates to `codex/install.sh` to set up Codex CLI configuration
 
 ### Migration Tool (migrate.sh)
 Two transfer methods available:
@@ -159,7 +161,7 @@ Uses pfb for formatted output. Predefined migration paths can be edited to custo
 
 ### Claude Code Configuration
 The `claude/` directory contains Claude Code settings that get symlinked to `~/.claude/` during bootstrap:
-- **`CLAUDE.md`:** User-level coding standards (loaded automatically by Claude Code - no hooks needed)
+- **`CLAUDE.md`:** User-level coding standards (loaded automatically by Claude Code - no hooks needed). Contains 7 principles: Codify Don't Document, Bash UX with pfb, Markdown Standards, Professional Documentation Tone, Version Control Everything, Fail Fast Pivot Early, and Behavioral Integrity.
 - **`settings.json`:** Claude Code preferences (statusLine, alwaysThinkingEnabled, skipDangerousModePermissionPrompt)
 - **`statusline-command.sh`:** Custom statusline showing hostname, directory, git branch, model, and usage %
 - **`install.sh`:** Installation script with timestamped backup mechanism
@@ -173,6 +175,19 @@ Installation handled by `config_claude_code()` in `bootstrap/install.sh`:
 
 **Note:** Development principles are loaded via `~/.claude/CLAUDE.md` (Claude Code's built-in
 user-level instruction file), not via hooks. This provides zero-latency, zero-token-cost loading.
+
+### Codex CLI Configuration
+The `codex/` directory contains the Codex CLI installer:
+- **`install.sh`:** Standalone installer that symlinks `claude/CLAUDE.md` → `~/.codex/AGENTS.md`
+
+This means both Claude Code and Codex CLI share the same development principles from a single source
+file (`claude/CLAUDE.md`). No separate principles document is maintained for Codex CLI.
+
+Installation handled by `config_codex()` in `bootstrap/install.sh`, which delegates entirely to
+`codex/install.sh`. Run standalone with:
+```bash
+./codex/install.sh
+```
 
 ## Important Configuration Details
 
@@ -223,6 +238,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 | Homebrew | `/opt/homebrew` (AS) or `/usr/local` (Intel) | N/A |
 | Fonts | System | `~/.fonts` |
 | Claude Code | `~/.claude/` | `~/.claude/` |
+| Codex CLI | `~/.codex/` | `~/.codex/` |
 
 ## Repository Structure
 
@@ -234,11 +250,13 @@ carrybag-lite/
 │   ├── migrate.sh           # Machine-to-machine migration tool
 │   └── pfb/                 # Git submodule for formatted output
 ├── claude/                  # Claude Code configuration
-│   ├── CLAUDE.md            # User-level coding standards
+│   ├── CLAUDE.md            # User-level coding standards (7 principles, shared with Codex)
 │   ├── settings.json        # Claude Code preferences
 │   ├── statusline-command.sh # Git status display
 │   ├── install.sh           # Installation script
 │   └── README.md            # Component documentation
+├── codex/                   # Codex CLI configuration
+│   └── install.sh           # Symlinks claude/CLAUDE.md → ~/.codex/AGENTS.md
 ├── tools/
 │   └── sync                 # Local backup/sync utility
 ├── test_rpi.sh              # Docker-based Raspberry Pi testing
