@@ -428,27 +428,13 @@ config_codex() {
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_codex
-    local repo_dir codex_dir target
+    local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
-    codex_dir="$HOME/.codex"
-    target="$repo_dir/claude/CLAUDE.md"
-
-    if [[ ! -f "$target" ]]; then
-        pfb warning "CLAUDE.md not found at $target, skipping Codex configuration"
-        return 1
+    if [[ -d "$repo_dir/codex" ]]; then
+        "$repo_dir/codex/install.sh"
+    else
+        pfb warning "Codex configuration directory not found at $repo_dir/codex"
     fi
-
-    mkdir -p "$codex_dir"
-
-    local dest="$codex_dir/AGENTS.md"
-    if [[ -f "$dest" && ! -L "$dest" ]]; then
-        local backup="${dest}.backup.$(date +"%Y%m%d%H%M%S")"
-        pfb info "Backing up existing AGENTS.md to $(basename "$backup")"
-        mv "$dest" "$backup"
-    fi
-
-    ln -sf "$target" "$dest"
-    pfb success "Codex AGENTS.md linked"
 }
 
 main() {
