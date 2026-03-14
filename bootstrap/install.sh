@@ -423,6 +423,34 @@ config_claude_code() {
     fi
 }
 
+config_codex() {
+    # Configure OpenAI Codex CLI by symlinking CLAUDE.md as AGENTS.md
+    # @param None
+    # @return 0 on success, 1 on failure
+    # @example config_codex
+    local repo_dir codex_dir target
+    repo_dir="$(src_dir)/carrybag-lite"
+    codex_dir="$HOME/.codex"
+    target="$repo_dir/claude/CLAUDE.md"
+
+    if [[ ! -f "$target" ]]; then
+        pfb warning "CLAUDE.md not found at $target, skipping Codex configuration"
+        return 1
+    fi
+
+    mkdir -p "$codex_dir"
+
+    local dest="$codex_dir/AGENTS.md"
+    if [[ -f "$dest" && ! -L "$dest" ]]; then
+        local backup="${dest}.backup.$(date +"%Y%m%d%H%M%S")"
+        pfb info "Backing up existing AGENTS.md to $(basename "$backup")"
+        mv "$dest" "$backup"
+    fi
+
+    ln -sf "$target" "$dest"
+    pfb success "Codex AGENTS.md linked"
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -486,6 +514,10 @@ main() {
     pfb info "Configuring Claude Code..."
     config_claude_code
     pfb success "Claude Code configured!"
+    echo
+    pfb info "Configuring Codex..."
+    config_codex
+    pfb success "Codex configured!"
     echo
     pfb info "Configuring firewall..."
     configure_firewall

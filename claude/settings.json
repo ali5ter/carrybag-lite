@@ -4,5 +4,8 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "alwaysThinkingEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "enabledPlugins": {
+    "obsidian-project-documentation-assistant@ali5ter": true
+  }
 }
