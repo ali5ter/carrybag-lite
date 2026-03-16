@@ -100,6 +100,7 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 
 **Development tools configuration:**
 - Claude Code settings and user-level coding standards
+- Codex CLI configuration (symlinked from shared principles)
 - Starship prompt configuration
 
 ## Additional Tools

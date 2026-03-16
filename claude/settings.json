@@ -5,5 +5,8 @@
   },
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "model": "sonnet"
+  "model": "sonnet",
+  "enabledPlugins": {
+    "obsidian-project-documentation-assistant@ali5ter": true
+  }
 }

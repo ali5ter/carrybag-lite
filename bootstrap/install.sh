@@ -423,6 +423,20 @@ config_claude_code() {
     fi
 }
 
+config_codex() {
+    # Configure OpenAI Codex CLI by symlinking CLAUDE.md as AGENTS.md
+    # @param None
+    # @return 0 on success, 1 on failure
+    # @example config_codex
+    local repo_dir
+    repo_dir="$(src_dir)/carrybag-lite"
+    if [[ -d "$repo_dir/codex" ]]; then
+        "$repo_dir/codex/install.sh"
+    else
+        pfb warning "Codex configuration directory not found at $repo_dir/codex"
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -486,6 +500,10 @@ main() {
     pfb info "Configuring Claude Code..."
     config_claude_code
     pfb success "Claude Code configured!"
+    echo
+    pfb info "Configuring Codex..."
+    config_codex
+    pfb success "Codex configured!"
     echo
     pfb info "Configuring firewall..."
     configure_firewall
