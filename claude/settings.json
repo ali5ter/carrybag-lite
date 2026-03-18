@@ -5,7 +5,8 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "obsidian-project-documentation-assistant@ali5ter": true
+    "obsidian-project-documentation-assistant@ali5ter": true,
+    "over-50s-health-advisor@ali5ter": true
   },
   "extraKnownMarketplaces": {
     "ali5ter": {
