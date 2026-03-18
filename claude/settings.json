@@ -13,7 +13,8 @@
       "source": {
         "source": "github",
         "repo": "ali5ter/claude-plugins"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "alwaysThinkingEnabled": true,

@@ -44,5 +44,13 @@ fi
 model=$(echo "$input" | jq -r '.model.display_name')
 used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 
+# Get agent name if one is loaded
+agent_info=""
+agent=$(echo "$input" | jq -r '.agent.name // empty')
+if [ -n "$agent" ]; then
+    agent_info=" | agent:$agent"
+fi
+
 # Output format: hostname in directory [on git:branch]
-printf "%s in %s%s | %s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$used"
+#                model [| agent:name] | usage
+printf "%s in %s%s\n%s%s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$used"
