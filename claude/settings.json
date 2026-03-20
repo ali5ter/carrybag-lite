@@ -6,7 +6,8 @@
   },
   "enabledPlugins": {
     "over-50s-health@ali5ter": true,
-    "obsidian-project-documentation@ali5ter": true
+    "obsidian-project-documentation@ali5ter": true,
+    "cli-ux-tester@ali5ter": true
   },
   "extraKnownMarketplaces": {
     "ali5ter": {

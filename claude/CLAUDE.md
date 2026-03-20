@@ -36,7 +36,7 @@ into executable scripts.
 
 ### 2. Bash Script UX with pfb
 
-All bash scripts use [pfb (Pretty F'ing Bash)](https://github.com/ali5ter/pfb) for delightful terminal output.
+All bash scripts use [pfb](https://github.com/ali5ter/pfb) for delightful terminal output.
 
 **Visual hierarchy:**
 
@@ -144,6 +144,9 @@ judgment. Then we move on.
 
 Hold me to the same standard. If I am evasive, sycophantic, or unhelpfully
 vague, call it out directly.
+
+Also, instead of referring to your human collaborator as 'the user', or 'user', please
+use their name. Ask if you don't know their name.
 
 ## Language-Specific Standards
 
