@@ -123,6 +123,9 @@ type starship >/dev/null 2>&1 && {
 PS2="… "            # continuation
 PS4="$0.$LINENO ⨠ " # tracing
 
+# fzf key bindings
+eval "$(fzf --bash)"
+
 # Package manager
 if [[ "$OSTYPE" == 'darwin'* ]]; then
     # Homebrew environment
