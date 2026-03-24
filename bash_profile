@@ -82,7 +82,6 @@ alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
 alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
 alias gs="git status"
 alias gd="git diff"
-alias git-tidy='git checkout main && git pull --prune && git branch --merged main | grep -Ev "^\*|main" | xargs git branch -d'
 type bat >/dev/null 2>&1 && {
     alias more=bat
     alias less=bat
@@ -123,8 +122,26 @@ type starship >/dev/null 2>&1 && {
 PS2="… "            # continuation
 PS4="$0.$LINENO ⨠ " # tracing
 
+# Fuzzy finder (fzf)
 # fzf key bindings
 eval "$(fzf --bash)"
+# Make fzf use fd instead of find — respects .gitignore, much faster
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+# Visual defaults
+export FZF_DEFAULT_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --info=inline
+'
+# CTRL-T: Preview files with bat
+export FZF_CTRL_T_OPTS="
+  --preview 'bat -n --color=always {}'
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+# ALT-C/ESC-C: preview directory tree
+export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
 # Package manager
 if [[ "$OSTYPE" == 'darwin'* ]]; then
@@ -208,18 +225,33 @@ ostype() {
     fi
 }
 
-cwc() {
-    # Open a crossword clue in DanWord
-    local clue="$*"
-    local url=''
-    clue=$(echo "$clue" | tr ' ' '_')
-    url="https://www.danword.com/crossword/$clue"
-    echo "Opening $url"
-    open "$url"
+fb() {
+    # Git branch switcher using fzf
+    local branch
+    branch=$(git branch --all | fzf --height 40% \
+        --preview 'git log --oneline --color=always {-1}' | \
+        sed 's/^[* ]*//' | sed 's|remotes/origin/||')
+    [ -n "$branch" ] && git checkout "$branch"
+}
+
+db() {
+    # Git branch deleter using fzf
+    git branch |
+        grep --invert-match '\*' |
+        cut -c 3- |
+        fzf --multi --preview="git log {} --" |
+        xargs --no-run-if-empty git branch --delete --force
+}
+
+cl() {
+    # Git commit log viewer using fzf
+    git log --oneline --color=always | \
+      fzf --ansi --preview 'git show --color=always {1}' \
+        --bind 'enter:execute(git show --color=always {1} | less -R)'
 }
 
 colors() {
-    # enable color support of ls and also add handy aliases
+    # Enable color support of ls and also add handy aliases
     if [ -x /usr/bin/dircolors ]; then
         if test -r ~/.dircolors; then
             eval "$(dircolors -b ~/.dircolors)"

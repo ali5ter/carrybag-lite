@@ -82,7 +82,8 @@ bootstrap_mac() {
     install shellcheck vim watch # editing
     install bash-completion@2 # auto-completion
     install node go # dev
-    install jq yq bat tree fzf # misc tools
+    install jq yq bat fd tree fzf # misc tools
+    install btop # system monitoring
     install ncdu # disk management
     install nmap # network tools
     install wakeonlan # wake-on-lan
@@ -112,7 +113,7 @@ bootstrap_linux() {
     
     install curl wget gnupg git # download & certs
     # install nodejs npm golang # dev
-    install jq yq bat tree fzf figlet # misc tools
+    install jq yq bat tree fd-find fzf figlet # misc tools
     install shellcheck vim watch # editing
     install fontconfig # font tools
     install wakeonlan # wake-on-lan
