@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CarryBag Lite is a portable bash shell environment configuration system. Unlike the original CarryBag, this version uses a single-file approach: "one file, no fuss, less mess."
 
-**Supported platforms:** macOS (Mojave 10.14+, Sequoia 15.5) and Debian-based Linux (Bookworm, Raspberry Pi OS)
+**Supported platforms:** macOS (Mojave 10.14+, Tahoe) and Debian-based Linux (Trixie, Raspberry Pi OS)
 
 ## Core Architecture
 
