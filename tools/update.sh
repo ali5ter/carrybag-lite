@@ -2,7 +2,7 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.0.0
+# @version 2.1.0
 # @usage update.sh [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
@@ -15,14 +15,25 @@
 set -uo pipefail
 shopt -s nullglob
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ---------------------------------------------------------------------------
+# Resolve the real script location by following the symlink chain, so pfb
+# can be found relative to the actual file rather than the symlink's location.
+# ---------------------------------------------------------------------------
+_script="${BASH_SOURCE[0]}"
+while [[ -L "$_script" ]]; do
+    _script_dir="$(cd "$(dirname "$_script")" && pwd)"
+    _script="$(readlink "$_script")"
+    [[ "$_script" == /* ]] || _script="${_script_dir}/${_script}"
+done
+SCRIPT_DIR="$(cd "$(dirname "$_script")" && pwd)"
+unset _script _script_dir
 
 # shellcheck source=../bootstrap/pfb/pfb.sh
 source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
     pfb() {
         local cmd="${1:-}"; shift || true
         case "$cmd" in
-            heading)    printf '\n%s\n' "$1" ;;
+            heading)    printf '\n%s\n' "${2:+$2 }$1" ;;
             subheading) printf '  %s\n' "$1" ;;
             success)    printf '  ✓ %s\n' "$1" ;;
             warn)       printf '  ! %s\n' "$1" ;;
@@ -31,6 +42,30 @@ source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
         esac
     }
 }
+
+# ---------------------------------------------------------------------------
+# Timeout support — use GNU timeout (Linux) or gtimeout (macOS via coreutils)
+# Override the default with GIT_PULL_TIMEOUT=N before running the script.
+# ---------------------------------------------------------------------------
+_TIMEOUT_CMD=""
+command -v timeout  >/dev/null 2>&1 && _TIMEOUT_CMD="timeout"
+command -v gtimeout >/dev/null 2>&1 && _TIMEOUT_CMD="gtimeout"
+GIT_PULL_TIMEOUT="${GIT_PULL_TIMEOUT:-60}"
+
+# @description Run a git command with a timeout if one is available
+# @param $@ git command and arguments
+# @return Command exit code, or 124 if timed out
+git_with_timeout() {
+    if [[ -n "$_TIMEOUT_CMD" ]]; then
+        "$_TIMEOUT_CMD" "$GIT_PULL_TIMEOUT" git "$@"
+    else
+        git "$@"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 SCAN_DIR="${1:-$PWD}"
 count_updated=0
@@ -56,27 +91,29 @@ for dir in "${SCAN_DIR}"/*/; do
         continue
     fi
 
-    if ! git ls-remote --exit-code origin > /dev/null 2>&1; then
+    if ! GIT_TERMINAL_PROMPT=0 git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
         pfb warn "Remote not reachable"
         count_skipped=$(( count_skipped + 1 ))
         popd > /dev/null
         continue
     fi
 
-    output=$(git pull --ff-only 2>&1) && pull_ok=true || pull_ok=false
+    output=$(GIT_TERMINAL_PROMPT=0 git_with_timeout pull --ff-only 2>&1)
+    pull_exit=$?
 
-    if [[ "$pull_ok" == "true" ]]; then
-        if [[ "$output" == *"Already up to date"* ]]; then
-            pfb info "Already up to date"
-            count_current=$(( count_current + 1 ))
-        else
-            pfb success "Updated"
-            count_updated=$(( count_updated + 1 ))
-        fi
-    else
+    if [[ $pull_exit -eq 124 ]]; then
+        pfb err "Pull timed out after ${GIT_PULL_TIMEOUT}s"
+        count_failed=$(( count_failed + 1 ))
+    elif [[ $pull_exit -ne 0 ]]; then
         pfb err "Pull failed"
         pfb subheading "$output"
         count_failed=$(( count_failed + 1 ))
+    elif [[ "$output" == *"Already up to date"* ]]; then
+        pfb info "Already up to date"
+        count_current=$(( count_current + 1 ))
+    else
+        pfb success "Updated"
+        count_updated=$(( count_updated + 1 ))
     fi
 
     popd > /dev/null
