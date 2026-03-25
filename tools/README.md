@@ -39,28 +39,45 @@ DEBUG=1 update.sh
 
 ---
 
-## sync — Home directory backup
+## sync.sh — Directory backup and sync
 
-Sync the home directory (or a custom source) to an external drive using rsync.
+Sync a source directory to a local target (external drive) or a remote target
+over SSH. The mode is auto-detected: any target containing `:` is treated as
+remote (`user@host:/path`).
 
 ```bash
-sync [source] [target]
+sync.sh [--dry-run] [source [target]]
 ```
 
-| Argument | Default                       | Description              |
-|----------|-------------------------------|--------------------------|
-| `source` | `$HOME/`                      | Directory to sync from   |
-| `target` | `/Volumes/Lacie/$HOSTNAME/`   | Directory to sync to     |
+| Argument    | Default                     | Description                   |
+|-------------|-----------------------------|-------------------------------|
+| `--dry-run` |                             | Show what would change, no-op |
+| `-n`        |                             | Shorthand for `--dry-run`     |
+| `source`    | `$HOME/`                    | Directory to sync from        |
+| `target`    | `/Volumes/Lacie/$HOSTNAME/` | Local path or `user@host:path`|
 
-Preserves permissions, ownership, timestamps, and symlinks. Skips files newer
-on the destination. Deletes files from the target that no longer exist in the source.
+**Local sync** preserves permissions, ownership, timestamps, and symlinks. Skips
+files newer on the destination. Deletes files from the target that no longer
+exist in the source.
+
+**Remote sync** adds SSH compression and a 30-minute keepalive to survive slow
+or intermittent connections.
 
 **Examples:**
 
 ```bash
 # Sync home to the default Lacie drive
-sync
+sync.sh
 
-# Sync a specific source to a custom target
-sync ~/Documents /Volumes/Backup/docs
+# Preview what would be transferred without making changes
+sync.sh --dry-run
+
+# Sync a specific local source to a custom local target
+sync.sh ~/Documents /Volumes/Backup/docs
+
+# Sync home directory to a remote machine over SSH
+sync.sh $HOME/ alice@myserver.local:/backups/alice/
+
+# Pull a directory from a remote machine to local
+sync.sh alice@myserver.local:/home/alice/projects/ ~/projects/
 ```
