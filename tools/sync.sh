@@ -3,8 +3,10 @@
 # @description Sync a source directory to a local or remote target using rsync.
 #              Auto-detects remote targets from user@host:/path format.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.4.0
-# @usage sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes] [--max-retries N] [--bwlimit KBPS] [source [target]]
+# @version 2.5.0
+# @usage sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes]
+#                [--max-retries N] [--bwlimit KBPS] [--port N] [--key path]
+#                [source [target]]
 # @dependencies rsync, pfb
 # @exit 0 Success
 # @exit 1 Invalid arguments or sync failure
@@ -30,6 +32,7 @@ SCRIPT_DIR="$(cd "$(dirname "$_script")" && pwd)"
 unset _script _script_dir
 
 # shellcheck source=../bootstrap/pfb/pfb.sh
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
     pfb() {
         local cmd="${1:-}"; shift || true
@@ -45,6 +48,49 @@ source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
 }
 
 # ---------------------------------------------------------------------------
+# Usage
+# ---------------------------------------------------------------------------
+
+# @description Print usage information and exit
+# @param $1 Optional exit code (default 0)
+usage() {
+    cat <<EOF
+
+Usage: $(basename "$0") [OPTIONS] [source [target]]
+
+Sync a source directory to a local or remote target using rsync.
+Remote targets are auto-detected from user@host:/path format.
+
+Options:
+  -n, --dry-run              Show what would change; transfer nothing
+      --exclude PATTERN      Exclude an additional file pattern
+      --no-default-excludes  Disable the built-in exclude list
+      --max-retries N        Max retry attempts for remote sync (0 = unlimited)
+      --bwlimit KBPS         Bandwidth cap in KB/s (0 = unlimited)
+      --port N               SSH port for remote sync (default: 22)
+      --key PATH             SSH identity file for remote sync
+  -h, --help                 Show this help and exit
+
+Arguments:
+  source   Directory to sync from (default: \$HOME/)
+  target   Local path or user@host:/path (default: /Volumes/Lacie/\$HOSTNAME/)
+
+Default excludes (disabled with --no-default-excludes):
+  .DS_Store  .Trash/  node_modules/  .cache/  __pycache__/
+  *.pyc  .venv/  dist/  build/
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --dry-run
+  $(basename "$0") --exclude '.env' ~/Documents /Volumes/Backup/docs
+  $(basename "$0") \$HOME/ alice@myserver.local:/backups/alice/
+  $(basename "$0") --port 2222 --key ~/.ssh/id_rsa \$HOME/ alice@myserver.local:/backups/
+  $(basename "$0") --bwlimit 10000 \$HOME/ alice@myserver.local:/backups/alice/
+EOF
+    exit "${1:-0}"
+}
+
+# ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
@@ -53,6 +99,8 @@ USE_DEFAULT_EXCLUDES=true
 EXTRA_EXCLUDES=()
 MAX_RETRIES="${SYNC_MAX_RETRIES:-0}"  # 0 = unlimited retries for remote syncs
 BWLIMIT="${SYNC_BWLIMIT:-0}"          # 0 = unlimited bandwidth (KB/s)
+SSH_PORT=""
+SSH_KEY=""
 
 # Default patterns that are never worth syncing
 DEFAULT_EXCLUDES=(
@@ -77,6 +125,11 @@ while [[ $# -gt 0 ]]; do
         --max-retries=*)          MAX_RETRIES="${1#--max-retries=}"; shift ;;
         --bwlimit)                BWLIMIT="$2"; shift 2 ;;
         --bwlimit=*)              BWLIMIT="${1#--bwlimit=}"; shift ;;
+        --port)                   SSH_PORT="$2"; shift 2 ;;
+        --port=*)                 SSH_PORT="${1#--port=}"; shift ;;
+        --key)                    SSH_KEY="$2"; shift 2 ;;
+        --key=*)                  SSH_KEY="${1#--key=}"; shift ;;
+        -h|--help)                usage 0 ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
     esac
@@ -137,8 +190,11 @@ sync_local() {
 # @side_effects Transfers files over the network
 sync_remote() {
     local con_alive=1800  # SSH keepalive interval in seconds
+    local ssh_opts="ssh -o ServerAliveInterval=$con_alive"
+    [[ -n "$SSH_PORT" ]] && ssh_opts+=" -p $SSH_PORT"
+    [[ -n "$SSH_KEY"  ]] && ssh_opts+=" -i $SSH_KEY"
     local flags=( -az --partial --delete --progress --timeout="$con_alive"
-                  -e "ssh -o ServerAliveInterval=$con_alive" )
+                  -e "$ssh_opts" )
     $DRY_RUN && flags+=( --dry-run )
     [[ $BWLIMIT -gt 0 ]] && flags+=( --bwlimit="$BWLIMIT" )
     build_exclude_flags
@@ -146,6 +202,8 @@ sync_remote() {
     pfb heading "Remote sync" "🌐"
     pfb subheading "From: $SOURCE_DIR"
     pfb subheading "  To: $TARGET_DIR"
+    [[ -n "$SSH_PORT" ]] && pfb info "SSH port: $SSH_PORT"
+    [[ -n "$SSH_KEY"  ]] && pfb info "SSH key:  $SSH_KEY"
     [[ $BWLIMIT -gt 0 ]] && pfb info "Bandwidth capped at ${BWLIMIT} KB/s"
     $DRY_RUN && pfb warn "Dry run — no files will be transferred"
 
@@ -168,11 +226,18 @@ if ! is_remote "$SOURCE_DIR" && [[ ! -d "$SOURCE_DIR" ]]; then
     exit 1
 fi
 
+sync_ok=false
 if is_remote "$SOURCE_DIR" || is_remote "$TARGET_DIR"; then
-    sync_remote
+    sync_remote && sync_ok=true
 else
-    sync_local
-fi && pfb success "Sync complete" || {
+    [[ -n "$SSH_PORT" || -n "$SSH_KEY" ]] && \
+        pfb warn "--port and --key have no effect in local mode"
+    sync_local && sync_ok=true
+fi
+
+if $sync_ok; then
+    pfb success "Sync complete"
+else
     pfb err "Sync failed"
     exit 1
-}
+fi
