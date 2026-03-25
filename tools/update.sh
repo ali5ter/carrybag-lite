@@ -44,23 +44,37 @@ source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
 }
 
 # ---------------------------------------------------------------------------
-# Timeout support — use GNU timeout (Linux) or gtimeout (macOS via coreutils)
+# Timeout support — pure bash, no external dependencies required.
+# Output (stdout+stderr) is captured via a temp file and forwarded to stdout.
+# The watchdog redirects to /dev/null to avoid holding the $() pipe open,
+# which would cause command substitution to block for the full timeout duration.
 # Override the default with GIT_PULL_TIMEOUT=N before running the script.
 # ---------------------------------------------------------------------------
-_TIMEOUT_CMD=""
-command -v timeout  >/dev/null 2>&1 && _TIMEOUT_CMD="timeout"
-command -v gtimeout >/dev/null 2>&1 && _TIMEOUT_CMD="gtimeout"
 GIT_PULL_TIMEOUT="${GIT_PULL_TIMEOUT:-60}"
 
-# @description Run a git command with a timeout if one is available
-# @param $@ git command and arguments
+# @description Run a git command with a timeout using bash job control
+# @param $@ git subcommand and arguments
 # @return Command exit code, or 124 if timed out
 git_with_timeout() {
-    if [[ -n "$_TIMEOUT_CMD" ]]; then
-        "$_TIMEOUT_CMD" "$GIT_PULL_TIMEOUT" git "$@"
-    else
-        git "$@"
-    fi
+    local tmpout exit_code cmd_pid watchdog_pid
+    tmpout="$(mktemp)"
+
+    GIT_TERMINAL_PROMPT=0 git "$@" > "$tmpout" 2>&1 &
+    cmd_pid=$!
+
+    ( sleep "$GIT_PULL_TIMEOUT" && kill "$cmd_pid" 2>/dev/null ) > /dev/null 2>&1 &
+    watchdog_pid=$!
+
+    wait "$cmd_pid" 2>/dev/null
+    exit_code=$?
+
+    { kill "$watchdog_pid" 2>/dev/null; wait "$watchdog_pid" 2>/dev/null; } 2>/dev/null
+
+    cat "$tmpout"
+    rm -f "$tmpout"
+
+    [[ $exit_code -gt 128 ]] && return 124
+    return $exit_code
 }
 
 # ---------------------------------------------------------------------------
@@ -91,14 +105,14 @@ for dir in "${SCAN_DIR}"/*/; do
         continue
     fi
 
-    if ! GIT_TERMINAL_PROMPT=0 git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
+    if ! git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
         pfb warn "Remote not reachable"
         count_skipped=$(( count_skipped + 1 ))
         popd > /dev/null
         continue
     fi
 
-    output=$(GIT_TERMINAL_PROMPT=0 git_with_timeout pull --ff-only 2>&1)
+    output=$(git_with_timeout pull --ff-only)
     pull_exit=$?
 
     if [[ $pull_exit -eq 124 ]]; then
