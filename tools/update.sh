@@ -3,7 +3,7 @@
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
 # @version 2.4.0
-# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
+# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
 
@@ -29,6 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "$_script")" && pwd)"
 unset _script _script_dir
 
 # shellcheck source=../bootstrap/pfb/pfb.sh
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
     pfb() {
         local cmd="${1:-}"; shift || true
@@ -84,16 +85,166 @@ git_with_timeout() {
 QUIET=false
 FETCH_ONLY=false
 STASH=false
+PARALLEL=false
+UPDATE_MAX_JOBS="${UPDATE_MAX_JOBS:-8}"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -q|--quiet)      QUIET=true; shift ;;
         -f|--fetch-only) FETCH_ONLY=true; shift ;;
         -s|--stash)      STASH=true; shift ;;
+        -p|--parallel)   PARALLEL=true; shift ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
     esac
 done
+
+# ---------------------------------------------------------------------------
+# Per-repo worker — called in a subshell when running in parallel.
+# Writes a result record to a temp file with this structure:
+#   Line 1: STATUS (updated|current|skipped|failed)
+#   Line 2: primary message
+#   Line 3: stash outcome (stash-restored|stash-pop-failed), if --stash used
+#   Line 4: stash detail message, if applicable
+# ---------------------------------------------------------------------------
+
+# @description Process a single git repository and write result to a file
+# @param $1 Path to the repository directory
+# @param $2 Path to the output file for the result record
+# @side_effects Writes result record to $2; performs git fetch/pull
+process_repo() {
+    local dir="$1"
+    local outfile="$2"
+
+    pushd "$dir" > /dev/null || return
+
+    local diff_exit=0
+    git_with_timeout diff --quiet > /dev/null || diff_exit=$?
+    if [[ $diff_exit -eq 0 ]]; then
+        git_with_timeout diff --cached --quiet > /dev/null || diff_exit=$?
+    fi
+
+    local stashed=false
+    if [[ $diff_exit -eq 124 ]]; then
+        printf 'skipped\ngit diff timed out — skipping\n' > "$outfile"
+        popd > /dev/null || return
+        return
+    elif [[ $diff_exit -ne 0 ]]; then
+        if $STASH; then
+            local stash_out
+            stash_out=$(git stash push -m "update.sh auto-stash" 2>&1)
+            # shellcheck disable=SC2181
+            if [[ $? -ne 0 ]]; then
+                printf 'skipped\nStash failed — skipping\n\n%s\n' "$stash_out" > "$outfile"
+                popd > /dev/null || return
+                return
+            fi
+            stashed=true
+        else
+            printf 'skipped\nUncommitted local changes — skipping\n' > "$outfile"
+            popd > /dev/null || return
+            return
+        fi
+    fi
+
+    if ! git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
+        printf 'skipped\nRemote not reachable\n' > "$outfile"
+        popd > /dev/null || return
+        return
+    fi
+
+    if $FETCH_ONLY; then
+        git_with_timeout fetch origin > /dev/null
+        local fetch_exit=$?
+        local behind
+        behind=$(git rev-list --count HEAD..origin/HEAD 2>/dev/null || echo 0)
+        if [[ $fetch_exit -eq 124 ]]; then
+            printf 'failed\nFetch timed out after %ss\n' "$GIT_PULL_TIMEOUT" > "$outfile"
+        elif [[ $fetch_exit -ne 0 ]]; then
+            printf 'failed\nFetch failed\n' > "$outfile"
+        elif [[ "$behind" -gt 0 ]]; then
+            printf 'skipped\n%s commit(s) behind origin\n' "$behind" > "$outfile"
+        else
+            printf 'current\nUp to date\n' > "$outfile"
+        fi
+    else
+        local output
+        output=$(git_with_timeout pull --ff-only)
+        local pull_exit=$?
+
+        if [[ $pull_exit -eq 124 ]]; then
+            printf 'failed\nPull timed out after %ss\n' "$GIT_PULL_TIMEOUT" > "$outfile"
+        elif [[ $pull_exit -ne 0 ]]; then
+            printf 'failed\nPull failed\n%s\n' "$output" > "$outfile"
+        elif [[ "$output" == *"Already up to date"* ]]; then
+            printf 'current\nAlready up to date\n' > "$outfile"
+        else
+            printf 'updated\nUpdated\n' > "$outfile"
+        fi
+    fi
+
+    if $stashed; then
+        local pop_out
+        pop_out=$(git stash pop 2>&1)
+        # shellcheck disable=SC2181
+        if [[ $? -ne 0 ]]; then
+            printf 'stash-pop-failed\n%s\n' "$pop_out" >> "$outfile"
+        else
+            printf 'stash-restored\n' >> "$outfile"
+        fi
+    fi
+
+    popd > /dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# Display a single repo result from a result file
+# @param $1 Repository name
+# @param $2 Path to result file written by process_repo
+# @side_effects Increments count_* variables; removes outfile
+# ---------------------------------------------------------------------------
+display_result() {
+    local repo="$1"
+    local outfile="$2"
+
+    local status message stash_status stash_msg
+    status=$(sed -n '1p' "$outfile")
+    message=$(sed -n '2p' "$outfile")
+    stash_status=$(sed -n '3p' "$outfile")
+    stash_msg=$(sed -n '4p' "$outfile")
+    rm -f "$outfile"
+
+    case "$status" in
+        updated)
+            pfb heading "$repo" "📦"
+            pfb success "$message"
+            count_updated=$(( count_updated + 1 ))
+            ;;
+        current)
+            $QUIET || { pfb heading "$repo" "📦"; pfb info "$message"; }
+            count_current=$(( count_current + 1 ))
+            ;;
+        skipped)
+            pfb heading "$repo" "📦"
+            pfb warn "$message"
+            [[ -n "${stash_msg:-}" ]] && pfb subheading "$stash_msg"
+            count_skipped=$(( count_skipped + 1 ))
+            ;;
+        failed)
+            pfb heading "$repo" "📦"
+            pfb err "$message"
+            count_failed=$(( count_failed + 1 ))
+            ;;
+    esac
+
+    # Stash restore outcome (only present when --stash was used)
+    if [[ "${stash_status:-}" == "stash-pop-failed" ]]; then
+        pfb err "Stash pop failed — resolve manually (git stash list)"
+        [[ -n "${stash_msg:-}" ]] && pfb subheading "$stash_msg"
+    elif [[ "${stash_status:-}" == "stash-restored" ]]; then
+        pfb info "Local changes restored"
+    fi
+}
 
 # ---------------------------------------------------------------------------
 # Main
@@ -105,115 +256,60 @@ count_current=0
 count_skipped=0
 count_failed=0
 
-$FETCH_ONLY \
-    && pfb heading "Fetching git repositories in ${SCAN_DIR}" "🔍" \
-    || pfb heading "Updating git repositories in ${SCAN_DIR}" "🔄"
+if $FETCH_ONLY; then
+    pfb heading "Fetching git repositories in ${SCAN_DIR}" "🔍"
+else
+    pfb heading "Updating git repositories in ${SCAN_DIR}" "🔄"
+fi
 
-for dir in "${SCAN_DIR}"/*/; do
-    [[ -d "${dir}.git" ]] || continue
-    repo="${dir%/}"
-    repo="${repo##*/}"
+$PARALLEL && pfb info "Running up to ${UPDATE_MAX_JOBS} jobs in parallel"
 
-    pushd "$dir" > /dev/null
+if $PARALLEL; then
+    # ------------------------------------------------------------------
+    # Parallel mode: launch a background worker per repo, cap concurrency
+    # at UPDATE_MAX_JOBS, collect results in original directory order.
+    # ------------------------------------------------------------------
+    declare -a repo_order=()
+    declare -A job_files=()
 
-    diff_exit=0
-    git_with_timeout diff --quiet > /dev/null || diff_exit=$?
-    if [[ $diff_exit -eq 0 ]]; then
-        git_with_timeout diff --cached --quiet > /dev/null || diff_exit=$?
-    fi
+    for dir in "${SCAN_DIR}"/*/; do
+        [[ -d "${dir}.git" ]] || continue
+        repo="${dir%/}"
+        repo="${repo##*/}"
 
-    stashed=false
-    if [[ $diff_exit -eq 124 ]]; then
-        pfb heading "$repo" "📦"
-        pfb warn "git diff timed out — skipping"
-        count_skipped=$(( count_skipped + 1 ))
-        popd > /dev/null
-        continue
-    elif [[ $diff_exit -ne 0 ]]; then
-        if $STASH; then
-            pfb heading "$repo" "📦"
-            stash_out=$(git stash push -m "update.sh auto-stash" 2>&1)
-            if [[ $? -ne 0 ]]; then
-                pfb warn "Stash failed — skipping"
-                pfb subheading "$stash_out"
-                count_skipped=$(( count_skipped + 1 ))
-                popd > /dev/null
-                continue
-            fi
-            pfb info "Local changes stashed"
-            stashed=true
-        else
-            pfb heading "$repo" "📦"
-            pfb warn "Uncommitted local changes — skipping"
-            count_skipped=$(( count_skipped + 1 ))
-            popd > /dev/null
-            continue
-        fi
-    fi
+        local_outfile="$(mktemp)"
+        repo_order+=( "$repo" )
+        job_files["$repo"]="$local_outfile"
 
-    if ! git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
-        pfb heading "$repo" "📦"
-        pfb warn "Remote not reachable"
-        count_skipped=$(( count_skipped + 1 ))
-        popd > /dev/null
-        continue
-    fi
+        # Throttle: wait for a slot when at the concurrency limit
+        while [[ $(jobs -r | wc -l) -ge $UPDATE_MAX_JOBS ]]; do
+            wait -n 2>/dev/null || true
+        done
 
-    if $FETCH_ONLY; then
-        git_with_timeout fetch origin > /dev/null
-        fetch_exit=$?
-        behind=$(git rev-list --count HEAD..origin/HEAD 2>/dev/null || echo 0)
-        if [[ $fetch_exit -eq 124 ]]; then
-            pfb heading "$repo" "📦"
-            pfb err "Fetch timed out after ${GIT_PULL_TIMEOUT}s"
-            count_failed=$(( count_failed + 1 ))
-        elif [[ $fetch_exit -ne 0 ]]; then
-            pfb heading "$repo" "📦"
-            pfb err "Fetch failed"
-            count_failed=$(( count_failed + 1 ))
-        elif [[ "$behind" -gt 0 ]]; then
-            pfb heading "$repo" "📦"
-            pfb warn "$behind commit(s) behind origin"
-            count_skipped=$(( count_skipped + 1 ))
-        else
-            $QUIET || { pfb heading "$repo" "📦"; pfb info "Up to date"; }
-            count_current=$(( count_current + 1 ))
-        fi
-    else
-        output=$(git_with_timeout pull --ff-only)
-        pull_exit=$?
+        process_repo "$dir" "$local_outfile" &
+    done
 
-        if [[ $pull_exit -eq 124 ]]; then
-            pfb heading "$repo" "📦"
-            pfb err "Pull timed out after ${GIT_PULL_TIMEOUT}s"
-            count_failed=$(( count_failed + 1 ))
-        elif [[ $pull_exit -ne 0 ]]; then
-            pfb heading "$repo" "📦"
-            pfb err "Pull failed"
-            pfb subheading "$output"
-            count_failed=$(( count_failed + 1 ))
-        elif [[ "$output" == *"Already up to date"* ]]; then
-            $QUIET || { pfb heading "$repo" "📦"; pfb info "Already up to date"; }
-            count_current=$(( count_current + 1 ))
-        else
-            pfb heading "$repo" "📦"
-            pfb success "Updated"
-            count_updated=$(( count_updated + 1 ))
-        fi
-    fi
+    # Wait for all remaining workers
+    wait
 
-    if $stashed; then
-        pop_out=$(git stash pop 2>&1)
-        if [[ $? -ne 0 ]]; then
-            pfb err "Stash pop failed — resolve manually (git stash list)"
-            pfb subheading "$pop_out"
-        else
-            pfb info "Local changes restored"
-        fi
-    fi
+    # Display results in original directory order
+    for repo in "${repo_order[@]}"; do
+        display_result "$repo" "${job_files[$repo]}"
+    done
+else
+    # ------------------------------------------------------------------
+    # Sequential mode (original behaviour)
+    # ------------------------------------------------------------------
+    for dir in "${SCAN_DIR}"/*/; do
+        [[ -d "${dir}.git" ]] || continue
+        repo="${dir%/}"
+        repo="${repo##*/}"
 
-    popd > /dev/null
-done
+        local_outfile="$(mktemp)"
+        process_repo "$dir" "$local_outfile"
+        display_result "$repo" "$local_outfile"
+    done
+fi
 
 pfb heading "Summary" "📊"
 [[ $count_updated -gt 0 ]] && pfb success "$count_updated updated"
