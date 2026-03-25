@@ -1,6 +1,6 @@
 # CarryBag Lite
 
-```
+```text
   ___                   ___              _    _ _
  / __|__ _ _ _ _ _ _  _| _ ) __ _ __ _  | |  (_) |_ ___
 | (__/ _` | '_| '_| || | _ \/ _` / _` | | |__| |  _/ -_)
@@ -64,8 +64,9 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 
 ## Submodule: pfb prompt framework
 
-This repository now includes the **pfb** prompt framework as a Git submodule under `bootstrap/pfb`.  
-After cloning the repository, be sure to initialize submodules before running the bootstrap installer:
+This repository includes the **pfb** prompt framework as a Git submodule
+under `bootstrap/pfb`. Initialise submodules before running the bootstrap
+installer:
 
 ```bash
 git submodule update --init --recursive
@@ -80,25 +81,30 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 ## What Gets Installed
 
 **Command-line tools:**
+
 - `bash`, `git`, `vim`, `shellcheck`
 - `jq`, `yq`, `bat`, `tree`, `fzf`
 - `starship` (prompt), `hstr` (history), `z` (directory jumper)
 
 **Development:**
+
 - `pyenv` (Python version management) - optional
 - `nvm` (Node version management)
 - `docker` - optional
 
 **macOS GUI apps:**
+
 - iTerm2, Visual Studio Code, Figma
 - 1Password, Dropbox, CleanMyMac
 - Microsoft Teams, WhatsApp
 
 **Raspberry Pi extras:**
+
 - rpi-connect-lite (remote management)
 - Custom banner with system info
 
 **Development tools configuration:**
+
 - Claude Code settings and user-level coding standards
 - Codex CLI configuration (symlinked from shared principles)
 - Starship prompt configuration
@@ -113,9 +119,31 @@ Transfer configurations from old machine to new:
 ./bootstrap/migrate.sh <username> <remote-host>
 ```
 
+### Bulk Git Repository Updates
+
+Update all git repositories in a directory in one pass:
+
+```bash
+./tools/update.sh [directory]
+```
+
+Handles uncommitted changes, unreachable remotes, and slow or hung connections
+gracefully. See [tools/README.md](tools/README.md) for full details.
+
+### Local and Remote Sync
+
+Sync a directory to a local drive or a remote host over SSH:
+
+```bash
+./tools/sync.sh [--dry-run] [source [target]]
+```
+
+Auto-detects local vs remote mode from the target path. See
+[tools/README.md](tools/README.md) for full details.
+
 ## Testing in a Raspberry Pi–like Docker Container
 
-You can test the bootstrap process inside a simulated Raspberry Pi ARM64 environment using:
+Test the bootstrap process inside a simulated Raspberry Pi ARM64 environment:
 
 ```bash
 ./test_rpi.sh
@@ -140,14 +168,6 @@ To stop and remove the test container:
 
 ```bash
 docker rm -f carrybag-test
-```
-
-### Local Backup
-
-Sync home directory to external drive:
-
-```bash
-./tools/sync
 ```
 
 ## Customization
