@@ -2,8 +2,8 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.1.0
-# @usage update.sh [directory]
+# @version 2.3.0
+# @usage update.sh [-q|--quiet] [-f|--fetch-only] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
 
@@ -78,6 +78,22 @@ git_with_timeout() {
 }
 
 # ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
+QUIET=false
+FETCH_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -q|--quiet)      QUIET=true; shift ;;
+        -f|--fetch-only) FETCH_ONLY=true; shift ;;
+        -*) pfb err "Unknown option: $1"; exit 1 ;;
+        *)  break ;;
+    esac
+done
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -87,14 +103,14 @@ count_current=0
 count_skipped=0
 count_failed=0
 
-pfb heading "Updating git repositories in ${SCAN_DIR}" "🔄"
+$FETCH_ONLY \
+    && pfb heading "Fetching git repositories in ${SCAN_DIR}" "🔍" \
+    || pfb heading "Updating git repositories in ${SCAN_DIR}" "🔄"
 
 for dir in "${SCAN_DIR}"/*/; do
     [[ -d "${dir}.git" ]] || continue
     repo="${dir%/}"
     repo="${repo##*/}"
-
-    pfb heading "$repo" "📦"
 
     pushd "$dir" > /dev/null
 
@@ -105,6 +121,7 @@ for dir in "${SCAN_DIR}"/*/; do
     fi
 
     if [[ $diff_exit -ne 0 ]]; then
+        pfb heading "$repo" "📦"
         [[ $diff_exit -eq 124 ]] \
             && pfb warn "git diff timed out — skipping" \
             || pfb warn "Uncommitted local changes — skipping"
@@ -114,28 +131,54 @@ for dir in "${SCAN_DIR}"/*/; do
     fi
 
     if ! git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
+        pfb heading "$repo" "📦"
         pfb warn "Remote not reachable"
         count_skipped=$(( count_skipped + 1 ))
         popd > /dev/null
         continue
     fi
 
-    output=$(git_with_timeout pull --ff-only)
-    pull_exit=$?
-
-    if [[ $pull_exit -eq 124 ]]; then
-        pfb err "Pull timed out after ${GIT_PULL_TIMEOUT}s"
-        count_failed=$(( count_failed + 1 ))
-    elif [[ $pull_exit -ne 0 ]]; then
-        pfb err "Pull failed"
-        pfb subheading "$output"
-        count_failed=$(( count_failed + 1 ))
-    elif [[ "$output" == *"Already up to date"* ]]; then
-        pfb info "Already up to date"
-        count_current=$(( count_current + 1 ))
+    if $FETCH_ONLY; then
+        git_with_timeout fetch origin > /dev/null
+        fetch_exit=$?
+        behind=$(git rev-list --count HEAD..origin/HEAD 2>/dev/null || echo 0)
+        if [[ $fetch_exit -eq 124 ]]; then
+            pfb heading "$repo" "📦"
+            pfb err "Fetch timed out after ${GIT_PULL_TIMEOUT}s"
+            count_failed=$(( count_failed + 1 ))
+        elif [[ $fetch_exit -ne 0 ]]; then
+            pfb heading "$repo" "📦"
+            pfb err "Fetch failed"
+            count_failed=$(( count_failed + 1 ))
+        elif [[ "$behind" -gt 0 ]]; then
+            pfb heading "$repo" "📦"
+            pfb warn "$behind commit(s) behind origin"
+            count_skipped=$(( count_skipped + 1 ))
+        else
+            $QUIET || { pfb heading "$repo" "📦"; pfb info "Up to date"; }
+            count_current=$(( count_current + 1 ))
+        fi
     else
-        pfb success "Updated"
-        count_updated=$(( count_updated + 1 ))
+        output=$(git_with_timeout pull --ff-only)
+        pull_exit=$?
+
+        if [[ $pull_exit -eq 124 ]]; then
+            pfb heading "$repo" "📦"
+            pfb err "Pull timed out after ${GIT_PULL_TIMEOUT}s"
+            count_failed=$(( count_failed + 1 ))
+        elif [[ $pull_exit -ne 0 ]]; then
+            pfb heading "$repo" "📦"
+            pfb err "Pull failed"
+            pfb subheading "$output"
+            count_failed=$(( count_failed + 1 ))
+        elif [[ "$output" == *"Already up to date"* ]]; then
+            $QUIET || { pfb heading "$repo" "📦"; pfb info "Already up to date"; }
+            count_current=$(( count_current + 1 ))
+        else
+            pfb heading "$repo" "📦"
+            pfb success "Updated"
+            count_updated=$(( count_updated + 1 ))
+        fi
     fi
 
     popd > /dev/null
