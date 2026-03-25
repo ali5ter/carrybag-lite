@@ -98,8 +98,16 @@ for dir in "${SCAN_DIR}"/*/; do
 
     pushd "$dir" > /dev/null
 
-    if ! git diff --quiet 2>/dev/null || ! git diff --cached --quiet 2>/dev/null; then
-        pfb warn "Uncommitted local changes — skipping"
+    diff_exit=0
+    git_with_timeout diff --quiet > /dev/null || diff_exit=$?
+    if [[ $diff_exit -eq 0 ]]; then
+        git_with_timeout diff --cached --quiet > /dev/null || diff_exit=$?
+    fi
+
+    if [[ $diff_exit -ne 0 ]]; then
+        [[ $diff_exit -eq 124 ]] \
+            && pfb warn "git diff timed out — skipping" \
+            || pfb warn "Uncommitted local changes — skipping"
         count_skipped=$(( count_skipped + 1 ))
         popd > /dev/null
         continue
