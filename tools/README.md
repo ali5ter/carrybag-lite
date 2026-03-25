@@ -7,14 +7,15 @@ Utility scripts for day-to-day development workflow.
 Pull the latest changes for every git repository found in a directory.
 
 ```bash
-update.sh [-q|--quiet] [-f|--fetch-only] [directory]
+update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
 ```
 
-| Argument             | Default | Description                             |
-|----------------------|---------|-----------------------------------------|
-| `-q`, `--quiet`      |         | Only show repos with changes or problems|
-| `-f`, `--fetch-only` |         | Fetch only — report behind, no pull     |
-| `directory`          | `$PWD`  | Directory to scan for git repositories  |
+| Argument             | Default | Description                              |
+|----------------------|---------|------------------------------------------|
+| `-q`, `--quiet`      |         | Only show repos with changes or problems |
+| `-f`, `--fetch-only` |         | Fetch only — report behind, no pull      |
+| `-s`, `--stash`      |         | Auto-stash local changes, pull, then pop |
+| `directory`          | `$PWD`  | Directory to scan for git repositories   |
 
 **Behaviour:**
 
@@ -36,6 +37,9 @@ update.sh --quiet
 
 # See what's pending without pulling anything
 update.sh --fetch-only
+
+# Auto-stash local changes, pull, then restore
+update.sh --stash
 
 # Update all repos in a specific directory
 update.sh ~/Documents/projects
