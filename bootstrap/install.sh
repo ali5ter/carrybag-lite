@@ -112,7 +112,7 @@ bootstrap_linux() {
     fi
     
     install curl wget gnupg git # download & certs
-    # install nodejs npm golang # dev
+    install nodejs npm # required for gemini-cli and codex
     install jq yq bat tree fd-find fzf figlet # misc tools
     install shellcheck vim watch # editing
     install fontconfig # font tools
@@ -401,13 +401,16 @@ EOT
     # wakeonlan "$(arp -a | grep -i 192.168.1.16 | awk '{print $4}')"
 }
 
-install_claude_code() {
+install_ai_tools() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install claude-code
+        # gemini-cli and codex installed in bootstrap_mac via brew
     else
         curl -fsSL https://claude.ai/install.sh | bash
         # shellcheck disable=SC2016
         echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.bashrc_local"
+        npm install -g @google/gemini-cli
+        npm install -g @openai/codex
     fi
 }
 
@@ -488,9 +491,9 @@ main() {
         pfb success "Docker installed!"
     fi
     echo
-    pfb info "Installing Claude Code..."
-    install_claude_code
-    pfb success "Claude Code installed!"
+    pfb info "Installing AI tools..."
+    install_ai_tools
+    pfb success "AI tools installed!"
     echo
     pfb info "Configuring Claude Code..."
     config_claude_code
