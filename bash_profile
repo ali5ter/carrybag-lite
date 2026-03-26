@@ -129,6 +129,8 @@ PS4="$0.$LINENO ⨠ " # tracing
 # Fuzzy finder (fzf)
 # fzf key bindings
 eval "$(fzf --bash)"
+# On Debian, fd is installed as fdfind — normalise to fd
+type fdfind >/dev/null 2>&1 && alias fd=fdfind
 # Make fzf use fd instead of find — respects .gitignore, much faster
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
