@@ -17,6 +17,10 @@ shopt -s histappend     # append history instead of overwriting it
 shopt -s cdspell        # corrected minor spelling errors during cd
 # @ref https://www.linuxjournal.com/content/using-bash-history-more-efficiently-histcontrol
 HISTCONTROL=ignoreboth
+export HISTFILESIZE=10000        # increase history file size (default is 500)
+export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
+# Synchronize history across sessions
+export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
 CDATE=$(date '+%Y%m%d')
 # Enable ls colors
 export CLICOLOR=1
@@ -197,22 +201,6 @@ else
     fi
 fi
 
-# History manager
-# @ref https://github.com/dvorka/hstr/blob/master/CONFIGURATION.md
-type hstr >/dev/null 2>&1 && {
-    alias hh=hstr                    # hh to be alias for hstr
-    export HSTR_CONFIG=hicolor       # get more colors
-    shopt -s histappend              # append new history items to .bash_history
-    export HISTCONTROL=ignorespace   # leading space hides commands from history
-    export HISTFILESIZE=10000        # increase history file size (default is 500)
-    export HISTSIZE=${HISTFILESIZE}  # increase history size (default is 500)
-    # ensure synchronization between bash memory and history file
-    export PROMPT_COMMAND="history -a; history -n; ${PROMPT_COMMAND}"
-    # if this is interactive shell, then bind hstr to Ctrl-r (for Vi mode check doc)
-    if [[ $- =~ .*i.* ]]; then bind '"\C-r": "\C-a hstr -- \C-j"'; fi
-    # if this is interactive shell, then bind 'kill last command' to Ctrl-x k
-    if [[ $- =~ .*i.* ]]; then bind '"\C-xk": "\C-a hstr -k \C-j"'; fi
-}
 
 # Functions
 

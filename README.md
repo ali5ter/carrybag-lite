@@ -23,7 +23,7 @@ Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspbe
 - 📦 Node version management (nvm)
 - ⭐ Starship prompt with custom themes
 - 📁 Directory jumper (z.sh)
-- 🔍 Enhanced history search (hstr)
+- 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
 - 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI (with shared coding standards)
@@ -84,7 +84,7 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 
 - `git`, `vim`, `shellcheck`, `watch`
 - `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`
-- `starship` (prompt), `hstr` (history), `z` (directory jumper)
+- `starship` (prompt), `fzf` (history + fuzzy search), `z` (directory jumper)
 - Nerd Fonts, Claude Code
 
 **macOS only:**
