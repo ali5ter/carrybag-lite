@@ -381,10 +381,6 @@ disabled = true
 END_OF_STARSHIP_CONFIG
 }
 
-install_hstr() {
-    # @ref https://github.com/dvorka/hstr
-    install hstr
-}
 
 config_ssh() {
     [[ -f ~/.ssh/config ]] || { 
@@ -482,10 +478,6 @@ main() {
     pfb info "Installing starship prompt..."
     install_starship
     pfb success "Starship prompt installed!"
-    echo
-    pfb info "Installing hstr..."
-    install_hstr
-    pfb success "hstr installed!"
     echo
     echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
     pfb answer ${response:-$default}
