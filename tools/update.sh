@@ -2,8 +2,8 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.3.0
-# @usage update.sh [-q|--quiet] [-f|--fetch-only] [directory]
+# @version 2.4.0
+# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
 
@@ -83,11 +83,13 @@ git_with_timeout() {
 
 QUIET=false
 FETCH_ONLY=false
+STASH=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -q|--quiet)      QUIET=true; shift ;;
         -f|--fetch-only) FETCH_ONLY=true; shift ;;
+        -s|--stash)      STASH=true; shift ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
     esac
@@ -120,14 +122,33 @@ for dir in "${SCAN_DIR}"/*/; do
         git_with_timeout diff --cached --quiet > /dev/null || diff_exit=$?
     fi
 
-    if [[ $diff_exit -ne 0 ]]; then
+    stashed=false
+    if [[ $diff_exit -eq 124 ]]; then
         pfb heading "$repo" "📦"
-        [[ $diff_exit -eq 124 ]] \
-            && pfb warn "git diff timed out — skipping" \
-            || pfb warn "Uncommitted local changes — skipping"
+        pfb warn "git diff timed out — skipping"
         count_skipped=$(( count_skipped + 1 ))
         popd > /dev/null
         continue
+    elif [[ $diff_exit -ne 0 ]]; then
+        if $STASH; then
+            pfb heading "$repo" "📦"
+            stash_out=$(git stash push -m "update.sh auto-stash" 2>&1)
+            if [[ $? -ne 0 ]]; then
+                pfb warn "Stash failed — skipping"
+                pfb subheading "$stash_out"
+                count_skipped=$(( count_skipped + 1 ))
+                popd > /dev/null
+                continue
+            fi
+            pfb info "Local changes stashed"
+            stashed=true
+        else
+            pfb heading "$repo" "📦"
+            pfb warn "Uncommitted local changes — skipping"
+            count_skipped=$(( count_skipped + 1 ))
+            popd > /dev/null
+            continue
+        fi
     fi
 
     if ! git_with_timeout ls-remote --exit-code origin > /dev/null 2>&1; then
@@ -178,6 +199,16 @@ for dir in "${SCAN_DIR}"/*/; do
             pfb heading "$repo" "📦"
             pfb success "Updated"
             count_updated=$(( count_updated + 1 ))
+        fi
+    fi
+
+    if $stashed; then
+        pop_out=$(git stash pop 2>&1)
+        if [[ $? -ne 0 ]]; then
+            pfb err "Stash pop failed — resolve manually (git stash list)"
+            pfb subheading "$pop_out"
+        else
+            pfb info "Local changes restored"
         fi
     fi
 
