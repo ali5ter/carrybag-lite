@@ -4,28 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CarryBag Lite is a portable bash shell environment configuration system. Unlike the original CarryBag, this version uses a single-file approach: "one file, no fuss, less mess."
+CarryBag Lite is a portable bash shell environment configuration system. Unlike the original CarryBag, this version
+uses a single-file approach: "one file, no fuss, less mess."
 
 **Supported platforms:** macOS (Mojave 10.14+, Tahoe) and Debian-based Linux (Bookworm/Trixie, Raspberry Pi OS)
 
 ## Core Architecture
 
 ### Single-File Configuration Pattern
+
 All bash configuration lives in `bash_profile` (~215 lines):
+
 - Consolidated aliases, functions, prompts, environment setup
 - Platform-specific logic via `[[ "$OSTYPE" == "darwin"* ]]` conditionals
 - Optional local overrides sourced from `~/.bashrc_local` at end
 - No complex directory structures or modular sourcing
 
 ### Installation Strategy
+
 Different symlink patterns by platform:
+
 - **macOS:** `~/.bash_profile` → `bash_profile`
 - **Linux:** `~/.bashrc` → `bash_profile`, then `~/.bash_profile` → `~/.bashrc`
 
 Handled by `config_carrybag()` in `bootstrap/install.sh`.
 
 ### Bootstrap System
+
 `bootstrap/install.sh` orchestrates full system setup:
+
 1. Installs [pfb](https://github.com/ali5ter/pfb) for formatted terminal output (required dependency)
 2. Platform-specific package installation (`bootstrap_mac()` vs `bootstrap_linux()`)
 3. Interactive prompts for optional components (pyenv, Docker)
@@ -35,13 +42,16 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 7. Configures Codex CLI (symlinks shared principles as `~/.codex/AGENTS.md`)
 
 Functions are modular and can be sourced/tested individually:
+
 ```bash
 source bootstrap/install.sh
 install_starship  # Test individual function
 ```
 
 ### Platform Detection Pattern
+
 Standard pattern used throughout codebase:
+
 ```bash
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS-specific code
@@ -53,7 +63,9 @@ fi
 Raspberry Pi detection: Check for `/etc/rpi-issue` file existence.
 
 ### Automatic Daily Updates
+
 Both `bash_profile` and `bootstrap/install.sh` implement once-daily package updates:
+
 - **macOS:** Checks `~/.last_brew_update`, runs `brew_update()` if date differs
 - **Linux:** Checks `~/.last_apt_update`, runs `apt_update()` if date differs
 - Date format: `CDATE=$(date '+%Y%m%d')`
@@ -62,6 +74,7 @@ Both `bash_profile` and `bootstrap/install.sh` implement once-daily package upda
 ## Development Commands
 
 ### Testing bash_profile Changes
+
 ```bash
 # Check syntax
 bash -n bash_profile
@@ -76,19 +89,24 @@ source_
 ```
 
 ### Testing Bootstrap in Isolation
+
 Run full install in Docker container simulating Raspberry Pi OS:
+
 ```bash
 ./test_rpi.sh
 ```
+
 Uses `debian:stable` with `--platform linux/arm64`, mounts repo at `/root/src/carrybag-lite`.
 
 ### Pre-requisites for macOS
+
 ```bash
 brew install bash  # Install latest bash
 chsh -s $(brew --prefix)/bin/bash  # Set as default shell
 ```
 
 ### Manual Installation
+
 ```bash
 # Backup existing config
 cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
@@ -98,61 +116,81 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 ```
 
 ### Running Full Bootstrap
+
 ```bash
 ./bootstrap/install.sh
 ```
+
 Interactive prompts will ask about optional components.
 
 ### Machine Migration
+
 Transfer configurations and files from old machine to new:
+
 ```bash
 ./bootstrap/migrate.sh <username> <FQDN_or_IP>
 ```
+
 - Generates SSH key if needed and copies to remote
 - Prompts for each path to migrate (~/bin, ~/Documents/Projects/Personal, etc.)
 - Uses rsync with infinite retry loop for large transfers
 - 30-minute SSH keepalive (`CON_ALIVE=1800`)
 
 ### Local Backup/Sync
+
 Sync home directory to external drive:
+
 ```bash
 ./tools/sync
 # or with custom paths
 ./tools/sync /source/path /target/path
 ```
+
 Defaults to `$HOME/` → `/Volumes/Lacie/$HOSTNAME/` on macOS.
 
 ## Key Components & Integration Points
 
 ### bash_profile Structure
-Organized into sections:
-1. **Paths:** Homebrew detection for Intel (`/usr/local`) and Apple Silicon (`/opt/homebrew`)
-2. **Shell options:** `shopt -s checkwinsize dotglob histappend cdspell`
-3. **OS-specific:** Touch ID for sudo (macOS), banner script (Linux)
-4. **External tools:** z.sh (directory jumper), nvm (Node), pyenv (Python)
-5. **Starship prompt:** Config at `~/.config/starship.toml`
-6. **fzf:** Fuzzy finder with Ctrl-r history search binding (replaced hstr in v1.3.0)
-7. **Custom functions:** `ostype()`, `cwc()` (crossword lookup), `colors()`
+
+Refactored in v1.5.0 into nine clearly labelled sections using `# ── NAME ──` separators:
+
+1. **PATHS:** Homebrew detection for Intel (`/usr/local`) and Apple Silicon (`/opt/homebrew`)
+2. **SHELL OPTIONS:** `shopt -s checkwinsize dotglob histappend cdspell`; history sizing
+3. **ENVIRONMENT:** Exports, Touch ID for sudo (macOS), login banner (Linux)
+4. **PACKAGE MANAGER:** Homebrew (macOS) or apt (Linux) daily update logic
+5. **TOOL SETUP:** z.sh, nvm, pyenv, Starship, fzf (Ctrl-r history search)
+6. **ALIASES:** Platform-conditional aliases: pbcopy (macOS only), fdfind→fd (Linux only),
+   bat/batcat resolution at startup; inlined `colors()` output
+7. **FUNCTIONS:** `ostype()`, `cwc()` (crossword lookup)
+8. **COMPLETIONS:** Shell completion configurations
+9. **LOCAL OVERRIDES:** Sources `~/.bashrc_local` if present
 
 ### bootstrap/install.sh Functions
+
 - **`src_dir()`:** Returns `~/Documents/projects` (macOS) or `~/src` (Linux)
 - **`install()`:** Unified wrapper for `brew install` or `apt install`
 - **`install_pyenv()`:** Python setup with 15+ build dependencies on Linux
+- **`install_ai_tools()`:** Installs Claude Code, Gemini CLI, and Codex CLI on both platforms
+  (renamed from `install_claude_code()` in v1.4.0; Linux uses npm for gemini-cli and codex)
 - **`bootstrap_mac()`:** ~30 packages including GUI apps (iTerm2, 1Password, Figma, VSCode)
-- **`bootstrap_linux()`:** Minimal package set, RPi-aware
+- **`bootstrap_linux()`:** Core packages plus `nodejs`/`npm`, `btop`, `ncdu`; RPi-aware
+- **`config_ssh()`:** SSH configuration setup — idempotent, called from `main()`
 - **`remote_management()`:** Sets up `rpi-connect-lite` for remote Pi access
 - **`install_nerd_fonts()`:** Brew cask (macOS) vs manual download (Linux)
 - **`config_claude_code()`:** Symlinks Claude Code configuration from `claude/` directory to `~/.claude/`
 - **`config_codex()`:** Delegates to `codex/install.sh` to set up Codex CLI configuration
 
 ### Migration Tool (migrate.sh)
+
 Two transfer methods available:
+
 - **`transfer_using_cpio()`:** Lower-level transfer
 - **`transfer_using_rsync()`:** Default, with retry logic and progress display
 
 Uses pfb for formatted output. Predefined migration paths can be edited to customize.
 
 ### External Dependencies Auto-Downloaded
+
 - `~/.z.sh` - Directory jumper (downloaded on first bash_profile source)
 - `~/.pyenv/` - Python version manager
 - `~/.nvm/` - Node version manager
@@ -160,14 +198,19 @@ Uses pfb for formatted output. Predefined migration paths can be edited to custo
 - `~/.fonts/` - Nerd Fonts (Linux only)
 
 ### Claude Code Configuration
+
 The `claude/` directory contains Claude Code settings that get symlinked to `~/.claude/` during bootstrap:
-- **`CLAUDE.md`:** User-level coding standards (loaded automatically by Claude Code - no hooks needed). Contains 7 principles: Codify Don't Document, Bash UX with pfb, Markdown Standards, Professional Documentation Tone, Version Control Everything, Fail Fast Pivot Early, and Behavioral Integrity.
+
+- **`CLAUDE.md`:** User-level coding standards (loaded automatically by Claude Code — no hooks needed). Contains 7
+  principles: Codify Don't Document, Bash UX with pfb, Markdown Standards, Professional Documentation Tone, Version
+  Control Everything, Fail Fast Pivot Early, and Behavioral Integrity.
 - **`settings.json`:** Claude Code preferences (statusLine, alwaysThinkingEnabled, skipDangerousModePermissionPrompt)
 - **`statusline-command.sh`:** Custom statusline showing hostname, directory, git branch, model, and usage %
 - **`install.sh`:** Installation script with timestamped backup mechanism
 - **`README.md`:** Documentation for the Claude Code configuration component
 
 Installation handled by `config_claude_code()` in `bootstrap/install.sh`:
+
 - Creates backups of existing files (`.backup.YYYYMMDDHHMMSS` suffix)
 - Symlinks each file from `claude/` to `~/.claude/`
 - Idempotent - can be run multiple times safely
@@ -177,7 +220,9 @@ Installation handled by `config_claude_code()` in `bootstrap/install.sh`:
 user-level instruction file), not via hooks. This provides zero-latency, zero-token-cost loading.
 
 ### Codex CLI Configuration
+
 The `codex/` directory contains the Codex CLI installer:
+
 - **`install.sh`:** Standalone installer that symlinks `claude/CLAUDE.md` → `~/.codex/AGENTS.md`
 
 This means both Claude Code and Codex CLI share the same development principles from a single source
@@ -185,6 +230,7 @@ file (`claude/CLAUDE.md`). No separate principles document is maintained for Cod
 
 Installation handled by `config_codex()` in `bootstrap/install.sh`, which delegates entirely to
 `codex/install.sh`. Run standalone with:
+
 ```bash
 ./codex/install.sh
 ```
@@ -192,23 +238,31 @@ Installation handled by `config_codex()` in `bootstrap/install.sh`, which delega
 ## Important Configuration Details
 
 ### Homebrew GitHub API Token (Optional)
+
 To avoid rate limiting during `brew update`:
+
 ```bash
 echo "your_github_token" > ~/.config/homebrew_github_api_token
 ```
+
 Token is read and exported as `HOMEBREW_GITHUB_API_TOKEN` in bash_profile.
 
 ### pyenv Installation
-Sets Python 3.10.0 as global default, installs Python 2.7.18 for legacy support. On Linux, requires extensive build dependencies (libssl-dev, zlib1g-dev, libffi-dev, etc.).
+
+Sets Python 3.10.0 as global default, installs Python 2.7.18 for legacy support. On Linux, requires extensive build
+dependencies (libssl-dev, zlib1g-dev, libffi-dev, etc.).
 
 ### Raspberry Pi Specifics
+
 - Uses `apt full-upgrade` instead of `apt upgrade`
 - Firmware updates via `rpi_firmware_update()` function (runs `rpi-update` and reboots)
 - Remote management via `rpi-connect-lite` with `loginctl enable-linger`
 - Banner script displays hostname (figlet), IP address, uptime on login
 
 ### ShellCheck Directives
+
 Common suppressions in the codebase:
+
 - `SC1091` - Ignore unreadable sourced files (external scripts)
 - `SC2034` - Unused variables (e.g., `_Z_CMD` for z.sh)
 - `SC2086` - Intentional word splitting for token expansion
@@ -216,6 +270,7 @@ Common suppressions in the codebase:
 ## Adding New Tools
 
 Pattern to follow in bash_profile:
+
 ```bash
 # Check if tool exists before configuring
 type <tool> >/dev/null 2>&1 && {
@@ -226,37 +281,44 @@ type <tool> >/dev/null 2>&1 && {
 ```
 
 Add installation to appropriate function in `bootstrap/install.sh`:
+
 - `bootstrap_mac()` for macOS packages
 - `bootstrap_linux()` for Linux packages
 
-## Open Issues and Next Work
+## Current Status and Next Work
 
-As of v1.3.0 (2026-03-26), the following GitHub issues are open and represent the next phase of work:
+As of v1.5.0 (2026-03-26), all open issues from the cross-platform audit are resolved except one:
 
-### Bugs (Silent Linux breakages — fix first)
-- **#17:** `fd`/`fdfind` mismatch breaks fzf file/directory browsing on Linux (Debian uses `fdfind`)
-- **#18:** `bat` hardcoded in fzf preview command — Debian requires `batcat`
-- **#19:** `pbcopy` aliases (`uuidgen`, `suuidgen`, `datestamp`) reference macOS clipboard — broken on Linux
-- **#20:** nvm never loads on Linux — only Homebrew paths are sourced; Linux path is missing
+### Resolved (v1.4.0)
 
-### Bootstrap Cleanup
-- **#21:** `claude-code` installed twice on macOS — both in `bootstrap_mac()` and `install_claude_code()`
-- **#24:** `config_ssh()` is defined but never called from `main()`
+- **#17:** `fd`/`fdfind` mismatch — aliased `fdfind` to `fd` on Linux
+- **#18:** `bat`/`batcat` — resolved at startup via `type -P`; no static alias needed
+- **#19:** `pbcopy` aliases — wrapped in macOS-only conditional
+- **#20:** nvm on Linux — standard `$NVM_DIR` source paths added
+- **#21:** `claude-code` double-install on macOS — removed from `bootstrap_mac()`
+- **#22:** AI tools on Linux — `gemini-cli` and `codex` installed via npm; `nodejs`/`npm` added to `bootstrap_linux()`;
+  function renamed to `install_ai_tools()`
+- **#23:** `btop` and `ncdu` added to `bootstrap_linux()`
+- **#24:** `config_ssh()` added to `main()` and verified idempotent
 
-### Bootstrap Enhancements (Platform Parity)
-- **#22:** `gemini-cli` and `codex` missing from Linux bootstrap (macOS only currently)
-- **#23:** `btop` and `ncdu` missing from Linux bootstrap (macOS only currently)
+### Resolved (v1.5.0)
 
-### Refactor
-- **#25:** `bash_profile` restructure for readability — scattered OS-conditional blocks and mixed tool setup/aliases — best done after bugs #17–#20 are fixed
+- **#25:** `bash_profile` refactored into nine named sections with consistent `# ── NAME ──` separators
 
-### Investigation
-- **#15:** Docker-based macOS bootstrap testing feasibility
+### Open
+
+- **#15:** Docker-based macOS bootstrap testing — investigation only, no timeline, low priority
+
+### Possible Future Work
+
+- Add `nmap` to Linux bootstrap for network tool parity with macOS
+- Monitor whether apt `nodejs` is sufficient for gemini-cli/codex on Raspberry Pi OS;
+  may need NodeSource or nvm-based install if apt version is too old
 
 ## Platform-Specific Path Conventions
 
 | Purpose | macOS | Linux |
-|---------|-------|-------|
+| ------- | ----- | ----- |
 | Projects | `~/Documents/projects` | `~/src` |
 | Shell config | `~/.bash_profile` | `~/.bashrc` → `~/.bash_profile` |
 | Homebrew | `/opt/homebrew` (AS) or `/usr/local` (Intel) | N/A |
@@ -266,7 +328,7 @@ As of v1.3.0 (2026-03-26), the following GitHub issues are open and represent th
 
 ## Repository Structure
 
-```
+```text
 carrybag-lite/
 ├── bash_profile              # Single-file bash configuration
 ├── bootstrap/

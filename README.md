@@ -91,12 +91,13 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 
 - `bash` (latest), `bash-completion`, `node`, `go`
 - `btop`, `ncdu`, `nmap`, `wakeonlan`
-- `gemini-cli`, `codex` (AI tools)
 - GUI apps: iTerm2, Visual Studio Code, Figma, 1Password, Dropbox, CleanMyMac
 
 **Linux only:**
 
-- `curl`, `wget`, `gnupg`, `fontconfig`
+- `curl`, `wget`, `gnupg`, `fontconfig`, `nodejs`, `npm`
+- `btop`, `ncdu` (system monitoring)
+- `gemini-cli`, `codex` (AI tools, installed via npm)
 - ufw firewall configuration
 - Login banner with hostname and system info
 
