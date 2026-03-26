@@ -51,9 +51,13 @@ _Z_CMD=jump
 # Node version management
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
-[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"                    # macOS (Homebrew)
 # shellcheck disable=SC1091
-[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # macOS completion
+# shellcheck disable=SC1091
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"                                         # Linux (standard)
+# shellcheck disable=SC1091
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"                        # Linux completion
 
 # Safe Python version management using pyenv
 if [[ "$OSTYPE" == "darwin"* ]]; then
