@@ -115,6 +115,7 @@ bootstrap_linux() {
     install nodejs npm # required for gemini-cli and codex
     install jq yq bat tree fd-find fzf figlet # misc tools
     install shellcheck vim watch # editing
+    install btop ncdu # system monitoring and disk management
     install fontconfig # font tools
     install wakeonlan # wake-on-lan
 
