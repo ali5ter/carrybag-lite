@@ -383,17 +383,19 @@ END_OF_STARSHIP_CONFIG
 
 
 config_ssh() {
-    [[ -f ~/.ssh/config ]] || { 
-        touch $HOME/.ssh/config
-        chmod 600 $HOME/.ssh/config
+    [[ -f ~/.ssh/config ]] || {
+        touch "$HOME/.ssh/config"
+        chmod 600 "$HOME/.ssh/config"
     }
-    # Keep SSH connections alive
-    cat >> ~/.ssh/config <<EOT
+    # Keep SSH connections alive (idempotent — skip if already configured)
+    if ! grep -q 'ServerAliveInterval' ~/.ssh/config; then
+        cat >> ~/.ssh/config <<EOT
 Host *
     TCPKeepAlive=yes
     ServerAliveInterval 240
     ServerAliveCountMax 2
 EOT
+    fi
     # Also set up Wake-on-LAN
     # @ref https://www.ms8.com/using-wake-on-lan-from-the-command-line-on-macos/
     # wakeonlan "$(arp -a | grep -i 192.168.1.16 | awk '{print $4}')"
@@ -497,6 +499,10 @@ main() {
     pfb info "Configuring Codex..."
     config_codex
     pfb success "Codex configured!"
+    echo
+    pfb info "Configuring SSH..."
+    config_ssh
+    pfb success "SSH configured!"
     echo
     pfb info "Configuring firewall..."
     configure_firewall
