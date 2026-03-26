@@ -2,8 +2,8 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.4.0
-# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [directory]
+# @version 2.5.0
+# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [-h|--help] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
 
@@ -79,6 +79,45 @@ git_with_timeout() {
 }
 
 # ---------------------------------------------------------------------------
+# Usage
+# ---------------------------------------------------------------------------
+
+# @description Print usage information and exit
+# @param $1 Optional exit code (default 0)
+usage() {
+    cat <<EOF
+
+Usage: $(basename "$0") [OPTIONS] [directory]
+
+Pull the latest changes for every git repository found in a directory.
+
+Options:
+  -q, --quiet       Only show repos with changes or problems
+  -f, --fetch-only  Fetch only — report how far behind, do not pull
+  -s, --stash       Auto-stash local changes, pull, then restore
+  -p, --parallel    Run all repos concurrently (up to UPDATE_MAX_JOBS)
+  -h, --help        Show this help and exit
+
+Arguments:
+  directory   Directory to scan for git repositories (default: \$PWD)
+
+Environment:
+  GIT_PULL_TIMEOUT   Seconds before a git operation is killed (default: 60)
+  UPDATE_MAX_JOBS    Max parallel workers when using --parallel (default: 8)
+
+Examples:
+  $(basename "$0")
+  $(basename "$0") --quiet
+  $(basename "$0") --fetch-only
+  $(basename "$0") --stash
+  $(basename "$0") --parallel
+  $(basename "$0") ~/Documents/projects
+  GIT_PULL_TIMEOUT=15 $(basename "$0")
+EOF
+    exit "${1:-0}"
+}
+
+# ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
@@ -94,6 +133,7 @@ while [[ $# -gt 0 ]]; do
         -f|--fetch-only) FETCH_ONLY=true; shift ;;
         -s|--stash)      STASH=true; shift ;;
         -p|--parallel)   PARALLEL=true; shift ;;
+        -h|--help)       usage 0 ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
     esac
