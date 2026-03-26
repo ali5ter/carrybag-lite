@@ -87,7 +87,7 @@ bootstrap_mac() {
     install ncdu # disk management
     install nmap # network tools
     install wakeonlan # wake-on-lan
-    install claude-code gemini-cli codex # AI tools
+    install gemini-cli codex # AI tools (claude-code installed via install_claude_code)
     install figlet # banner generation
 
     # GUI applications
