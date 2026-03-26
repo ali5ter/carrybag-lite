@@ -7,7 +7,7 @@ Utility scripts for day-to-day development workflow.
 Pull the latest changes for every git repository found in a directory.
 
 ```bash
-update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
+update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [directory]
 ```
 
 | Argument             | Default | Description                              |
@@ -15,6 +15,8 @@ update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
 | `-q`, `--quiet`      |         | Only show repos with changes or problems |
 | `-f`, `--fetch-only` |         | Fetch only — report behind, no pull      |
 | `-s`, `--stash`      |         | Auto-stash local changes, pull, then pop |
+| `-p`, `--parallel`   |         | Pull all repos concurrently              |
+| `-h`, `--help`       |         | Show help and exit                       |
 | `directory`          | `$PWD`  | Directory to scan for git repositories   |
 
 **Behaviour:**
@@ -24,6 +26,8 @@ update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [directory]
 - Uses `--ff-only` to avoid creating merge commits
 - All git operations are subject to a timeout (default 60s; override
   with `GIT_PULL_TIMEOUT=N`)
+- Parallel mode runs up to 8 concurrent jobs (override with
+  `UPDATE_MAX_JOBS=N`); results are displayed in original directory order
 - Prints a summary: updated / already current / skipped / failed
 
 **Examples:**
@@ -40,6 +44,12 @@ update.sh --fetch-only
 
 # Auto-stash local changes, pull, then restore
 update.sh --stash
+
+# Pull all repos in parallel (faster for many repos)
+update.sh --parallel
+
+# Parallel with a custom concurrency limit
+UPDATE_MAX_JOBS=4 update.sh --parallel
 
 # Update all repos in a specific directory
 update.sh ~/Documents/projects
@@ -64,18 +74,22 @@ remote (`user@host:/path`).
 
 ```bash
 sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes] \
-        [--max-retries N] [source [target]]
+        [--max-retries N] [--bwlimit KBPS] [--port N] [--key path] \
+        [source [target]]
 ```
 
-| Argument                | Default         | Description                   |
-|-------------------------|-----------------|-------------------------------|
-| `--dry-run`, `-n`       |                 | Show what would change, no-op |
-| `--exclude pattern`     |                 | Exclude an additional pattern |
-| `--no-default-excludes` |                 | Disable built-in exclude list |
-| `--max-retries N`       | `0` (unlimited) | Max retry attempts (remote)   |
-| `--bwlimit N`           | `0` (unlimited) | Bandwidth cap in KB/s         |
-| `source`                | `$HOME/`        | Directory to sync from        |
-| `target`                | (Lacie drive)   | Local path or `user@host:path`|
+| Argument                | Default         | Description                    |
+|-------------------------|-----------------|--------------------------------|
+| `--dry-run`, `-n`       |                 | Show what would change, no-op  |
+| `--exclude pattern`     |                 | Exclude an additional pattern  |
+| `--no-default-excludes` |                 | Disable built-in exclude list  |
+| `--max-retries N`       | `0` (unlimited) | Max retry attempts (remote)    |
+| `--bwlimit N`           | `0` (unlimited) | Bandwidth cap in KB/s          |
+| `--port N`              |                 | SSH port (remote only)         |
+| `--key path`            |                 | SSH identity file (remote only)|
+| `-h`, `--help`          |                 | Show help and exit             |
+| `source`                | `$HOME/`        | Directory to sync from         |
+| `target`                | (Lacie drive)   | Local path or `user@host:path` |
 
 **Default excludes** (applied automatically unless `--no-default-excludes`):
 `.DS_Store`, `.Trash/`, `node_modules/`, `.cache/`, `__pycache__/`, `*.pyc`,
@@ -109,6 +123,9 @@ sync.sh --max-retries 5 $HOME/ alice@myserver.local:/backups/alice/
 
 # Throttle to ~10 MB/s to avoid saturating the network
 sync.sh --bwlimit 10000 $HOME/ alice@myserver.local:/backups/alice/
+
+# Remote sync with a non-standard SSH port and specific key
+sync.sh --port 2222 --key ~/.ssh/id_backup $HOME/ alice@myserver.local:/backups/
 
 # Pull a directory from a remote machine to local
 sync.sh alice@myserver.local:/home/alice/projects/ ~/projects/
