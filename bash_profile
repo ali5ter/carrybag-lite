@@ -81,9 +81,15 @@ alias source_=". ~/.bash_profile"
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-alias uuidgen="\uuidgen | tr [:upper:] [:lower:] | tee >(pbcopy)"
-alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
-alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias uuidgen="\uuidgen | tr [:upper:] [:lower:] | tee >(pbcopy)"
+    alias suuidgen="uuidgen | cut -d- -f1 | tee >(pbcopy)"
+    alias datestamp="date '+%F %T %z %Z' | tee >(pbcopy)"
+else
+    alias uuidgen="uuidgen | tr [:upper:] [:lower:]"
+    alias suuidgen="uuidgen | cut -d- -f1"
+    alias datestamp="date '+%F %T %z %Z'"
+fi
 alias gs="git status"
 alias gd="git diff"
 type bat >/dev/null 2>&1 && {
