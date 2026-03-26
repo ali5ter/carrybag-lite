@@ -142,9 +142,10 @@ export FZF_DEFAULT_OPTS='
   --border
   --info=inline
 '
-# CTRL-T: Preview files with bat
+# CTRL-T: Preview files with bat (bat on macOS, batcat on Debian)
+_bat_cmd=$(type -P bat 2>/dev/null || type -P batcat 2>/dev/null)
 export FZF_CTRL_T_OPTS="
-  --preview 'bat -n --color=always {}'
+  --preview '$_bat_cmd -n --color=always {}'
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 # ALT-C/ESC-C: preview directory tree
 export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
