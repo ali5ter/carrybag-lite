@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CarryBag Lite is a portable bash shell environment configuration system. Unlike the original CarryBag, this version uses a single-file approach: "one file, no fuss, less mess."
 
-**Supported platforms:** macOS (Mojave 10.14+, Tahoe) and Debian-based Linux (Trixie, Raspberry Pi OS)
+**Supported platforms:** macOS (Mojave 10.14+, Tahoe) and Debian-based Linux (Bookworm/Trixie, Raspberry Pi OS)
 
 ## Core Architecture
 
@@ -29,7 +29,7 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 1. Installs [pfb](https://github.com/ali5ter/pfb) for formatted terminal output (required dependency)
 2. Platform-specific package installation (`bootstrap_mac()` vs `bootstrap_linux()`)
 3. Interactive prompts for optional components (pyenv, Docker)
-4. Tool installations (Starship prompt, hstr, Nerd Fonts)
+4. Tool installations (Starship prompt, fzf, Nerd Fonts)
 5. Links bash_profile to appropriate location
 6. Configures Claude Code settings and user-level coding standards
 7. Configures Codex CLI (symlinks shared principles as `~/.codex/AGENTS.md`)
@@ -131,7 +131,7 @@ Organized into sections:
 3. **OS-specific:** Touch ID for sudo (macOS), banner script (Linux)
 4. **External tools:** z.sh (directory jumper), nvm (Node), pyenv (Python)
 5. **Starship prompt:** Config at `~/.config/starship.toml`
-6. **hstr:** Enhanced history with Ctrl-r binding
+6. **fzf:** Fuzzy finder with Ctrl-r history search binding (replaced hstr in v1.3.0)
 7. **Custom functions:** `ostype()`, `cwc()` (crossword lookup), `colors()`
 
 ### bootstrap/install.sh Functions
@@ -229,6 +229,30 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 - `bootstrap_mac()` for macOS packages
 - `bootstrap_linux()` for Linux packages
 
+## Open Issues and Next Work
+
+As of v1.3.0 (2026-03-26), the following GitHub issues are open and represent the next phase of work:
+
+### Bugs (Silent Linux breakages — fix first)
+- **#17:** `fd`/`fdfind` mismatch breaks fzf file/directory browsing on Linux (Debian uses `fdfind`)
+- **#18:** `bat` hardcoded in fzf preview command — Debian requires `batcat`
+- **#19:** `pbcopy` aliases (`uuidgen`, `suuidgen`, `datestamp`) reference macOS clipboard — broken on Linux
+- **#20:** nvm never loads on Linux — only Homebrew paths are sourced; Linux path is missing
+
+### Bootstrap Cleanup
+- **#21:** `claude-code` installed twice on macOS — both in `bootstrap_mac()` and `install_claude_code()`
+- **#24:** `config_ssh()` is defined but never called from `main()`
+
+### Bootstrap Enhancements (Platform Parity)
+- **#22:** `gemini-cli` and `codex` missing from Linux bootstrap (macOS only currently)
+- **#23:** `btop` and `ncdu` missing from Linux bootstrap (macOS only currently)
+
+### Refactor
+- **#25:** `bash_profile` restructure for readability — scattered OS-conditional blocks and mixed tool setup/aliases — best done after bugs #17–#20 are fixed
+
+### Investigation
+- **#15:** Docker-based macOS bootstrap testing feasibility
+
 ## Platform-Specific Path Conventions
 
 | Purpose | macOS | Linux |
@@ -258,7 +282,9 @@ carrybag-lite/
 ├── codex/                   # Codex CLI configuration
 │   └── install.sh           # Symlinks claude/CLAUDE.md → ~/.codex/AGENTS.md
 ├── tools/
-│   └── sync                 # Local backup/sync utility
+│   ├── sync.sh              # Local backup/sync utility (with --port, --key SSH options)
+│   ├── update.sh            # Bulk git repository updater (with --parallel flag)
+│   └── README.md            # Tool reference documentation
 ├── test_rpi.sh              # Docker-based Raspberry Pi testing
 ├── CLAUDE.md                # This file - AI project context
 └── README.md                # User-facing documentation
