@@ -11,15 +11,14 @@
 **CarryBag is my collection of dot files, custom functions and theme settings
 used to create a bash shell environment I can carry from machine to machine.**
 
-Unlike [the original](https://github.com/ali5ter/carrybag), this version is
-pared back. One file, no fuss, less mess.
+One file, no fuss, less mess.
 
-Tested on macOS Tahoe and Raspberry Pi OS (Debian Trixie).
+Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspberry Pi OS.
 
 ## Features
 
 - ✨ Single-file configuration (`bash_profile`)
-- 🚀 Automated bootstrap for macOS and Linux/Raspberry Pi
+- 🚀 Automated bootstrap for macOS and Debian-based Linux
 - 🐍 Python version management (pyenv)
 - 📦 Node version management (nvm)
 - ⭐ Starship prompt with custom themes
@@ -27,6 +26,7 @@ Tested on macOS Tahoe and Raspberry Pi OS (Debian Trixie).
 - 🔍 Enhanced history search (hstr)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
+- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI (with shared coding standards)
 
 ## Quick Install
 
@@ -80,34 +80,35 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 
 ## What Gets Installed
 
-**Command-line tools:**
+**Common (macOS and Linux):**
 
-- `bash`, `git`, `vim`, `shellcheck`
-- `jq`, `yq`, `bat`, `tree`, `fzf`
+- `git`, `vim`, `shellcheck`, `watch`
+- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`
 - `starship` (prompt), `hstr` (history), `z` (directory jumper)
+- Nerd Fonts, Claude Code
 
-**Development:**
+**macOS only:**
 
-- `pyenv` (Python version management) - optional
-- `nvm` (Node version management)
-- `docker` - optional
+- `bash` (latest), `bash-completion`, `node`, `go`
+- `btop`, `ncdu`, `nmap`, `wakeonlan`
+- `gemini-cli`, `codex` (AI tools)
+- GUI apps: iTerm2, Visual Studio Code, Figma, 1Password, Dropbox, CleanMyMac
 
-**macOS GUI apps:**
+**Linux only:**
 
-- iTerm2, Visual Studio Code, Figma
-- 1Password, Dropbox, CleanMyMac
-- Microsoft Teams, WhatsApp
+- `curl`, `wget`, `gnupg`, `fontconfig`
+- ufw firewall configuration
+- Login banner with hostname and system info
 
 **Raspberry Pi extras:**
 
-- rpi-connect-lite (remote management)
-- Custom banner with system info
+- `rpi-connect-lite` (remote management)
+- Ethernet-over-WiFi priority configuration
 
-**Development tools configuration:**
+**Optional (prompted during bootstrap):**
 
-- Claude Code settings and user-level coding standards
-- Codex CLI configuration (symlinked from shared principles)
-- Starship prompt configuration
+- `pyenv` (Python version management)
+- `docker`
 
 ## Additional Tools
 
@@ -121,25 +122,14 @@ Transfer configurations from old machine to new:
 
 ### Bulk Git Repository Updates
 
-Update all git repositories in a directory in one pass:
-
-```bash
-./tools/update.sh [directory]
-```
-
-Handles uncommitted changes, unreachable remotes, and slow or hung connections
-gracefully. See [tools/README.md](tools/README.md) for full details.
+Update all git repositories in a directory in one pass, with optional parallel
+mode (`--parallel`). See [tools/README.md](tools/README.md) for full details.
 
 ### Local and Remote Sync
 
-Sync a directory to a local drive or a remote host over SSH:
-
-```bash
-./tools/sync.sh [--dry-run] [source [target]]
-```
-
-Auto-detects local vs remote mode from the target path. See
-[tools/README.md](tools/README.md) for full details.
+Sync a directory to a local drive or a remote host over SSH, with custom port
+and key support (`--port`, `--key`). See [tools/README.md](tools/README.md)
+for full details.
 
 ## Testing in a Raspberry Pi–like Docker Container
 
@@ -183,7 +173,7 @@ The `bash_profile` automatically sources `~/.bashrc_local` if it exists.
 
 ## Documentation
 
-See [CLAUDE.md](CLAUDE.md) for architecture details and development workflows.
+See [tools/README.md](tools/README.md) for the utility script reference.
 
 ## License
 
