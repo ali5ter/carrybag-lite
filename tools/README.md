@@ -73,6 +73,7 @@ sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes] \
 | `--exclude pattern`     |                 | Exclude an additional pattern |
 | `--no-default-excludes` |                 | Disable built-in exclude list |
 | `--max-retries N`       | `0` (unlimited) | Max retry attempts (remote)   |
+| `--bwlimit N`           | `0` (unlimited) | Bandwidth cap in KB/s         |
 | `source`                | `$HOME/`        | Directory to sync from        |
 | `target`                | (Lacie drive)   | Local path or `user@host:path`|
 
@@ -105,6 +106,9 @@ sync.sh $HOME/ alice@myserver.local:/backups/alice/
 
 # Remote sync with a cap of 5 retries
 sync.sh --max-retries 5 $HOME/ alice@myserver.local:/backups/alice/
+
+# Throttle to ~10 MB/s to avoid saturating the network
+sync.sh --bwlimit 10000 $HOME/ alice@myserver.local:/backups/alice/
 
 # Pull a directory from a remote machine to local
 sync.sh alice@myserver.local:/home/alice/projects/ ~/projects/

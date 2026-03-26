@@ -3,8 +3,8 @@
 # @description Sync a source directory to a local or remote target using rsync.
 #              Auto-detects remote targets from user@host:/path format.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.3.0
-# @usage sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes] [--max-retries N] [source [target]]
+# @version 2.4.0
+# @usage sync.sh [--dry-run] [--exclude pattern] [--no-default-excludes] [--max-retries N] [--bwlimit KBPS] [source [target]]
 # @dependencies rsync, pfb
 # @exit 0 Success
 # @exit 1 Invalid arguments or sync failure
@@ -52,6 +52,7 @@ DRY_RUN=false
 USE_DEFAULT_EXCLUDES=true
 EXTRA_EXCLUDES=()
 MAX_RETRIES="${SYNC_MAX_RETRIES:-0}"  # 0 = unlimited retries for remote syncs
+BWLIMIT="${SYNC_BWLIMIT:-0}"          # 0 = unlimited bandwidth (KB/s)
 
 # Default patterns that are never worth syncing
 DEFAULT_EXCLUDES=(
@@ -74,6 +75,8 @@ while [[ $# -gt 0 ]]; do
         --exclude=*)              EXTRA_EXCLUDES+=( "${1#--exclude=}" ); shift ;;
         --max-retries)            MAX_RETRIES="$2"; shift 2 ;;
         --max-retries=*)          MAX_RETRIES="${1#--max-retries=}"; shift ;;
+        --bwlimit)                BWLIMIT="$2"; shift 2 ;;
+        --bwlimit=*)              BWLIMIT="${1#--bwlimit=}"; shift ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
     esac
@@ -117,6 +120,7 @@ sync_local() {
     #        skip files newer on receiver, delete extraneous destination files
     local flags=( -gloptru --delete --progress )
     $DRY_RUN && flags+=( --dry-run )
+    [[ $BWLIMIT -gt 0 ]] && flags+=( --bwlimit="$BWLIMIT" )
     build_exclude_flags
 
     pfb heading "Local sync" "💾"
@@ -136,11 +140,13 @@ sync_remote() {
     local flags=( -az --partial --delete --progress --timeout="$con_alive"
                   -e "ssh -o ServerAliveInterval=$con_alive" )
     $DRY_RUN && flags+=( --dry-run )
+    [[ $BWLIMIT -gt 0 ]] && flags+=( --bwlimit="$BWLIMIT" )
     build_exclude_flags
 
     pfb heading "Remote sync" "🌐"
     pfb subheading "From: $SOURCE_DIR"
     pfb subheading "  To: $TARGET_DIR"
+    [[ $BWLIMIT -gt 0 ]] && pfb info "Bandwidth capped at ${BWLIMIT} KB/s"
     $DRY_RUN && pfb warn "Dry run — no files will be transferred"
 
     local attempt=0
