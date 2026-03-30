@@ -305,9 +305,15 @@ As of v1.5.0 (2026-03-26), all open issues from the cross-platform audit are res
 
 - **#25:** `bash_profile` refactored into nine named sections with consistent `# ── NAME ──` separators
 
-### Open
+### Closed (Won't Fix)
 
-- **#15:** Docker-based macOS bootstrap testing — investigation only, no timeline, low priority
+- **#15:** Docker-based macOS bootstrap testing — not feasible; documented and closed (2026-03-30)
+  - Docker-OSX and OSX-KVM both require a Linux host with KVM; neither runs on macOS
+  - Spoofing `OSTYPE=darwin` in a Linux container covers almost nothing: `bootstrap_mac()` is
+    entirely Homebrew calls that fail without macOS
+  - The shared non-Homebrew functions (`config_ssh`, `config_carrybag`, etc.) already exercise
+    their Linux paths via `test_rpi.sh`
+  - No partial test provides meaningful macOS-specific coverage
 
 ### Possible Future Work
 
