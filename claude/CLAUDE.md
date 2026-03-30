@@ -65,6 +65,8 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 - Line length: 120 characters max (prose only, not code/tables)
 - URLs wrapped in `<>` or link syntax `[text](url)`
 - Consistent list numbering (1. 2. 3.)
+- The description field in agent and skill YAML frontmatter must be a single unbroken line. No multi-line block scalars (|, >), no
+  embedded \n newlines, no example blocks inside the value.
 
 **Workflow:**
 
