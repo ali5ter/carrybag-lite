@@ -156,12 +156,12 @@ Refactored in v1.5.0 into nine clearly labelled sections using `# ── NAME �
 
 1. **PATHS:** Homebrew detection for Intel (`/usr/local`) and Apple Silicon (`/opt/homebrew`)
 2. **SHELL OPTIONS:** `shopt -s checkwinsize dotglob histappend cdspell`; history sizing
-3. **ENVIRONMENT:** Exports, Touch ID for sudo (macOS), login banner (Linux)
+3. **ENVIRONMENT:** `CDATE`, `CLICOLOR`, vi mode, `EDITOR`, `GIT_EDITOR`
 4. **PACKAGE MANAGER:** Homebrew (macOS) or apt (Linux) daily update logic
-5. **TOOL SETUP:** z.sh, nvm, pyenv, Starship, fzf (Ctrl-r history search)
-6. **ALIASES:** Platform-conditional aliases: pbcopy (macOS only), fdfind→fd (Linux only),
-   bat/batcat resolution at startup; inlined `colors()` output
-7. **FUNCTIONS:** `ostype()`, `cwc()` (crossword lookup)
+5. **TOOL SETUP:** bat/MANPAGER, z.sh, nvm, pyenv, Starship, fzf (Ctrl-r history search)
+6. **ALIASES:** Safety aliases (rm/cp/mv), platform-conditional utilities (uuidgen/datestamp),
+   git shortcuts, bat/batcat, claudeit, Linux dircolors
+7. **FUNCTIONS:** `ostype()`, `fb()` (branch switcher), `db()` (branch deleter), `cl()` (commit log), `bhelp()` (help viewer)
 8. **COMPLETIONS:** Shell completion configurations
 9. **LOCAL OVERRIDES:** Sources `~/.bashrc_local` if present
 
@@ -287,7 +287,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.5.0 (2026-03-26), all open issues from the cross-platform audit are resolved except one:
+As of v1.6.0 (2026-04-04), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -304,6 +304,12 @@ As of v1.5.0 (2026-03-26), all open issues from the cross-platform audit are res
 ### Resolved (v1.5.0)
 
 - **#25:** `bash_profile` refactored into nine named sections with consistent `# ── NAME ──` separators
+
+### Resolved (v1.6.0)
+
+- `bash_profile`: added `bat`/MANPAGER setup, `bhelp()` function, `--line-range` for fzf preview;
+  simplified `claudeit` alias; removed stray unconditional source line
+- `CLAUDE.md`: corrected bash_profile section descriptions to match actual content
 
 ### Closed (Won't Fix)
 

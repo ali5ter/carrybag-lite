@@ -79,6 +79,11 @@ fi
 
 # ── TOOL SETUP ────────────────────────────────────────────────────────────────
 
+# manual pages
+# using bat — syntax-highlighted pager (bat on macOS, batcat on Debian)
+type bat >/dev/null 2>&1 && export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+type batcat >/dev/null 2>&1 && export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
 # z — directory jumper
 # @ref https://github.com/rupa/z
 [ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
@@ -138,7 +143,9 @@ export FZF_DEFAULT_OPTS='
 _bat_cmd=$(type -P bat 2>/dev/null || type -P batcat 2>/dev/null) # bat on macOS, batcat on Debian
 export FZF_CTRL_T_OPTS="
   --preview '$_bat_cmd -n --color=always {}'
+  --line-range :500 {}
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+
 export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
 # ── ALIASES ───────────────────────────────────────────────────────────────────
@@ -172,8 +179,7 @@ type batcat >/dev/null 2>&1 && alias more=batcat && alias less=batcat
 
 # claude-code
 type claude >/dev/null 2>&1 && {
-    cmd="claude -r --dangerously-skip-permissions"
-    [[ -f ~/.claude/agents/pair-programmer.md ]] && cmd="$cmd --agent pair-programmer"
+    cmd="claude --dangerously-skip-permissions"
     # shellcheck disable=SC2139
     alias claudeit="$cmd"
 }
@@ -225,6 +231,11 @@ cl() {
     git log --oneline --color=always | \
         fzf --ansi --preview 'git show --color=always {1}' \
             --bind 'enter:execute(git show --color=always {1} | less -R)'
+}
+
+bhelp() {
+    # Help viewer using bat
+    "$@" --help 2>&1 | bat --plain --language=help
 }
 
 # ── COMPLETIONS ───────────────────────────────────────────────────────────────
