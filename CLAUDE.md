@@ -287,7 +287,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.6.1 (2026-04-05), all open issues from the cross-platform audit are resolved:
+As of v1.6.2 (2026-04-05), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -314,6 +314,11 @@ As of v1.6.1 (2026-04-05), all open issues from the cross-platform audit are res
 ### Resolved (v1.6.1)
 
 - `claude/CLAUDE.md`: added Python specific scripting standards block under Codify, Don't Document principle
+
+### Resolved (v1.6.2)
+
+- `claude/CLAUDE.md`: added author attribution guidance — derive from `git config user.name`/`user.email`,
+  format as `Name <email>`
 
 ### Closed (Won't Fix)
 
