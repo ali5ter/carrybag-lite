@@ -43,6 +43,10 @@ into executable scripts.
 - Use `argparse` for CLI argument handling with `--help` always available
 - Use `sys.exit()` with meaningful exit codes (0 = success, non-zero = error)
 
+**Author attribution:** Derive from `git config user.name` and `git config user.email`. Format as
+`Name <email>` (e.g. `Alister Lewis-Bowen <alister@lewis-bowen.org>`). Fall back to the home directory
+basename if outside a git repo.
+
 **Documentation should point to scripts, not replicate steps.**
 
 ### 2. Bash Script UX with pfb
