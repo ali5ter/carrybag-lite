@@ -287,7 +287,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.6.0 (2026-04-04), all open issues from the cross-platform audit are resolved:
+As of v1.6.1 (2026-04-05), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -310,6 +310,10 @@ As of v1.6.0 (2026-04-04), all open issues from the cross-platform audit are res
 - `bash_profile`: added `bat`/MANPAGER setup, `bhelp()` function, `--line-range` for fzf preview;
   simplified `claudeit` alias; removed stray unconditional source line
 - `CLAUDE.md`: corrected bash_profile section descriptions to match actual content
+
+### Resolved (v1.6.1)
+
+- `claude/CLAUDE.md`: added Python specific scripting standards block under Codify, Don't Document principle
 
 ### Closed (Won't Fix)
 
