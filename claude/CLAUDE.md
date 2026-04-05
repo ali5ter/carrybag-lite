@@ -25,12 +25,23 @@ into executable scripts.
 **Bash specific:**
 
 - Use the shebang:  #!/usr/bin/env bash
-- Follow the Pure Bash Bible (https://github.com/adavinov/pure-bash-bible)
-- Follow the Bash Style Guide (https://github.com/bahamas10/bash-style-guide)
+- Follow the [Pure Bash Bible](https://github.com/adavinov/pure-bash-bible)
+- Follow the [Bash Style Guide](https://github.com/bahamas10/bash-style-guide)
 - Use Google-Style documentation format:
   - Script header: Name, description, author, version, date, license, usage, dependencies, exit codes
   - Function docs: @param for inputs, @return for exit codes, @example for usage, @side_effects if applicable
-  - Reference: https://linuxvox.com/blog/what-is-the-standard-for-documentation-style-in-bash-scripts
+  - Reference: <https://linuxvox.com/blog/what-is-the-standard-for-documentation-style-in-bash-scripts>
+
+**Python specific:**
+
+- Use the shebang: `#!/usr/bin/env python3`
+- Follow [PEP 8](https://peps.python.org/pep-0008/) for style and [PEP 257](https://peps.python.org/pep-0257/) for docstrings
+- Use Google-Style documentation format:
+  - Module header: module docstring with name, description, author, version, date, license, usage, dependencies, exit codes
+  - Function docs: Args for inputs, Returns for outputs, Raises for exceptions, Example for usage
+  - Reference: <https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings>
+- Use `argparse` for CLI argument handling with `--help` always available
+- Use `sys.exit()` with meaningful exit codes (0 = success, non-zero = error)
 
 **Documentation should point to scripts, not replicate steps.**
 
@@ -65,8 +76,8 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 - Line length: 120 characters max (prose only, not code/tables)
 - URLs wrapped in `<>` or link syntax `[text](url)`
 - Consistent list numbering (1. 2. 3.)
-- The description field in agent and skill YAML frontmatter must be a single unbroken line. No multi-line block scalars (|, >), no
-  embedded \n newlines, no example blocks inside the value.
+- The description field in agent and skill YAML frontmatter must be a single unbroken line. No multi-line block scalars
+  (`|`, `>`), no embedded `\n` newlines, no example blocks inside the value.
 
 **Workflow:**
 
