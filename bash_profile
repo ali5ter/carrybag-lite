@@ -84,13 +84,9 @@ fi
 type bat >/dev/null 2>&1 && export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 type batcat >/dev/null 2>&1 && export MANPAGER="sh -c 'col -bx | bat -l man -p'"
 
-# z — directory jumper
-# @ref https://github.com/rupa/z
-[ -f ~/.z.sh ] || curl -s -o ~/.z.sh https://raw.githubusercontent.com/rupa/z/master/z.sh
-# shellcheck disable=SC1091
-source "$HOME/.z.sh"
-# shellcheck disable=SC2034
-_Z_CMD=jump
+# zoxide — directory jumper
+# @ref https://github.com/ajeetdsouza/zoxide
+type zoxide >/dev/null 2>&1 && eval "$(zoxide init bash --cmd jump)"
 
 # nvm — Node version management
 export NVM_DIR="$HOME/.nvm"

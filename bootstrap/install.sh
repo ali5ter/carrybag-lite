@@ -78,6 +78,7 @@ bootstrap_mac() {
     # ref: https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
     install git # source control
+    install zoxide # cd replacement
     install_pyenv # do python install right
     install shellcheck vim watch # editing
     install bash-completion@2 # auto-completion
@@ -114,6 +115,7 @@ bootstrap_linux() {
     install curl wget gnupg git # download & certs
     install nodejs npm # required for gemini-cli and codex
     install jq yq bat tree fd-find fzf figlet # misc tools
+    install zoxide # cd replacement
     install shellcheck vim watch # editing
     install btop ncdu # system monitoring and disk management
     install fontconfig # font tools
