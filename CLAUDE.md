@@ -158,7 +158,7 @@ Refactored in v1.5.0 into nine clearly labelled sections using `# ── NAME �
 2. **SHELL OPTIONS:** `shopt -s checkwinsize dotglob histappend cdspell`; history sizing
 3. **ENVIRONMENT:** `CDATE`, `CLICOLOR`, vi mode, `EDITOR`, `GIT_EDITOR`
 4. **PACKAGE MANAGER:** Homebrew (macOS) or apt (Linux) daily update logic
-5. **TOOL SETUP:** bat/MANPAGER, z.sh, nvm, pyenv, Starship, fzf (Ctrl-r history search)
+5. **TOOL SETUP:** bat/MANPAGER, zoxide, nvm, pyenv, Starship, fzf (Ctrl-r history search)
 6. **ALIASES:** Safety aliases (rm/cp/mv), platform-conditional utilities (uuidgen/datestamp),
    git shortcuts, bat/batcat, claudeit, Linux dircolors
 7. **FUNCTIONS:** `ostype()`, `fb()` (branch switcher), `db()` (branch deleter), `cl()` (commit log), `bhelp()` (help viewer)
@@ -191,7 +191,6 @@ Uses pfb for formatted output. Predefined migration paths can be edited to custo
 
 ### External Dependencies Auto-Downloaded
 
-- `~/.z.sh` - Directory jumper (downloaded on first bash_profile source)
 - `~/.pyenv/` - Python version manager
 - `~/.nvm/` - Node version manager
 - `~/.config/starship.toml` - Starship prompt config
@@ -264,7 +263,7 @@ dependencies (libssl-dev, zlib1g-dev, libffi-dev, etc.).
 Common suppressions in the codebase:
 
 - `SC1091` - Ignore unreadable sourced files (external scripts)
-- `SC2034` - Unused variables (e.g., `_Z_CMD` for z.sh)
+- `SC2034` - Unused variables (intentional exports or reserved names)
 - `SC2086` - Intentional word splitting for token expansion
 
 ## Adding New Tools
@@ -287,7 +286,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.6.2 (2026-04-05), all open issues from the cross-platform audit are resolved:
+As of v1.7.0 (2026-04-16), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -319,6 +318,11 @@ As of v1.6.2 (2026-04-05), all open issues from the cross-platform audit are res
 
 - `claude/CLAUDE.md`: added author attribution guidance — derive from `git config user.name`/`user.email`,
   format as `Name <email>`
+
+### Resolved (v1.7.0)
+
+- `bash_profile`: replaced `z.sh` with `zoxide` — uses `type`-guard pattern, no curl download on first source
+- `bootstrap/install.sh`: added `zoxide` to both `bootstrap_mac()` and `bootstrap_linux()`
 
 ### Closed (Won't Fix)
 
