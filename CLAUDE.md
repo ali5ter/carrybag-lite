@@ -286,7 +286,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.8.0 (2026-04-18), all open issues from the cross-platform audit are resolved:
+As of v1.8.1 (2026-04-18), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -328,6 +328,11 @@ As of v1.8.0 (2026-04-18), all open issues from the cross-platform audit are res
 
 - **#35:** `tools/update.sh`: added `pfb progress` bar in `--parallel` mode — pre-scans repos for total count,
   updates bar as each worker completes (both in throttle loop and drain loop); fallback pfb stub gains `progress` case
+
+### Resolved (v1.8.1)
+
+- `tools/update.sh`: replace completed progress bar with `pfb success` using the `cursor_up`/`erase_line`
+  pfb idiom (from `progress.tape` example); fallback stub emits `\n` at 100% for clean output without cursor helpers
 
 ### Closed (Won't Fix)
 

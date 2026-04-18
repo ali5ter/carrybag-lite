@@ -2,7 +2,7 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.6.0
+# @version 2.7.0
 # @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [-h|--help] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
@@ -40,7 +40,8 @@ source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
             warn)       printf '  ! %s\n' "$1" ;;
             err)        printf '  ✗ %s\n' "$1" ;;
             info)       printf '  → %s\n' "$1" ;;
-            progress)   printf '\r  [%s/%s] %s' "$1" "$2" "${3:-Processing...}" >&2 ;;
+            progress)   printf '\r  [%s/%s] %s' "$1" "$2" "${3:-Processing...}" >&2
+                        [[ "$1" -ge "$2" ]] && printf '\n' >&2 ;;
         esac
     }
 }
@@ -347,7 +348,16 @@ if $PARALLEL; then
         completed=$(( completed + 1 ))
         pfb progress "$completed" "$total_repos" "Repositories processed"
     done
-    printf '\n' >&2
+    # Replace the completed progress bar with a success message.
+    # Real pfb: _progress at 100% already printed \n, so cursor_up returns to the bar
+    # line and erase_line clears it before pfb success overwrites in place.
+    # Fallback pfb: cursor_up is absent; the stub already emitted \n, so success
+    # just appears on the next line.
+    if type cursor_up &>/dev/null; then
+        cursor_up >&2
+        erase_line >&2
+    fi
+    pfb success "All ${total_repos} repositories processed"
 
     # Display results in original directory order
     for repo in "${repo_order[@]}"; do
