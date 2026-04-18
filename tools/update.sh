@@ -2,7 +2,7 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.5.0
+# @version 2.6.0
 # @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [-h|--help] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
@@ -40,6 +40,7 @@ source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
             warn)       printf '  ! %s\n' "$1" ;;
             err)        printf '  ✗ %s\n' "$1" ;;
             info)       printf '  → %s\n' "$1" ;;
+            progress)   printf '\r  [%s/%s] %s' "$1" "$2" "${3:-Processing...}" >&2 ;;
         esac
     }
 }
@@ -302,18 +303,27 @@ else
     pfb heading "Updating git repositories in ${SCAN_DIR}" "🔄"
 fi
 
-$PARALLEL && pfb info "Running up to ${UPDATE_MAX_JOBS} jobs in parallel"
-
 if $PARALLEL; then
     # ------------------------------------------------------------------
     # Parallel mode: launch a background worker per repo, cap concurrency
     # at UPDATE_MAX_JOBS, collect results in original directory order.
     # ------------------------------------------------------------------
-    declare -a repo_order=()
-    declare -A job_files=()
 
+    # Pre-scan so we know the total for the progress bar
+    declare -a repo_dirs=()
     for dir in "${SCAN_DIR}"/*/; do
         [[ -d "${dir}.git" ]] || continue
+        repo_dirs+=( "$dir" )
+    done
+    total_repos=${#repo_dirs[@]}
+
+    pfb info "Running up to ${UPDATE_MAX_JOBS} jobs in parallel across ${total_repos} repositories"
+
+    declare -a repo_order=()
+    declare -A job_files=()
+    completed=0
+
+    for dir in "${repo_dirs[@]}"; do
         repo="${dir%/}"
         repo="${repo##*/}"
 
@@ -324,13 +334,20 @@ if $PARALLEL; then
         # Throttle: wait for a slot when at the concurrency limit
         while [[ $(jobs -r | wc -l) -ge $UPDATE_MAX_JOBS ]]; do
             wait -n 2>/dev/null || true
+            completed=$(( completed + 1 ))
+            pfb progress "$completed" "$total_repos" "Repositories processed"
         done
 
         process_repo "$dir" "$local_outfile" &
     done
 
-    # Wait for all remaining workers
-    wait
+    # Drain remaining workers, updating progress as each completes
+    while [[ $(jobs -r | wc -l) -gt 0 ]]; do
+        wait -n 2>/dev/null || true
+        completed=$(( completed + 1 ))
+        pfb progress "$completed" "$total_repos" "Repositories processed"
+    done
+    printf '\n' >&2
 
     # Display results in original directory order
     for repo in "${repo_order[@]}"; do

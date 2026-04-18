@@ -286,7 +286,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.7.0 (2026-04-16), all open issues from the cross-platform audit are resolved:
+As of v1.8.0 (2026-04-18), all open issues from the cross-platform audit are resolved:
 
 ### Resolved (v1.4.0)
 
@@ -323,6 +323,11 @@ As of v1.7.0 (2026-04-16), all open issues from the cross-platform audit are res
 
 - `bash_profile`: replaced `z.sh` with `zoxide` — uses `type`-guard pattern, no curl download on first source
 - `bootstrap/install.sh`: added `zoxide` to both `bootstrap_mac()` and `bootstrap_linux()`
+
+### Resolved (v1.8.0)
+
+- **#35:** `tools/update.sh`: added `pfb progress` bar in `--parallel` mode — pre-scans repos for total count,
+  updates bar as each worker completes (both in throttle loop and drain loop); fallback pfb stub gains `progress` case
 
 ### Closed (Won't Fix)
 
