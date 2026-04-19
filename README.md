@@ -26,7 +26,7 @@ Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspbe
 - 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
-- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI (with shared coding standards)
+- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI — with shared coding standards across Claude Code and Codex
 
 ## Quick Install
 
@@ -110,6 +110,61 @@ git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carryba
 
 - `pyenv` (Python version management)
 - `docker`
+
+## AI Tools Configuration
+
+The bootstrap installs Claude Code, Gemini CLI, and Codex CLI, and wires up shared
+development standards so all three tools operate from the same principles.
+
+### Shared development standards
+
+`claude/CLAUDE.md` is the single source of truth for coding standards and project conventions.
+It is automatically loaded by Claude Code as the user-level instruction file. The same file is
+shared with Codex CLI via a symlink so all AI tools enforce the same standards:
+
+| Tool | Config location | Source |
+| --- | --- | --- |
+| Claude Code | `~/.claude/CLAUDE.md` | symlinked from `claude/CLAUDE.md` |
+| Codex CLI | `~/.codex/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
+| Gemini CLI | — | not yet configured (see below) |
+
+### Claude Code
+
+The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, providing:
+
+- **`CLAUDE.md`** — seven development principles loaded automatically into every session
+- **`settings.json`** — preferences including statusline, always-thinking mode, and enabled plugins
+- **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model, and token usage
+
+Enabled plugins (pre-configured in `settings.json`):
+
+- [`claude-workflow-skills`](https://github.com/ali5ter/claude-workflow-skills) — `/promote`,
+  `/audit-plugin`, `/audit-standards` workflow skills
+- [`obsidian-project-documentation`](https://github.com/ali5ter/obsidian-project-assistant) — automatic
+  project documentation in Obsidian
+- [`over-50s-health`](https://github.com/ali5ter/over-50s-health-advisor) — health and fitness advisor
+
+Plugins are distributed via the `ali5ter` Claude Code plugin marketplace. After bootstrapping,
+install them with:
+
+```text
+/plugin marketplace add ali5ter/claude-plugins
+/plugin install claude-workflow-skills@ali5ter
+/plugin install obsidian-project-documentation@ali5ter
+/plugin install over-50s-health@ali5ter
+```
+
+### Codex CLI
+
+`codex/install.sh` symlinks `claude/CLAUDE.md` → `~/.codex/AGENTS.md`. Codex reads `AGENTS.md`
+as its user-level instruction file, so it operates from the same seven principles as Claude Code
+without any duplication.
+
+### Gemini CLI
+
+Gemini CLI is installed but does not currently share the common development standards. Extending
+the pattern (symlinking `claude/CLAUDE.md` to a Gemini user-level instruction file) is a
+candidate for a future iteration once the stable config path is confirmed for this tool.
 
 ## Additional Tools
 
