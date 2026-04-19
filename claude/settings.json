@@ -5,6 +5,7 @@
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
+    "claude-workflow-skills@ali5ter": true,
     "over-50s-health@ali5ter": true,
     "obsidian-project-documentation@ali5ter": true
   },
