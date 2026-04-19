@@ -442,6 +442,20 @@ config_codex() {
     fi
 }
 
+config_gemini() {
+    # Configure Google Gemini CLI by symlinking CLAUDE.md as GEMINI.md
+    # @param None
+    # @return 0 on success, 1 on failure
+    # @example config_gemini
+    local repo_dir
+    repo_dir="$(src_dir)/carrybag-lite"
+    if [[ -d "$repo_dir/gemini" ]]; then
+        "$repo_dir/gemini/install.sh"
+    else
+        pfb warning "Gemini CLI configuration directory not found at $repo_dir/gemini"
+    fi
+}
+
 main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
@@ -505,6 +519,10 @@ main() {
     pfb info "Configuring Codex..."
     config_codex
     pfb success "Codex configured!"
+    echo
+    pfb info "Configuring Gemini CLI..."
+    config_gemini
+    pfb success "Gemini CLI configured!"
     echo
     pfb info "Configuring SSH..."
     config_ssh

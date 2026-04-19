@@ -26,7 +26,7 @@ Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspbe
 - 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
-- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI — with shared coding standards across Claude Code and Codex
+- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI — all sharing the same coding standards from a single source
 
 ## Quick Install
 
@@ -126,7 +126,7 @@ shared with Codex CLI via a symlink so all AI tools enforce the same standards:
 | --- | --- | --- |
 | Claude Code | `~/.claude/CLAUDE.md` | symlinked from `claude/CLAUDE.md` |
 | Codex CLI | `~/.codex/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
-| Gemini CLI | — | not yet configured (see below) |
+| Gemini CLI | `~/.gemini/GEMINI.md` | symlinked from `claude/CLAUDE.md` |
 
 ### Claude Code
 
@@ -162,9 +162,9 @@ without any duplication.
 
 ### Gemini CLI
 
-Gemini CLI is installed but does not currently share the common development standards. Extending
-the pattern (symlinking `claude/CLAUDE.md` to a Gemini user-level instruction file) is a
-candidate for a future iteration once the stable config path is confirmed for this tool.
+`gemini/install.sh` symlinks `claude/CLAUDE.md` → `~/.gemini/GEMINI.md`. Gemini CLI reads
+`GEMINI.md` as its user-level instruction file (verified with `/memory show` inside a Gemini
+session), applying the same seven development principles as Claude Code and Codex.
 
 ## Additional Tools
 

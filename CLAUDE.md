@@ -179,6 +179,7 @@ Refactored in v1.5.0 into nine clearly labelled sections using `# ── NAME �
 - **`install_nerd_fonts()`:** Brew cask (macOS) vs manual download (Linux)
 - **`config_claude_code()`:** Symlinks Claude Code configuration from `claude/` directory to `~/.claude/`
 - **`config_codex()`:** Delegates to `codex/install.sh` to set up Codex CLI configuration
+- **`config_gemini()`:** Delegates to `gemini/install.sh` to set up Gemini CLI configuration
 
 ### Migration Tool (migrate.sh)
 
@@ -224,15 +225,26 @@ The `codex/` directory contains the Codex CLI installer:
 
 - **`install.sh`:** Standalone installer that symlinks `claude/CLAUDE.md` → `~/.codex/AGENTS.md`
 
-This means both Claude Code and Codex CLI share the same development principles from a single source
-file (`claude/CLAUDE.md`). No separate principles document is maintained for Codex CLI.
-
-Installation handled by `config_codex()` in `bootstrap/install.sh`, which delegates entirely to
-`codex/install.sh`. Run standalone with:
+Installation handled by `config_codex()` in `bootstrap/install.sh`. Run standalone with:
 
 ```bash
 ./codex/install.sh
 ```
+
+### Gemini CLI Configuration
+
+The `gemini/` directory contains the Gemini CLI installer:
+
+- **`install.sh`:** Standalone installer that symlinks `claude/CLAUDE.md` → `~/.gemini/GEMINI.md`
+
+Installation handled by `config_gemini()` in `bootstrap/install.sh`. Run standalone with:
+
+```bash
+./gemini/install.sh
+```
+
+All three AI CLI tools (Claude Code, Codex, Gemini) share the same development principles from a
+single source file (`claude/CLAUDE.md`). No separate principles document is maintained for any tool.
 
 ## Important Configuration Details
 
@@ -341,6 +353,13 @@ As of v1.8.1 (2026-04-18), all open issues from the cross-platform audit are res
   `/promote`, `/audit-plugin`, and `/audit-standards` as proper Claude Code skills installable via the
   `ali5ter` marketplace
 
+### Resolved (v1.8.5)
+
+- `gemini/install.sh`: added Gemini CLI configuration installer — symlinks `claude/CLAUDE.md` →
+  `~/.gemini/GEMINI.md`, completing the shared-standards pattern across all three AI CLI tools
+- `bootstrap/install.sh`: added `config_gemini()` function and call in `main()`
+- `README.md`: updated AI Tools Configuration section to reflect full three-tool coverage
+
 ### Closed (Won't Fix)
 
 - **#15:** Docker-based macOS bootstrap testing — not feasible; documented and closed (2026-03-30)
@@ -385,6 +404,8 @@ carrybag-lite/
 │   └── README.md            # Component documentation
 ├── codex/                   # Codex CLI configuration
 │   └── install.sh           # Symlinks claude/CLAUDE.md → ~/.codex/AGENTS.md
+├── gemini/                  # Gemini CLI configuration
+│   └── install.sh           # Symlinks claude/CLAUDE.md → ~/.gemini/GEMINI.md
 ├── tools/
 │   ├── sync.sh              # Local backup/sync utility (with --port, --key SSH options)
 │   ├── update.sh            # Bulk git repository updater (with --parallel flag)
