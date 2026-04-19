@@ -334,6 +334,13 @@ As of v1.8.1 (2026-04-18), all open issues from the cross-platform audit are res
 - `tools/update.sh`: replace completed progress bar with `pfb success` using the `cursor_up`/`erase_line`
   pfb idiom (from `progress.tape` example); fallback stub emits `\n` at 100% for clean output without cursor helpers
 
+### Resolved (v1.8.2)
+
+- Removed `claude/commands/` (legacy custom command format) — replaced by the
+  [`claude-workflow-skills`](https://github.com/ali5ter/claude-workflow-skills) plugin which provides
+  `/promote`, `/audit-plugin`, and `/audit-standards` as proper Claude Code skills installable via the
+  `ali5ter` marketplace
+
 ### Closed (Won't Fix)
 
 - **#15:** Docker-based macOS bootstrap testing — not feasible; documented and closed (2026-03-30)
