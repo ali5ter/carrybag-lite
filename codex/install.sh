@@ -50,7 +50,7 @@ fi
 mkdir -p "$CODEX_DIR"
 
 if [[ -f "$DEST" && ! -L "$DEST" ]]; then
-    local backup="${DEST}.backup.$(date +"%Y%m%d%H%M%S")"
+    backup="${DEST}.backup.$(date +"%Y%m%d%H%M%S")"
     pfb info "  Backing up existing AGENTS.md to $(basename "$backup")"
     mv "$DEST" "$backup"
 fi

@@ -1,8 +1,25 @@
 #!/usr/bin/env bash
-# @file migrate.sh
-# migrate.sh <username> <FQDN_or_IP>
-# Script to migrate from old laptop to new
-# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+#
+# migrate.sh - Migrate configuration and files from an old machine to this one
+#
+# Transfers predefined home-directory paths from a remote machine via rsync
+# (with infinite retry). Generates an SSH key if needed and copies it to the
+# remote before transferring.
+#
+# Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
+# Version: 1.0.0
+# Date: 2026-04-20
+# License: MIT
+#
+# Usage: ./bootstrap/migrate.sh <username> <FQDN_or_IP>
+#   username     Remote SSH username
+#   FQDN_or_IP   Remote hostname or IP address
+#
+# Dependencies: bash 4.0+, rsync, ssh, ssh-keygen, pfb
+#
+# Exit codes:
+#   0 - Success
+#   1 - rsync or SSH failure after retries
 
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail

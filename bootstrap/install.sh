@@ -1,20 +1,42 @@
 #!/usr/bin/env bash
-# @file install.sh
-# Simple bootstrap for my macOS and Linux machines.
-# Assumes that carrybag-lite has already been cloned to the local machine.
 #
-# Generating a new SSH key and adding it to ssh-agent:
+# install.sh - Bootstrap macOS and Linux machines with carrybag-lite environment
+#
+# Assumes carrybag-lite has already been cloned to the local machine. Installs
+# packages, links shell configuration, sets up AI tools, and configures SSH.
+#
+# Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
+# Version: 1.8.5
+# Date: 2026-04-20
+# License: MIT
+#
+# Usage: ./bootstrap/install.sh
+#   Run directly to perform full interactive bootstrap. Individual functions
+#   may also be sourced and called in isolation for targeted setup:
+#     source bootstrap/install.sh && install_starship
+#
+# Dependencies:
+#   macOS  - Homebrew (auto-installed if absent), curl, git
+#   Linux  - apt, curl, git, sudo
+#   Both   - pfb (auto-installed via install_pfb)
+#
+# Exit codes:
+#   0 - Success
+#   1 - Fatal error (directory not found, required tool unavailable)
+#
+# Note: Generating a new SSH key and adding it to ssh-agent:
 #   ssh-keygen -t ed25519 -C "your_email@example.com"
 #   eval "$(ssh-agent -s)"
-#   ssh-add -K ~/.ssh/id_ed25519  # macOS
-#   ssh-add ~/.ssh/id_ed25519     # Linux
+#   ssh-add --apple-use-keychain ~/.ssh/id_ed25519  # macOS
+#   ssh-add ~/.ssh/id_ed25519                        # Linux
 # Copy it and add to GitHub:
-#   pbcopy < ~/.ssh/id_ed25519.pub # macOS
-#   xclip -sel clip < ~/.ssh/id_ed25519.pub # Linux
-#
-# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+#   pbcopy < ~/.ssh/id_ed25519.pub  # macOS
+#   xclip -sel clip < ~/.ssh/id_ed25519.pub  # Linux
 
 src_dir() {
+    # Return the platform-appropriate projects root directory, creating it if absent.
+    # @return 0; prints directory path to stdout
+    # @example local dir; dir="$(src_dir)"
     if [[ "$OSTYPE" == "darwin"* ]]; then
         [[ -d ~/Documents/projects ]] || mkdir -p ~/Documents/projects
         echo ~/Documents/projects
@@ -25,6 +47,9 @@ src_dir() {
 }
 
 install_brew() {
+    # Install Homebrew and add standard taps.
+    # @return 0 on success, non-zero if curl or brew fails
+    # @example install_brew
     # @ref https://brew.sh/
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     brew tap homebrew/cask
@@ -33,6 +58,12 @@ install_brew() {
 }
 
 install() {
+    # Install one or more packages using the platform package manager.
+    # On macOS uses brew; on Linux uses apt. Homebrew is auto-installed if absent.
+    # @param packages  One or more package names (or brew flags e.g. --cask)
+    # @return 0 on success, non-zero on install failure
+    # @example install git vim
+    # @example install --cask iterm2
     if [[ "$OSTYPE" == "darwin"* ]]; then
         type brew >/dev/null 2>/dev/null || install_brew
         brew install "$@"
@@ -44,6 +75,10 @@ install() {
 }
 
 install_pyenv() {
+    # Install pyenv and set Python 3.10.0 as the global default.
+    # On Linux installs required build dependencies via apt first.
+    # @return 0 on success, non-zero if pyenv or python install fails
+    # @example install_pyenv
     # @ref https://github.com/pyenv/pyenv-installer
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install pyenv
@@ -70,6 +105,9 @@ install_pyenv() {
 }
 
 bootstrap_mac() {
+    # Install all standard packages and GUI apps for macOS via Homebrew.
+    # @return 0 on success, non-zero if any brew install fails
+    # @example bootstrap_mac
     brew update && brew upgrade && brew cleanup;
 
     # CMDL applications
@@ -104,6 +142,10 @@ bootstrap_mac() {
 }
 
 bootstrap_linux() {
+    # Install all standard packages for Debian/Ubuntu-based Linux via apt.
+    # Raspberry Pi OS uses full-upgrade instead of upgrade.
+    # @return 0 on success, non-zero if any apt install fails
+    # @example bootstrap_linux
     ## Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
     sudo apt update
     if [[ -f /etc/rpi-issue ]]; then
@@ -125,7 +167,10 @@ bootstrap_linux() {
 }
 
 remote_management() {
-     # Raspberry Pi remote management tool
+    # Set up rpi-connect-lite for remote Raspberry Pi management. No-op on other platforms.
+    # @return 0 on success or non-RPi platform, 1 if rpi-connect sign-in fails
+    # @example remote_management || pfb warning "Remote management setup failed"
+    # Raspberry Pi remote management tool
     if [[ -f /etc/rpi-issue ]]; then
         install rpi-connect-lite
         rpi-connect on
@@ -137,6 +182,9 @@ remote_management() {
 }
 
 ethernet_over_wifi() {
+    # Prioritize ethernet over Wi-Fi on Raspberry Pi using nmcli connection priorities.
+    # @return 0 on success or non-RPi platform
+    # @example ethernet_over_wifi
     # Prioritize ethernet over wifi if ethernet is available
     if [[ -f /etc/rpi-issue ]]; then
         nmcli --fields autoconnect-priority,name connection
@@ -146,17 +194,26 @@ ethernet_over_wifi() {
 }
 
 config_carrybag() {
+    # Link bash_profile to the appropriate shell config location for the platform.
+    # Idempotent: backs up ~/.bashrc only when it is a regular file (not already a symlink).
+    # @return 0 on success
+    # @example config_carrybag
     if [[ "$OSTYPE" == "darwin"* ]]; then
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
-        # shellcheck disable=SC2046
-        cp ~/.bashrc ~/.bashrc.$(date +%Y%m%d%H%M%S)
+        if [[ -f ~/.bashrc && ! -L ~/.bashrc ]]; then
+            # shellcheck disable=SC2046
+            cp ~/.bashrc ~/.bashrc.$(date +%Y%m%d%H%M%S)
+        fi
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bashrc
         ln -sf ~/.bashrc ~/.bash_profile
     fi
 }
 
 install_pfb() {
+    # Clone or update pfb and source it into the current shell session.
+    # @return 0 on success, 1 if src_dir() target is unavailable
+    # @example install_pfb
     # @ref https://github.com/ali5ter/pfb
     cd "$(src_dir)" || exit 1
 
@@ -172,6 +229,9 @@ install_pfb() {
 }
 
 install_banner() {
+    # Copy banner.sh to /etc/profile.d/ on Linux for login-time display. No-op on macOS.
+    # @return 0 on success
+    # @example install_banner
     if [[ "$OSTYPE" == "darwin"* ]]; then
         :
     else
@@ -180,6 +240,10 @@ install_banner() {
 }
 
 install_nerd_fonts() {
+    # Install Nerd Fonts for the Starship prompt. Uses brew cask on macOS;
+    # downloads fonts to ~/.fonts and rebuilds the font cache on Linux.
+    # @return 0 on success, non-zero if download or install fails
+    # @example install_nerd_fonts
     # @ref https://www.nerdfonts.com/font-downloads
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install --cask font-sauce-code-pro-nerd-font
@@ -198,6 +262,10 @@ install_nerd_fonts() {
 }
 
 install_docker() {
+    # Install Docker Desktop (macOS) or Docker Engine via convenience script (Linux).
+    # On Linux, adds the current user to the docker group.
+    # @return 0 on success, non-zero if install fails
+    # @example install_docker
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install --cask docker  # container support
         # install --cask rancher-desktop # alt container support
@@ -210,6 +278,10 @@ install_docker() {
 }
 
 configure_firewall() {
+    # Configure the system firewall. On Linux enables ufw with deny-incoming/allow-outgoing
+    # defaults and allows SSH, HTTP, HTTPS, and Docker API ports. No-op on macOS.
+    # @return 0 on success
+    # @example configure_firewall
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS firewall configuration
         # sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
@@ -231,6 +303,10 @@ configure_firewall() {
 }
 
 install_starship() {
+    # Install the Starship prompt and write a baseline starship.toml config.
+    # Uses brew on macOS; downloads the install script on Linux.
+    # @return 0 on success, non-zero if install or config write fails
+    # @example install_starship
     # @ref https://starship.rs
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install starship
@@ -386,6 +462,10 @@ END_OF_STARSHIP_CONFIG
 
 
 config_ssh() {
+    # Configure SSH keep-alive settings in ~/.ssh/config. Idempotent — skips the
+    # Host * block if ServerAliveInterval is already present.
+    # @return 0 on success
+    # @example config_ssh
     [[ -f ~/.ssh/config ]] || {
         touch "$HOME/.ssh/config"
         chmod 600 "$HOME/.ssh/config"
@@ -405,6 +485,10 @@ EOT
 }
 
 install_ai_tools() {
+    # Install Claude Code, Gemini CLI, and Codex CLI. On macOS uses brew (gemini-cli
+    # and codex) plus the Claude installer script; on Linux uses curl and npm.
+    # @return 0 on success, non-zero if any installer fails
+    # @example install_ai_tools
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install claude-code
         # gemini-cli and codex installed in bootstrap_mac via brew
@@ -418,7 +502,10 @@ install_ai_tools() {
 }
 
 config_claude_code() {
-    # Configure Claude Code by symlinking configuration files
+    # Configure Claude Code by symlinking files from claude/ to ~/.claude/.
+    # Delegates to claude/install.sh which handles backups and idempotency.
+    # @return 0 on success, 0 with warning if claude/ directory is missing
+    # @example config_claude_code
     local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
     if [[ -d "$repo_dir/claude" ]]; then
@@ -457,6 +544,10 @@ config_gemini() {
 }
 
 main() {
+    # Orchestrate the full interactive bootstrap sequence.
+    # @param args  Unused; reserved for future flags
+    # @return 0 on success, non-zero if a critical step fails
+    # @example ./bootstrap/install.sh
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
 

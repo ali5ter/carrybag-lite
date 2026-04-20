@@ -1,8 +1,23 @@
 #!/usr/bin/env bash
-# @file banner.sh
-# Simple banner script used for linux and RPi systems
-# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @note Move this into /etc/profile.d/banner.sh
+#
+# banner.sh - Display a login banner with hostname and system info on Linux/RPi
+#
+# Prints a figlet hostname banner followed by OS version, network interface,
+# IP address, and uptime on each login. Installed to /etc/profile.d/ by
+# install_banner() in bootstrap/install.sh.
+#
+# Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
+# Version: 1.0.0
+# Date: 2026-04-20
+# License: MIT
+#
+# Usage: Sourced automatically from /etc/profile.d/banner.sh on login.
+#   To install: sudo cp bootstrap/banner.sh /etc/profile.d/banner.sh
+#
+# Dependencies: bash 4.0+, figlet, iproute2 (ip), lsb-release (lsb_release)
+#
+# Exit codes:
+#   0 - Always (display errors are non-fatal)
 
 HOSTNAME=$(hostname)
 UPTIME=$(uptime -p)
