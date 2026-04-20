@@ -298,7 +298,7 @@ Add installation to appropriate function in `bootstrap/install.sh`:
 
 ## Current Status and Next Work
 
-As of v1.8.1 (2026-04-18), all open issues from the cross-platform audit are resolved:
+As of v1.8.6 (2026-04-20), all open GitHub issues are resolved and no stale remote-tracking branches remain:
 
 ### Resolved (v1.4.0)
 
@@ -359,6 +359,18 @@ As of v1.8.1 (2026-04-18), all open issues from the cross-platform audit are res
   `~/.gemini/GEMINI.md`, completing the shared-standards pattern across all three AI CLI tools
 - `bootstrap/install.sh`: added `config_gemini()` function and call in `main()`
 - `README.md`: updated AI Tools Configuration section to reflect full three-tool coverage
+
+### Resolved (v1.8.6)
+
+- **#46:** Removed `local` keyword used outside a function in `codex/install.sh`
+- **#45:** Added `.env` to `.gitignore`
+- **#40:** Made `config_carrybag()` idempotent — backup of `~/.bashrc` only when it is a regular file, not when already a symlink
+- **#39:** Added full Google-style script header to `bootstrap/banner.sh`
+- **#38:** Added missing header fields to `bootstrap/migrate.sh`
+- **#37:** Added `@return`/`@example` docs to all functions in `bootstrap/install.sh`
+- **#36:** Replaced stale `@file` header with full Google-style block in `bootstrap/install.sh`
+- Closed 4 issues as invalid: #47 (README first-person — exempted by Principle 4), #43 (echo -e in bash_profile — pfb unavailable at shell init), #41 (pfb warning/error — valid aliases), #44 (markdownlint front_matter key — not a valid key)
+- Pruned 9 stale remote-tracking branches (feat/ai-tools-linux, feat/btop-ncdu-linux, fix/bat-fzf-preview-linux, fix/claude-code-double-install, fix/config-ssh-not-called, fix/fd-fdfind-linux, fix/nvm-linux-paths, fix/pbcopy-aliases-linux, refactor/bash-profile-structure) — all already deleted on GitHub
 
 ### Closed (Won't Fix)
 
