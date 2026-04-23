@@ -31,9 +31,17 @@ done
 SCRIPT_DIR="$(cd "$(dirname "$_script")" && pwd)"
 unset _script _script_dir
 
-# shellcheck source=../bootstrap/pfb/pfb.sh
-# shellcheck disable=SC1091
-source "${SCRIPT_DIR}/../bootstrap/pfb/pfb.sh" 2>/dev/null || {
+# shellcheck disable=SC1090,SC1091
+for _pfb in \
+    "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
+    /usr/local/lib/pfb/pfb.sh \
+    /usr/lib/pfb/pfb.sh \
+    ~/.local/lib/pfb/pfb.sh; do
+    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
+done
+unset _pfb
+# Fall back to a minimal stub if pfb is not installed
+type pfb >/dev/null 2>&1 || {
     pfb() {
         local cmd="${1:-}"; shift || true
         case "$cmd" in

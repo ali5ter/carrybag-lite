@@ -22,7 +22,7 @@ Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspbe
 - 🐍 Python version management (pyenv)
 - 📦 Node version management (nvm)
 - ⭐ Starship prompt with custom themes
-- 📁 Directory jumper (z.sh)
+- 📁 Directory jumper (zoxide)
 - 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
@@ -44,7 +44,7 @@ cd carrybag-lite
 ./bootstrap/install.sh
 ```
 
-This installs all dependencies, links configuration, and sets up tools.
+This installs all dependencies (including pfb), links configuration, and sets up tools.
 
 ### Option 2: Manual Install
 
@@ -60,22 +60,6 @@ Then link the configuration:
 ```bash
 cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
 ln -sf $PWD/bash_profile ~/.bash_profile
-```
-
-## Submodule: pfb prompt framework
-
-This repository includes the **pfb** prompt framework as a Git submodule
-under `bootstrap/pfb`. Initialise submodules before running the bootstrap
-installer:
-
-```bash
-git submodule update --init --recursive
-```
-
-Or clone in one step:
-
-```bash
-git clone --recursive https://github.com/ali5ter/carrybag-lite.git ~/src/carrybag-lite
 ```
 
 ## What Gets Installed
@@ -197,12 +181,12 @@ Test the bootstrap process inside a simulated Raspberry Pi ARM64 environment:
 
 This script will:
 
-- initialize the `pfb` submodule automatically  
-- mount the repo under `/root/src/carrybag-lite`  
-- enable the **pfb** prompt inside the container shell  
-- simulate Pi‑style network interfaces (`wlan0`, `eth1`)  
-- run `bootstrap/install.sh`  
-- keep the container alive for inspection  
+- install pfb inside the container via the official curl installer
+- mount the repo under `/root/src/carrybag-lite`
+- enable the **pfb** prompt inside the container shell
+- simulate Pi‑style network interfaces (`wlan0`, `eth1`)
+- run `bootstrap/install.sh`
+- keep the container alive for inspection
 
 To inspect the running container:
 

@@ -26,15 +26,16 @@ set -eou pipefail
 
 # Source pfb if available for better output
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -f "$SCRIPT_DIR/pfb/pfb.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/pfb/pfb.sh"
-elif [[ -f "$HOME/.pfb.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "$HOME/.pfb.sh"
-elif ! type pfb >/dev/null 2>&1; then
-    pfb() { echo "$2"; }
-fi
+# shellcheck disable=SC1090,SC1091
+for _pfb in \
+    "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
+    /usr/local/lib/pfb/pfb.sh \
+    /usr/lib/pfb/pfb.sh \
+    ~/.local/lib/pfb/pfb.sh; do
+    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
+done
+unset _pfb
+type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 USER="${1-null}"
 IP="${2-null}"

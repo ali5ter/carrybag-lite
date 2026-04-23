@@ -211,21 +211,29 @@ config_carrybag() {
 }
 
 install_pfb() {
-    # Clone or update pfb and source it into the current shell session.
-    # @return 0 on success, 1 if src_dir() target is unavailable
+    # Install pfb using the platform-appropriate installer and source it.
+    # On macOS uses Homebrew (brew tap ali5ter/pfb); on Linux uses the official
+    # curl installer which installs to /usr/lib/pfb/pfb.sh.
+    # @return 0 on success, non-zero if installation or sourcing fails
     # @example install_pfb
     # @ref https://github.com/ali5ter/pfb
-    cd "$(src_dir)" || exit 1
-
-    if [[ ! -d pfb ]]; then
-        git clone https://github.com/ali5ter/pfb.git
-        cd pfb
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        type brew >/dev/null 2>/dev/null || install_brew
+        brew tap ali5ter/pfb 2>/dev/null || true
+        brew install pfb
     else
-        cd pfb
-        git pull
+        curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
     fi
 
-    source ./pfb.sh
+    # Source pfb from whichever location the installer used
+    # shellcheck disable=SC1090
+    for _pfb in \
+        "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
+        /usr/local/lib/pfb/pfb.sh \
+        /usr/lib/pfb/pfb.sh \
+        ~/.local/lib/pfb/pfb.sh; do
+        [[ -f "$_pfb" ]] && { source "$_pfb"; unset _pfb; break; }
+    done
 }
 
 install_banner() {

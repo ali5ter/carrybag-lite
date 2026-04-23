@@ -33,7 +33,7 @@ Handled by `config_carrybag()` in `bootstrap/install.sh`.
 
 `bootstrap/install.sh` orchestrates full system setup:
 
-1. Installs [pfb](https://github.com/ali5ter/pfb) for formatted terminal output (required dependency)
+1. Installs [pfb](https://github.com/ali5ter/pfb) via Homebrew (macOS) or the official curl installer (Linux)
 2. Platform-specific package installation (`bootstrap_mac()` vs `bootstrap_linux()`)
 3. Interactive prompts for optional components (pyenv, Docker)
 4. Tool installations (Starship prompt, fzf, Nerd Fonts)
@@ -406,8 +406,7 @@ carrybag-lite/
 ├── bash_profile              # Single-file bash configuration
 ├── bootstrap/
 │   ├── install.sh           # Main bootstrap orchestrator
-│   ├── migrate.sh           # Machine-to-machine migration tool
-│   └── pfb/                 # Git submodule for formatted output
+│   └── migrate.sh           # Machine-to-machine migration tool
 ├── claude/                  # Claude Code configuration
 │   ├── CLAUDE.md            # User-level coding standards (7 principles, shared with Codex)
 │   ├── settings.json        # Claude Code preferences

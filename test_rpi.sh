@@ -20,10 +20,16 @@ CONTAINER_SRC="$CONTAINER_HOME/src"
 CONTAINER_REPO="$CONTAINER_SRC/carrybag-lite"
 
 INSTALL_SCRIPT="$CONTAINER_REPO/bootstrap/install.sh"
-PFB_DIR="$CONTAINER_REPO/bootstrap/pfb"
-PFB_SCRIPT="$PFB_DIR/pfb.sh"
 
-source bootstrap/pfb/pfb.sh 2>/dev/null || true
+# shellcheck disable=SC1090,SC1091
+for _pfb in \
+    "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
+    /usr/local/lib/pfb/pfb.sh \
+    /usr/lib/pfb/pfb.sh \
+    ~/.local/lib/pfb/pfb.sh; do
+    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
+done
+unset _pfb
 
 pfb heading "Raspberry Pi OS Simulation Environment for bootstrap/install.sh testing" 🚀
 pfb subheading "Using Docker image '$IMAGE' on platform '$PLATFORM'"
@@ -45,15 +51,11 @@ docker run -it \
 
     cd $CONTAINER_REPO
 
-    git submodule update --init --recursive
-    if [ ! -f '$PFB_SCRIPT' ]; then
-        echo 'ERROR: pfb submodule did not initialize correctly.'
-        exit 1
-    fi
+    curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
     echo '' >> /root/.bashrc
     echo '# Load pfb prompt' >> /root/.bashrc
-    echo 'source $PFB_SCRIPT' >> /root/.bashrc
-    source $PFB_SCRIPT 2>/dev/null || true
+    echo 'source /usr/lib/pfb/pfb.sh' >> /root/.bashrc
+    source /usr/lib/pfb/pfb.sh 2>/dev/null || true
 
     echo
     pfb success 'Package index and dependency installation complete for test environment'
