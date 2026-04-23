@@ -30,10 +30,9 @@ unset _script _script_dir
 
 # shellcheck disable=SC1090,SC1091
 for _pfb in \
-    "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
-    /usr/local/lib/pfb/pfb.sh \
-    /usr/lib/pfb/pfb.sh \
-    ~/.local/lib/pfb/pfb.sh; do
+    "$(brew --prefix 2>/dev/null)/bin/pfb" \
+    /usr/bin/pfb \
+    ~/.local/bin/pfb; do
     [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
 done
 unset _pfb

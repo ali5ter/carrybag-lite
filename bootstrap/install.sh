@@ -213,7 +213,7 @@ config_carrybag() {
 install_pfb() {
     # Install pfb using the platform-appropriate installer and source it.
     # On macOS uses Homebrew (brew tap ali5ter/pfb); on Linux uses the official
-    # curl installer which installs to /usr/lib/pfb/pfb.sh.
+    # curl installer which installs to /usr/bin/pfb.
     # @return 0 on success, non-zero if installation or sourcing fails
     # @example install_pfb
     # @ref https://github.com/ali5ter/pfb
@@ -228,10 +228,9 @@ install_pfb() {
     # Source pfb from whichever location the installer used
     # shellcheck disable=SC1090
     for _pfb in \
-        "$(brew --prefix 2>/dev/null)/lib/pfb/pfb.sh" \
-        /usr/local/lib/pfb/pfb.sh \
-        /usr/lib/pfb/pfb.sh \
-        ~/.local/lib/pfb/pfb.sh; do
+        "$(brew --prefix 2>/dev/null)/bin/pfb" \
+        /usr/bin/pfb \
+        ~/.local/bin/pfb; do
         [[ -f "$_pfb" ]] && { source "$_pfb"; unset _pfb; break; }
     done
 }
