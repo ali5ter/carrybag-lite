@@ -18,7 +18,6 @@
 # Dependencies:
 #   macOS  - Homebrew (auto-installed if absent), curl, git
 #   Linux  - apt, curl, git, sudo
-#   Both   - pfb (auto-installed via install_pfb)
 #
 # Exit codes:
 #   0 - Success
@@ -108,6 +107,9 @@ bootstrap_mac() {
     # Install all standard packages and GUI apps for macOS via Homebrew.
     # @return 0 on success, non-zero if any brew install fails
     # @example bootstrap_mac
+    brew tap ali5ter/pfb 2>/dev/null || true
+    install pfb
+    pfb heading "Bootstrapping your Mac" "🚀"
     brew update && brew upgrade && brew cleanup;
 
     # CMDL applications
@@ -147,6 +149,8 @@ bootstrap_linux() {
     # @return 0 on success, non-zero if any apt install fails
     # @example bootstrap_linux
     ## Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
+    curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
+    pfb heading "Bootstrapping your Linux machine" "🚀"
     sudo apt update
     if [[ -f /etc/rpi-issue ]]; then
         sudo apt full-upgrade # for Raspberry Pi OS
@@ -210,30 +214,6 @@ config_carrybag() {
     fi
 }
 
-install_pfb() {
-    # Install pfb using the platform-appropriate installer and source it.
-    # On macOS uses Homebrew (brew tap ali5ter/pfb); on Linux uses the official
-    # curl installer which installs to /usr/bin/pfb.
-    # @return 0 on success, non-zero if installation or sourcing fails
-    # @example install_pfb
-    # @ref https://github.com/ali5ter/pfb
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        type brew >/dev/null 2>/dev/null || install_brew
-        brew tap ali5ter/pfb 2>/dev/null || true
-        brew install pfb
-    else
-        curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
-    fi
-
-    # Source pfb from whichever location the installer used
-    # shellcheck disable=SC1090
-    for _pfb in \
-        "$(brew --prefix 2>/dev/null)/bin/pfb" \
-        /usr/bin/pfb \
-        ~/.local/bin/pfb; do
-        [[ -f "$_pfb" ]] && { source "$_pfb"; unset _pfb; break; }
-    done
-}
 
 install_banner() {
     # Copy banner.sh to /etc/profile.d/ on Linux for login-time display. No-op on macOS.
@@ -558,13 +538,9 @@ main() {
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
 
-    install_pfb
-
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        pfb heading "Bootstrapping your Mac" "🚀"
         bootstrap_mac
     else
-        pfb heading "Bootstrapping your Linux machine" "🚀"
         bootstrap_linux
     fi
     install_banner

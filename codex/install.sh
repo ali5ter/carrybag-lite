@@ -29,15 +29,7 @@ CODEX_DIR="$HOME/.codex"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
 DEST="$CODEX_DIR/AGENTS.md"
 
-# Source pfb if available for better output
-if [[ -f "$HOME/.pfb.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "$HOME/.pfb.sh"
-elif type pfb >/dev/null 2>&1; then
-    :
-else
-    pfb() { echo "$2"; }
-fi
+type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 pfb heading "Installing Codex configuration" "🤖"
 echo

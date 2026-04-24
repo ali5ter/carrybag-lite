@@ -181,9 +181,8 @@ Test the bootstrap process inside a simulated Raspberry Pi ARM64 environment:
 
 This script will:
 
-- install pfb inside the container via the official curl installer
 - mount the repo under `/root/src/carrybag-lite`
-- enable the **pfb** prompt inside the container shell
+- install pfb inside the container via the official curl installer
 - simulate Pi‑style network interfaces (`wlan0`, `eth1`)
 - run `bootstrap/install.sh`
 - keep the container alive for inspection

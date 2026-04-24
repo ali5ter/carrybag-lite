@@ -18,27 +18,6 @@
 
 set -uo pipefail
 
-# ---------------------------------------------------------------------------
-# Resolve the real script location by following the symlink chain, so pfb
-# can be found relative to the actual file rather than the symlink's location.
-# ---------------------------------------------------------------------------
-_script="${BASH_SOURCE[0]}"
-while [[ -L "$_script" ]]; do
-    _script_dir="$(cd "$(dirname "$_script")" && pwd)"
-    _script="$(readlink "$_script")"
-    [[ "$_script" == /* ]] || _script="${_script_dir}/${_script}"
-done
-SCRIPT_DIR="$(cd "$(dirname "$_script")" && pwd)"
-unset _script _script_dir
-
-# shellcheck disable=SC1090,SC1091
-for _pfb in \
-    "$(brew --prefix 2>/dev/null)/bin/pfb" \
-    /usr/bin/pfb \
-    ~/.local/bin/pfb; do
-    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
-done
-unset _pfb
 # Fall back to a minimal stub if pfb is not installed
 type pfb >/dev/null 2>&1 || {
     pfb() {

@@ -21,14 +21,6 @@ CONTAINER_REPO="$CONTAINER_SRC/carrybag-lite"
 
 INSTALL_SCRIPT="$CONTAINER_REPO/bootstrap/install.sh"
 
-# shellcheck disable=SC1090,SC1091
-for _pfb in \
-    "$(brew --prefix 2>/dev/null)/bin/pfb" \
-    /usr/bin/pfb \
-    ~/.local/bin/pfb; do
-    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
-done
-unset _pfb
 
 pfb heading "Raspberry Pi OS Simulation Environment for bootstrap/install.sh testing" 🚀
 pfb subheading "Using Docker image '$IMAGE' on platform '$PLATFORM'"
@@ -51,10 +43,6 @@ docker run -it \
     cd $CONTAINER_REPO
 
     curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
-    echo '' >> /root/.bashrc
-    echo '# Load pfb prompt' >> /root/.bashrc
-    echo 'source /usr/bin/pfb' >> /root/.bashrc
-    source /usr/bin/pfb 2>/dev/null || true
 
     echo
     pfb success 'Package index and dependency installation complete for test environment'

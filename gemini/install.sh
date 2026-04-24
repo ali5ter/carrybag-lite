@@ -29,15 +29,7 @@ GEMINI_DIR="$HOME/.gemini"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
 DEST="$GEMINI_DIR/GEMINI.md"
 
-# Source pfb if available for better output
-if [[ -f "$HOME/.pfb.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "$HOME/.pfb.sh"
-elif type pfb >/dev/null 2>&1; then
-    :
-else
-    pfb() { echo "$2"; }
-fi
+type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 pfb heading "Installing Gemini CLI configuration" "🤖"
 echo

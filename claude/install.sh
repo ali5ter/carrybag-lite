@@ -26,17 +26,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 
-# Source pfb if available for better output
-if [[ -f "$HOME/.pfb.sh" ]]; then
-    # shellcheck disable=SC1091
-    source "$HOME/.pfb.sh"
-elif type pfb >/dev/null 2>&1; then
-    # pfb is already in PATH
-    :
-else
-    # Define fallback functions if pfb is not available
-    pfb() { echo "$2"; }
-fi
+type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 # Create ~/.claude if it doesn't exist
 mkdir -p "$CLAUDE_DIR"

@@ -24,16 +24,6 @@
 [[ -n $DEBUG ]] && set -x
 set -eou pipefail
 
-# Source pfb if available for better output
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1090,SC1091
-for _pfb in \
-    "$(brew --prefix 2>/dev/null)/bin/pfb" \
-    /usr/bin/pfb \
-    ~/.local/bin/pfb; do
-    [[ -f "$_pfb" ]] && { source "$_pfb"; break; }
-done
-unset _pfb
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 USER="${1-null}"
