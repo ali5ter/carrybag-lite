@@ -66,6 +66,59 @@ DEBUG=1 update.sh
 
 ---
 
+## pdf2md.py — PDF to Markdown converter
+
+Convert a text-based PDF to clean Markdown. Preserves heading hierarchy,
+paragraphs, bullet lists, and inline bold/italic formatting.  Requires
+[PyMuPDF](https://pymupdf.readthedocs.io/) (`pip install pymupdf`).
+
+```bash
+pdf2md.py [--stdout] [--list-size PT] <input.pdf> [output.md]
+```
+
+| Argument          | Default              | Description                                     |
+|-------------------|----------------------|-------------------------------------------------|
+| `input.pdf`       |                      | Path to the source PDF file                     |
+| `output.md`       | `<input>.md`         | Output path (defaults to input name with `.md`) |
+| `--stdout`        |                      | Write output to stdout instead of a file        |
+| `--list-size PT`  | `17.0`               | Font-size threshold (pt) for automatic lists    |
+| `-h`, `--help`    |                      | Show help and exit                              |
+
+**Behaviour:**
+
+- Detects headings from font size and weight (≥ 20 pt bold → H1 or H2)
+- Wraps inline bold/italic runs in `**…**` / `*…*` markers
+- Filters page headers, footers, page numbers, and trademark symbols
+- Merges heading text split across multiple design boxes
+- Detects bullet lists from: small-font runs, multi-item blocks, and
+  body paragraphs that follow a colon-ending intro sentence
+- Normalises line-break whitespace so wrapped lines join correctly
+
+**Examples:**
+
+```bash
+# Convert to a .md file next to the PDF
+pdf2md.py document.pdf
+
+# Specify output path
+pdf2md.py ~/Desktop/report.pdf ~/Desktop/report.md
+
+# Pipe to stdout (e.g. for preview)
+pdf2md.py --stdout document.pdf | head -40
+
+# Adjust list detection threshold
+pdf2md.py --list-size 16 document.pdf output.md
+```
+
+**Limitations:**
+
+- Works with text-based PDFs only; scanned/image PDFs are not supported
+- Canva and other design-tool PDFs may have non-linear block order that
+  affects reading order in the output
+- Complex multi-column layouts are not re-flowed
+
+---
+
 ## sync.sh — Directory backup and sync
 
 Sync a source directory to a local target (external drive) or a remote target
