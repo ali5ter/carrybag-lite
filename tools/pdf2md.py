@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
-# @file pdf2md.py
-# @description Convert a PDF file to Markdown, preserving headings, paragraphs,
-#              lists, and inline bold/italic formatting.
-# @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 1.2.0
-# @date 2026-04-25
-# @license MIT
-# @usage pdf2md.py [OPTIONS] <input.pdf> [output.md]
-# @dependencies pymupdf (pip install pymupdf)
-# @exit 0 Success
-# @exit 1 File not found or unreadable
-# @exit 2 Missing dependency
-
 """PDF to Markdown converter.
 
-Uses PyMuPDF (fitz) to extract text with font-size and style metadata,
-then maps that metadata to Markdown heading levels, bold/italic, and
-list items. Works best with text-based PDFs; scanned images are not
-supported.
+Converts a PDF file to Markdown, preserving headings, paragraphs,
+lists, and inline bold/italic formatting. Uses PyMuPDF (fitz) to
+extract text with font-size and style metadata, then maps that metadata
+to Markdown heading levels, bold/italic, and list items. Works best
+with text-based PDFs; scanned images are not supported.
+
+Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
+Version: 1.2.0
+Date: 2026-04-25
+License: MIT
+
+Usage:
+    pdf2md.py [OPTIONS] <input.pdf> [output.md]
+
+Dependencies:
+    pymupdf (pip install pymupdf)
+
+Exit codes:
+    0 - Success
+    1 - File not found or unreadable
+    2 - Missing dependency
 """
 
 import argparse

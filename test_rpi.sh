@@ -1,7 +1,20 @@
 #!/usr/bin/env bash
 # @file test_rpi.sh
-# Using Docker to simulate Raspberry Pi OS environment for testing.
+# @description Test the bootstrap process inside a simulated Raspberry Pi ARM64 environment
+#   using a Docker container based on debian:stable. Mounts the repo, installs pfb,
+#   simulates Pi-style network interfaces, and runs bootstrap/install.sh.
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
+# @version 1.0.0
+# @date 2026-04-20
+# @license MIT
+# @usage ./test_rpi.sh
+#   No arguments required. Keep the container alive for inspection with:
+#     docker exec -it carrybag-test bash
+#   Stop and remove the container with:
+#     docker rm -f carrybag-test
+# @dependencies docker (with linux/arm64 platform support), pfb
+# @exit 0 Container started successfully
+# @exit 1 Docker not available or container start failed
 
 [[ -n $DEBUG ]] && set -x
 set -euo pipefail
