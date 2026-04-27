@@ -20,4 +20,4 @@ get-pip.py
 
 # CarryBag runtime state
 .last_brew_update
-.last_apt_update
+.last_apt_updateCLAUDE.md
