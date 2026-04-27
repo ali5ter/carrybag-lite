@@ -94,31 +94,28 @@ extract-ai-context.sh <path-to-repo>
 5. Symlinks the original path back to the private repo copy
 6. Pushes the updated target repo
 
+**Prerequisites:**
+
+Create a private repo from the
+[ai-context-template](https://github.com/ali5ter/ai-context-template), then export its name:
+
+```bash
+export AI_CONTEXT_REPO="your-username/ai-context"
+```
+
 **Restoring on a new machine:**
 
 ```bash
 cd ~/Documents/projects   # or ~/src on Linux
-gh repo clone ali5ter/ai-context
+gh repo clone "$AI_CONTEXT_REPO"
 cd ai-context
 ./install.sh
-```
-
-**Configuration:**
-
-By default the script targets the `ali5ter/ai-context` private repo. Override with an env var to use your
-own instance (created from [ai-context-template](https://github.com/ali5ter/ai-context-template)):
-
-```bash
-export AI_CONTEXT_REPO="your-username/ai-context"
 ```
 
 **Examples:**
 
 ```bash
 # Extract CLAUDE.md from a local repo clone
-extract-ai-context.sh ~/Documents/projects/my-public-repo
-
-# Use a custom private repo instance
 AI_CONTEXT_REPO=your-username/ai-context extract-ai-context.sh ~/Documents/projects/my-public-repo
 ```
 

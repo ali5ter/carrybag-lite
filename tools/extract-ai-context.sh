@@ -24,9 +24,9 @@
 
 set -euo pipefail
 
-# Override with AI_CONTEXT_REPO env var if using a different private repo instance.
-# See https://github.com/ali5ter/ai-context-template to create your own.
-PRIVATE_REPO="${AI_CONTEXT_REPO:-ali5ter/ai-context}"
+# Set AI_CONTEXT_REPO to your private repo (e.g. "your-username/ai-context").
+# See https://github.com/ali5ter/ai-context-template to create one from the template.
+PRIVATE_REPO="${AI_CONTEXT_REPO:-}"
 AI_FILES=(CLAUDE.md AGENTS.md GEMINI.md)
 
 # pfb stub — used only when pfb is unavailable
@@ -179,6 +179,13 @@ main() {
 
     local repo_name
     repo_name="$(basename "$repo_path")"
+
+    if [[ -z "$PRIVATE_REPO" ]]; then
+        pfb error "AI_CONTEXT_REPO is not set — export it before running:"
+        pfb error "  export AI_CONTEXT_REPO=\"your-username/ai-context\""
+        pfb error "Create a private repo from the template: https://github.com/ali5ter/ai-context-template"
+        exit 1
+    fi
 
     pfb heading "extract-ai-context" "🤖"
     pfb subheading "target: $repo_path"
