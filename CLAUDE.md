@@ -362,11 +362,9 @@ As of v1.8.6 (2026-04-20), all open GitHub issues are resolved and no stale remo
 
 ### Resolved (v1.9.0)
 
-- `tools/extract-ai-context.sh`: new tool — moves an AI context file from a public repo into the private
-  [ai-context](https://github.com/ali5ter/ai-context) repo, untracks it from the public repo, adds it to
-  `.gitignore`, and symlinks it back so local AI tooling continues to find it
-- `ai-context` private GitHub repo created with `install.sh` bootstrap for restoring symlinks on new machines
-- `tools/README.md`: added `extract-ai-context.sh` reference section
+- `ai-context-template` public GitHub template repo created with `extract-ai-context.sh` and `install.sh`
+- `ai-context` private GitHub repo created as a personal instance of the template
+- `extract-ai-context.sh` lives in the ai-context repos, not in carrybag-lite
 
 ### Resolved (v1.8.6)
 
@@ -426,7 +424,6 @@ carrybag-lite/
 ├── gemini/                  # Gemini CLI configuration
 │   └── install.sh           # Symlinks claude/CLAUDE.md → ~/.gemini/GEMINI.md
 ├── tools/
-│   ├── extract-ai-context.sh # Move AI context file to private repo, symlink back
 │   ├── sync.sh              # Local backup/sync utility (with --port, --key SSH options)
 │   ├── update.sh            # Bulk git repository updater (with --parallel flag)
 │   └── README.md            # Tool reference documentation
