@@ -72,8 +72,8 @@ Inspired by Dan Maby's article
 [Managing AI Configuration Files Across Projects](https://www.danmaby.com/posts/2025/08/managing-ai-configuration-files-across-projects/).
 
 Moves an AI context file (`CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`) out of a
-public git repo, stores it in the private
-[ai-context](https://github.com/ali5ter/ai-context) repo, and symlinks it back.
+public git repo, stores it in a private repo based on the
+[ai-context-template](https://github.com/ali5ter/ai-context-template), and symlinks it back.
 The file remains visible to local AI tooling but is no longer committed to the
 public repo.
 
@@ -103,11 +103,23 @@ cd ai-context
 ./install.sh
 ```
 
+**Configuration:**
+
+By default the script targets the `ali5ter/ai-context` private repo. Override with an env var to use your
+own instance (created from [ai-context-template](https://github.com/ali5ter/ai-context-template)):
+
+```bash
+export AI_CONTEXT_REPO="your-username/ai-context"
+```
+
 **Examples:**
 
 ```bash
 # Extract CLAUDE.md from a local repo clone
 extract-ai-context.sh ~/Documents/projects/my-public-repo
+
+# Use a custom private repo instance
+AI_CONTEXT_REPO=your-username/ai-context extract-ai-context.sh ~/Documents/projects/my-public-repo
 ```
 
 ---

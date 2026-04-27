@@ -24,7 +24,9 @@
 
 set -euo pipefail
 
-PRIVATE_REPO="ali5ter/ai-context"
+# Override with AI_CONTEXT_REPO env var if using a different private repo instance.
+# See https://github.com/ali5ter/ai-context-template to create your own.
+PRIVATE_REPO="${AI_CONTEXT_REPO:-ali5ter/ai-context}"
 AI_FILES=(CLAUDE.md AGENTS.md GEMINI.md)
 
 # pfb stub — used only when pfb is unavailable
