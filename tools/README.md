@@ -87,7 +87,7 @@ extract-ai-context.sh <path-to-repo>
 
 **What it does:**
 
-1. Finds `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md` (first match wins)
+1. Finds all of `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` present in the repo
 2. Runs `git rm --cached` to untrack the file in the target repo
 3. Appends the filename to `.gitignore` in the target repo
 4. Copies the file to `ai-context/<repo-name>/` and pushes
