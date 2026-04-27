@@ -66,6 +66,49 @@ DEBUG=1 update.sh
 
 ---
 
+## extract-ai-context.sh — Extract AI context file to private repo
+
+Moves an AI context file (`CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`) out of a
+public git repo, stores it in the private
+[ai-context](https://github.com/ali5ter/ai-context) repo, and symlinks it back.
+The file remains visible to local AI tooling but is no longer committed to the
+public repo.
+
+```bash
+extract-ai-context.sh <path-to-repo>
+```
+
+| Argument        | Description                              |
+|-----------------|------------------------------------------|
+| `path-to-repo`  | Path to a local git repository clone     |
+
+**What it does:**
+
+1. Finds `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md` (first match wins)
+2. Runs `git rm --cached` to untrack the file in the target repo
+3. Appends the filename to `.gitignore` in the target repo
+4. Copies the file to `ai-context/<repo-name>/` and pushes
+5. Symlinks the original path back to the private repo copy
+6. Pushes the updated target repo
+
+**Restoring on a new machine:**
+
+```bash
+cd ~/Documents/projects   # or ~/src on Linux
+gh repo clone ali5ter/ai-context
+cd ai-context
+./install.sh
+```
+
+**Examples:**
+
+```bash
+# Extract CLAUDE.md from a local repo clone
+extract-ai-context.sh ~/Documents/projects/my-public-repo
+```
+
+---
+
 ## pdf2md.py — PDF to Markdown converter
 
 Convert a text-based PDF to clean Markdown. Preserves heading hierarchy,
