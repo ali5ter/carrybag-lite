@@ -68,6 +68,9 @@ DEBUG=1 update.sh
 
 ## extract-ai-context.sh — Extract AI context file to private repo
 
+Inspired by Dan Maby's article
+[Managing AI Configuration Files Across Projects](https://www.danmaby.com/posts/2025/08/managing-ai-configuration-files-across-projects/).
+
 Moves an AI context file (`CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`) out of a
 public git repo, stores it in the private
 [ai-context](https://github.com/ali5ter/ai-context) repo, and symlinks it back.
