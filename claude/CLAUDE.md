@@ -201,6 +201,30 @@ use their name. Ask if you don't know their name.
 - Security: validate at system boundaries, never trust external input
 - Logging: structured where possible, appropriate levels
 
+## GitHub Repository Standards
+
+Every GitHub repo should be set up with:
+
+**Access control:**
+
+- Branch protection on the default branch requiring a PR before merging — Alister reviews and decides whether to
+  merge manually or ask Claude to auto-merge.
+
+**Discoverability:**
+
+- A concise description set on the repo.
+- Appropriate topics applied to the repo for discoverability.
+
+**Minimum files:**
+
+- `LICENSE` — MIT License with copyright holder Alister Lewis-Bowen.
+- `README.md` — Overview, installation, and usage.
+
+**Release hygiene:**
+
+- Changes promoted via annotated git tags and GitHub Releases with generated release notes.
+- Tags follow semver (`v1.2.3`).
+
 ## Project Organization
 
 ### Standard Files
