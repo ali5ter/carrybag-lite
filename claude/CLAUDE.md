@@ -254,7 +254,7 @@ project/
 When creating any GitHub content — PRs, issues, or comments — end with:
 
 ```text
-🤖 Generated with [SOURCE](URL) on behalf of Alister (https://github.com/ali5ter)
+🤖 Generated with [SOURCE](URL) on behalf of [Alister](https://github.com/ali5ter)
 ```
 
 Where SOURCE is:
