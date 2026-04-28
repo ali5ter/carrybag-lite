@@ -208,7 +208,10 @@ use their name. Ask if you don't know their name.
 Every project should have:
 
 - **README.md** - Overview, installation, usage
-- **CLAUDE.md** - AI context file (project status, decisions, quick resume)
+- **CLAUDE.md** - AI context file (project status, decisions, quick resume). Intentionally gitignored — never
+  committed to the remote repo. Each project's `CLAUDE.md` is untracked locally and managed separately in the private
+  [ai-context](https://github.com/ali5ter/ai-context) repo. This keeps project-level AI context private and out of
+  public repos while still being available to Claude Code during local development.
 - **.env.template** - Configuration template for users (if needed)
 - **.gitignore** - Proper exclusions for secrets and generated files
 - **.markdownlint.json** - Markdown linting configuration
@@ -245,6 +248,20 @@ project/
 - [ ] Configuration uses templates, not hardcoded values
 - [ ] Error messages are actionable
 - [ ] No secrets in version control
+
+## GitHub Attribution
+
+When creating any GitHub content — PRs, issues, or comments — end with:
+
+```text
+🤖 Generated with [SOURCE](URL) on behalf of Alister (https://github.com/ali5ter)
+```
+
+Where SOURCE is:
+
+- The invoking Claude Code skill or agent with its repo URL, if a named skill or agent was responsible.
+  Example: `[claude-workflow-skills:audit-standards](https://github.com/ali5ter/claude-workflow-skills)`
+- `[Claude Code](https://claude.com/claude-code)` for general Claude Code work with no specific skill invoked.
 
 ## Anti-Patterns to Avoid
 
