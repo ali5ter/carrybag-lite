@@ -201,6 +201,30 @@ use their name. Ask if you don't know their name.
 - Security: validate at system boundaries, never trust external input
 - Logging: structured where possible, appropriate levels
 
+## GitHub Repository Standards
+
+Every GitHub repo should be set up with:
+
+**Access control:**
+
+- Branch protection on the default branch requiring a PR before merging — Alister reviews and decides whether to
+  merge manually or ask Claude to auto-merge.
+
+**Discoverability:**
+
+- A concise description set on the repo.
+- Appropriate topics applied to the repo for discoverability.
+
+**Minimum files:**
+
+- `LICENSE` — MIT License with copyright holder Alister Lewis-Bowen.
+- `README.md` — Overview, installation, and usage.
+
+**Release hygiene:**
+
+- Changes promoted via annotated git tags and GitHub Releases with generated release notes.
+- Tags follow semver (`v1.2.3`).
+
 ## Project Organization
 
 ### Standard Files
@@ -208,7 +232,10 @@ use their name. Ask if you don't know their name.
 Every project should have:
 
 - **README.md** - Overview, installation, usage
-- **CLAUDE.md** - AI context file (project status, decisions, quick resume)
+- **CLAUDE.md** - AI context file (project status, decisions, quick resume). Intentionally gitignored — never
+  committed to the remote repo. Each project's `CLAUDE.md` is untracked locally and managed separately in the private
+  [ai-context](https://github.com/ali5ter/ai-context) repo. This keeps project-level AI context private and out of
+  public repos while still being available to Claude Code during local development.
 - **.env.template** - Configuration template for users (if needed)
 - **.gitignore** - Proper exclusions for secrets and generated files
 - **.markdownlint.json** - Markdown linting configuration
@@ -245,6 +272,20 @@ project/
 - [ ] Configuration uses templates, not hardcoded values
 - [ ] Error messages are actionable
 - [ ] No secrets in version control
+
+## GitHub Attribution
+
+When creating any GitHub content — PRs, issues, or comments — end with:
+
+```text
+🤖 Generated with [SOURCE](URL) on behalf of [Alister](https://github.com/ali5ter)
+```
+
+Where SOURCE is:
+
+- The invoking Claude Code skill or agent with its repo URL, if a named skill or agent was responsible.
+  Example: `[claude-workflow-skills:audit-standards](https://github.com/ali5ter/claude-workflow-skills)`
+- `[Claude Code](https://claude.com/claude-code)` for general Claude Code work with no specific skill invoked.
 
 ## Anti-Patterns to Avoid
 
