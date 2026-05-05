@@ -121,6 +121,29 @@ install_pyenv() {
     # pyenv local <version>
 }
 
+# Packages installed during platform bootstrap (excluding pfb, which requires a custom tap)
+# shellcheck disable=SC2034
+MAC_PKGS=(
+    bash git zoxide
+    shellcheck vim watch bash-completion@2
+    node go
+    jq yq bat fd tree fzf
+    btop ncdu nmap wakeonlan
+    gemini-cli codex figlet
+)
+# shellcheck disable=SC2034
+MAC_CASK_PKGS=(
+    iterm2 1password dropbox cleanmymac figma
+    microsoft-teams whatsapp visual-studio-code
+)
+# shellcheck disable=SC2034
+LINUX_PKGS=(
+    curl wget gnupg git nodejs npm
+    jq yq bat tree fd-find fzf figlet
+    zoxide shellcheck vim watch
+    btop ncdu fontconfig wakeonlan
+)
+
 bootstrap_mac() {
     # Install all standard packages and GUI apps for macOS via Homebrew.
     # @return 0 on success, non-zero if any brew install fails
@@ -128,37 +151,12 @@ bootstrap_mac() {
     brew tap ali5ter/pfb 2>/dev/null || true
     install pfb
     pfb heading "Bootstrapping your Mac" "🚀"
-    brew update && brew upgrade && brew cleanup;
-
-    # CMDL applications
-    # @ref https://formulae.brew.sh/formula/
-    install bash # latest bash
+    brew update && brew upgrade && brew cleanup
+    install "${MAC_PKGS[@]}"
     # ref: https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
-    install git # source control
-    install zoxide # cd replacement
-    install_pyenv # do python install right
-    install shellcheck vim watch # editing
-    install bash-completion@2 # auto-completion
-    install node go # dev
-    install jq yq bat fd tree fzf # misc tools
-    install btop # system monitoring
-    install ncdu # disk management
-    install nmap # network tools
-    install wakeonlan # wake-on-lan
-    install gemini-cli codex # AI tools (claude-code installed via install_claude_code)
-    install figlet # banner generation
-
-    # GUI applications
-    # @ref https://formulae.brew.sh/cask/
-    install --cask iterm2 # preferred terminal
-    install --cask 1password # password vault
-    install --cask dropbox # file storage
-    #install --cask caffeine divvy bartender # windowing tools (optional)
-    install --cask cleanmymac  # housekeeping
-    install --cask figma # wire-framing/prototyping
-    install --cask microsoft-teams whatsapp # messaging
-    install --cask visual-studio-code # dev
+    install_pyenv
+    install --cask "${MAC_CASK_PKGS[@]}"
 }
 
 bootstrap_linux() {
@@ -166,25 +164,15 @@ bootstrap_linux() {
     # Raspberry Pi OS uses full-upgrade instead of upgrade.
     # @return 0 on success, non-zero if any apt install fails
     # @example bootstrap_linux
-    ## Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
     curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
     pfb heading "Bootstrapping your Linux machine" "🚀"
     sudo apt update
     if [[ -f /etc/rpi-issue ]]; then
-        sudo apt full-upgrade # for Raspberry Pi OS
+        sudo apt full-upgrade
     else
         sudo apt upgrade
     fi
-    
-    install curl wget gnupg git # download & certs
-    install nodejs npm # required for gemini-cli and codex
-    install jq yq bat tree fd-find fzf figlet # misc tools
-    install zoxide # cd replacement
-    install shellcheck vim watch # editing
-    install btop ncdu # system monitoring and disk management
-    install fontconfig # font tools
-    install wakeonlan # wake-on-lan
-
+    install "${LINUX_PKGS[@]}"
     sudo apt autoremove && sudo apt clean
 }
 
@@ -596,12 +584,25 @@ main() {
         local cmd="$1"; shift
         case "$cmd" in
             list)
-                echo "Component functions:"
-                declare -F | awk '{print $3}' | grep -E '^(install_|config_|bootstrap_)' | sort | sed 's/^/  /'
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    pfb heading "Homebrew packages" "🍺"
+                    for pkg in "${MAC_PKGS[@]}"; do pfb subheading "$pkg"; done
+                    echo
+                    pfb heading "Homebrew cask apps" "💻"
+                    for pkg in "${MAC_CASK_PKGS[@]}"; do pfb subheading "$pkg"; done
+                else
+                    pfb heading "APT packages" "📦"
+                    for pkg in "${LINUX_PKGS[@]}"; do pfb subheading "$pkg"; done
+                fi
                 echo
-                echo "Package commands:"
-                echo "  install <pkg>    Install via platform package manager"
-                echo "  uninstall <pkg>  Remove via platform package manager"
+                pfb heading "Component functions" "🔧"
+                while IFS= read -r fn; do
+                    pfb subheading "$fn"
+                done < <(declare -F | awk '{print $3}' | grep -E '^(install_|config_|bootstrap_)' | sort)
+                echo
+                pfb heading "Package commands" "⚙️"
+                pfb subheading "install <pkg>    Install via platform package manager"
+                pfb subheading "uninstall <pkg>  Remove via platform package manager"
                 return 0
                 ;;
             install|uninstall)
