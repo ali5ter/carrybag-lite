@@ -289,6 +289,38 @@ configure_firewall() {
     fi
 }
 
+install_glow() {
+    # Install Glow CLI for rendering markdown in the terminal. Uses brew on macOS;
+    # downloads the latest release binary from GitHub on Linux.
+    # @return 0 on success, non-zero if install fails
+    # @example install_glow
+    # @ref https://github.com/charmbracelet/glow
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install glow
+    else
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+        sudo apt update && sudo apt install glow
+    fi
+    cat > "$(glow --help 2>&1 | sed -n 's/.*default \(\/[^)]*\)).*/\1/p')" <<'END_OF_GLOW_CONFIG'
+# style name or JSON path (default "auto")
+style: "auto"
+# mouse wheel support (TUI-mode only)
+mouse: true
+# use pager to display markdown
+pager: true
+# at which column should we word wrap?
+width: 80
+# show all files, including hidden and ignored.
+all: false
+# show line numbers (TUI-mode only)
+showLineNumbers: false
+# preserve newlines in the output
+preserveNewLines: false
+END_OF_GLOW_CONFIG
+}
+
 install_starship() {
     # Install the Starship prompt and write a baseline starship.toml config.
     # Uses brew on macOS; downloads the install script on Linux.
@@ -574,6 +606,10 @@ main() {
     pfb info "Installing starship prompt..."
     install_starship
     pfb success "Starship prompt installed!"
+    echo
+    pfb info "Installing glow MD reader..."
+    install_glow
+    pfb success "Glow MD reader installed!"
     echo
     echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
     pfb answer ${response:-$default}
