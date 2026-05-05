@@ -6,14 +6,19 @@
 # packages, links shell configuration, sets up AI tools, and configures SSH.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.8.5
-# Date: 2026-04-20
+# Version: 1.9.1
+# Date: 2026-05-05
 # License: MIT
 #
 # Usage: ./bootstrap/install.sh
 #   Run directly to perform full interactive bootstrap. Individual functions
 #   may also be sourced and called in isolation for targeted setup:
 #     source bootstrap/install.sh && install_starship
+#   Pass a subcommand for targeted operation:
+#     ./bootstrap/install.sh list              # list available components
+#     ./bootstrap/install.sh install_glow      # run a named component function
+#     ./bootstrap/install.sh install <pkg>     # install a package via platform manager
+#     ./bootstrap/install.sh uninstall <pkg>   # remove a package via platform manager
 #
 # Dependencies:
 #   macOS  - Homebrew (auto-installed if absent), curl, git
@@ -70,6 +75,19 @@ install() {
     else
         # Assumes Debian/Ubuntu based distro with `apt` package manager and sudo access
         sudo apt install -y "$@"
+    fi
+}
+
+uninstall() {
+    # Remove one or more packages using the platform package manager.
+    # On macOS uses brew uninstall; on Linux uses apt remove.
+    # @param packages  One or more package names
+    # @return 0 on success, non-zero on removal failure
+    # @example uninstall glow
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        brew uninstall "$@"
+    else
+        sudo apt remove -y "$@"
     fi
 }
 
@@ -563,12 +581,44 @@ config_gemini() {
 }
 
 main() {
-    # Orchestrate the full interactive bootstrap sequence.
-    # @param args  Unused; reserved for future flags
+    # Orchestrate the full interactive bootstrap, or dispatch a single component.
+    # @param args  Optional subcommand: list | <function_name> | install <pkg> | uninstall <pkg>
     # @return 0 on success, non-zero if a critical step fails
     # @example ./bootstrap/install.sh
+    # @example ./bootstrap/install.sh list
+    # @example ./bootstrap/install.sh install_glow
+    # @example ./bootstrap/install.sh install bat
+    # @example ./bootstrap/install.sh uninstall bat
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
+
+    if [[ $# -gt 0 ]]; then
+        local cmd="$1"; shift
+        case "$cmd" in
+            list)
+                echo "Component functions:"
+                declare -F | awk '{print $3}' | grep -E '^(install_|config_|bootstrap_)' | sort | sed 's/^/  /'
+                echo
+                echo "Package commands:"
+                echo "  install <pkg>    Install via platform package manager"
+                echo "  uninstall <pkg>  Remove via platform package manager"
+                return 0
+                ;;
+            install|uninstall)
+                "$cmd" "$@"
+                return $?
+                ;;
+            *)
+                if declare -f "$cmd" >/dev/null 2>&1; then
+                    "$cmd" "$@"
+                    return $?
+                else
+                    echo "Unknown: '$cmd'. Run '$(basename "$0") list' to see options." >&2
+                    return 1
+                fi
+                ;;
+        esac
+    fi
 
     if [[ "$OSTYPE" == "darwin"* ]]; then
         bootstrap_mac
