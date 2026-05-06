@@ -7,6 +7,15 @@
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
 # Version: 2.0.0
 # Date: 2026-02-08
+# License: MIT
+#
+# Usage: Piped from Claude Code statusline hook — receives JSON on stdin.
+#   Outputs a two-line statusline string to stdout.
+#
+# Dependencies: bash 4.0+, jq, git
+#
+# Exit codes:
+#   0 - Always (display errors are non-fatal)
 
 # Read JSON input from stdin
 input=$(cat)

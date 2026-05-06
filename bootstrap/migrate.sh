@@ -31,6 +31,11 @@ IP="${2-null}"
 CON_ALIVE=1800  # Seconds to keep SSH connection alive
 
 transfer_using_cpio() {
+    # Transfer a directory from the remote machine using cpio over SSH.
+    # @param $1  Remote path to migrate (e.g. ~/Documents)
+    # @param $2  Optional: 'force' removes the local directory before transfer
+    # @return 0 on success, non-zero on SSH or cpio failure
+    # @example transfer_using_cpio ~/Documents/Projects force
 	local dir="$1"
 	if [ "$2" == 'force' ]; then rm -fR "$dir"; fi
     local oIFS=$IFS
@@ -43,6 +48,11 @@ transfer_using_cpio() {
 }
 
 transfer_using_rsync() {
+    # Transfer a directory from the remote machine using rsync over SSH with infinite retry.
+    # @param $1  Remote path to migrate (e.g. ~/Documents)
+    # @param $2  Optional rsync --existing variant: 'force' or 'existing' (default: existing)
+    # @return 0 on success, non-zero on final rsync failure
+    # @example transfer_using_rsync ~/bin force
     local dir="$1"
     local force="${2-existing}"
     local oDir="$PWD"
@@ -52,13 +62,18 @@ transfer_using_rsync() {
         rsync -avW --timeout="$CON_ALIVE" --progress --"$force" \
             -e "ssh -o ServerAliveInterval=$CON_ALIVE" \
             "$USER"@"$IP":"$dir" "$(dirname "$dir")" && break
-        pfb warning "Retrying migration $dir..."
+        pfb warn "Retrying migration $dir..."
         sleep 10
     done
     cd "$oDir" || exit
 }
 
 promptForNull() {
+    # Prompt the user for a value when the argument is the sentinel 'null'.
+    # @param $1   Current value — passed through unchanged if not 'null'
+    # @param $@   Prompt message to display when value is 'null'
+    # @return 0; prints resolved value to stdout
+    # @example local user; user="$(promptForNull "$USER" "Enter remote username:")"
     local value="$1"; shift
     # shellcheck disable=2124
     local msg="$@"
@@ -69,6 +84,11 @@ promptForNull() {
 }
 
 promptMigration() {
+    # Interactively ask whether to migrate a path; calls transfer_using_rsync if confirmed.
+    # @param $1  Remote path to migrate
+    # @param $2  Optional force flag passed to transfer_using_rsync (default: empty)
+    # @return 0
+    # @example promptMigration ~/Documents/Projects/Personal force
     local path="$1"
     local force="${2-}"
     read -r -p "Do you want to migrate $path? [y/N] " -n 1

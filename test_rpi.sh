@@ -35,7 +35,7 @@ CONTAINER_REPO="$CONTAINER_SRC/carrybag-lite"
 INSTALL_SCRIPT="$CONTAINER_REPO/bootstrap/install.sh"
 
 
-pfb heading "Raspberry Pi OS Simulation Environment for bootstrap/install.sh testing" 🚀
+pfb heading "Raspberry Pi OS Simulation Environment for bootstrap/install.sh testing" "🚀"
 pfb subheading "Using Docker image '$IMAGE' on platform '$PLATFORM'"
 pfb subheading "for container named '$CONTAINER_NAME',"
 pfb subheading "and mounting repo from '$CONTAINER_REPO'"
@@ -61,11 +61,11 @@ docker run -it \
     pfb success 'Package index and dependency installation complete for test environment'
     echo
 
-    pfb heading 'Ensuring directory structure exists…' 📁
+    pfb heading 'Ensuring directory structure exists…' \"📁\"
     mkdir -p $CONTAINER_SRC
     echo
 
-    pfb heading 'Simulating Raspberry Pi network interfaces…' 🌐
+    pfb heading 'Simulating Raspberry Pi network interfaces…' \"🌐\"
     ip link add wlan0 type dummy
     ip addr add 192.168.10.50/24 dev wlan0
     ip link set wlan0 up
@@ -74,7 +74,7 @@ docker run -it \
     ip link set eth1 up
     echo
 
-    pfb heading 'Running install script…' 🚀
+    pfb heading 'Running install script…' \"🚀\"
     pfb subheading 'This is the start of the install.sh output.'
     pfb subheading 'When the test is complete, the container will remain alive for inspection.'
     pfb subheading 'Instructions to connect will be provided at the end.'

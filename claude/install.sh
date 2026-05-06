@@ -31,9 +31,11 @@ type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 # Create ~/.claude if it doesn't exist
 mkdir -p "$CLAUDE_DIR"
 
-# Backup existing files if they're not already symlinks
-#
-# @param $1 File path to check and backup
+# Backup an existing regular file to a timestamped copy before symlinking.
+# No-op if the file does not exist or is already a symlink.
+# @param $1  Absolute path of the file to check and back up
+# @return 0
+# @example backup_if_exists "$HOME/.claude/CLAUDE.md"
 backup_if_exists() {
     local file="$1"
     if [[ -f "$file" ]] && [[ ! -L "$file" ]]; then
@@ -62,7 +64,7 @@ for file in "${files[@]}"; do
         ln -sf "$source" "$target"
         pfb success "  Linked $file"
     else
-        pfb warning "  Skipping $file (not found in repo)"
+        pfb warn "  Skipping $file (not found in repo)"
     fi
 done
 

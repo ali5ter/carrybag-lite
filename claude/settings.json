@@ -19,5 +19,6 @@
   },
   "alwaysThinkingEnabled": true,
   "autoDreamEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "model": "sonnet"
 }

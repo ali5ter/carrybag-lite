@@ -179,7 +179,7 @@ bootstrap_linux() {
 remote_management() {
     # Set up rpi-connect-lite for remote Raspberry Pi management. No-op on other platforms.
     # @return 0 on success or non-RPi platform, 1 if rpi-connect sign-in fails
-    # @example remote_management || pfb warning "Remote management setup failed"
+    # @example remote_management || pfb warn "Remote management setup failed"
     # Raspberry Pi remote management tool
     if [[ -f /etc/rpi-issue ]]; then
         install rpi-connect-lite
@@ -536,7 +536,7 @@ config_claude_code() {
     if [[ -d "$repo_dir/claude" ]]; then
         "$repo_dir/claude/install.sh"
     else
-        pfb warning "Claude Code configuration directory not found at $repo_dir/claude"
+        pfb warn "Claude Code configuration directory not found at $repo_dir/claude"
     fi
 }
 
@@ -550,7 +550,7 @@ config_codex() {
     if [[ -d "$repo_dir/codex" ]]; then
         "$repo_dir/codex/install.sh"
     else
-        pfb warning "Codex configuration directory not found at $repo_dir/codex"
+        pfb warn "Codex configuration directory not found at $repo_dir/codex"
     fi
 }
 
@@ -564,7 +564,7 @@ config_gemini() {
     if [[ -d "$repo_dir/gemini" ]]; then
         "$repo_dir/gemini/install.sh"
     else
-        pfb warning "Gemini CLI configuration directory not found at $repo_dir/gemini"
+        pfb warn "Gemini CLI configuration directory not found at $repo_dir/gemini"
     fi
 }
 
@@ -637,7 +637,7 @@ main() {
     fi
     echo
     pfb info "Setting up remote management..."
-    remote_management || pfb warning "Remote management setup failed"
+    remote_management || pfb warn "Remote management setup failed"
     echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
     pfb answer ${response:-$default}

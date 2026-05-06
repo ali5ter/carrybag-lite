@@ -22,3 +22,9 @@ get-pip.py
 .last_brew_update
 .last_apt_update
 CLAUDE.md
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
