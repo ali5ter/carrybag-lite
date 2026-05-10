@@ -69,7 +69,29 @@ All bash scripts use [pfb](https://github.com/ali5ter/pfb) for delightful termin
 
 **Ask yourself:** Does visual weight match semantic importance?
 
-### 3. Markdown Standards
+### 3. Python CLI UX with Rich
+
+All Python CLI scripts use [Rich](https://github.com/Textualize/rich) for delightful terminal output.
+
+**Visual hierarchy:**
+
+- **Major sections:** `console.rule("[bold]Section Title[/bold]")` with optional emoji in the label
+- **Steps/headings:** `console.print("[bold cyan]Step message[/bold cyan]")` — weighted by importance
+- **Status items:** `console.print("[green]✔[/green] message")` / `[red]✗[/red]` / `[yellow]![/yellow]`
+- **Structured content:** `rich.table.Table` for tabular output, `rich.panel.Panel` for grouped blocks
+- **Progress:** `rich.progress.Progress` for long-running operations
+
+**Key rules:**
+
+- Import `Console` from `rich.console` and create a single `console = Console()` instance per script
+- Use `console.print()` everywhere — never plain `print()` for user-facing output
+- Use markup sparingly; prefer semantic colours (green = success, red = error, yellow = warning, cyan = info)
+- Errors go to stderr: `console = Console(stderr=True)` for a dedicated error console, or `console.print(..., style="red")`
+- Progress bars via `rich.progress` — don't use manual `print`-based spinners
+
+**Ask yourself:** Does visual weight match semantic importance?
+
+### 4. Markdown Standards
 
 All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint).
 
@@ -90,7 +112,7 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 3. Fix any remaining issues manually
 4. Zero warnings before commit
 
-### 4. Professional Documentation Tone
+### 5. Professional Documentation Tone
 
 **PRDs and technical documents should be:**
 
@@ -101,7 +123,7 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 
 **Exceptions:** README files and tutorials can be more user-directed when appropriate.
 
-### 5. Version Control Everything
+### 6. Version Control Everything
 
 **Always version control:**
 
@@ -117,7 +139,7 @@ All markdown must pass [markdownlint](https://github.com/DavidAnson/markdownlint
 - Generated files or build artifacts
 - IDE-specific files (unless project-wide standard)
 
-### 6. Fail Fast, Pivot Early
+### 7. Fail Fast, Pivot Early
 
 **Philosophy:** Time is the most valuable resource. When something isn't working, acknowledge it immediately, explain
 what went wrong, and propose a new direction. Don't double down on a failing approach.
@@ -139,7 +161,7 @@ what went wrong, and propose a new direction. Don't double down on a failing app
 
 **Anti-pattern:** Silently continuing down a broken path hoping it will work out.
 
-### 7. IMPORTANT - Behavioral Integrity
+### 8. IMPORTANT - Behavioral Integrity
 
 Good collaboration - Human or AI - depends on consistent behavioral standards.
 When interacting, both parties should bring:
