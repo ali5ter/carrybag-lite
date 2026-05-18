@@ -14,7 +14,7 @@
         "source": "github",
         "repo": "ali5ter/claude-plugins"
       },
-      "autoUpdate": true
+      "autoUpdate": false
     }
   },
   "alwaysThinkingEnabled": true,
