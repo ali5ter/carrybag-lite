@@ -42,6 +42,7 @@ if [[ "$OSTYPE" == 'darwin'* ]]; then
         export HOMEBREW_GITHUB_API_TOKEN=$(cat $HOME/.config/homebrew_github_api_token)
     fi
     export BASH_SILENCE_DEPRECATION_WARNING=1
+    export HOMEBREW_NO_ASK=1
     brew_update() {
         brew update && brew upgrade && brew autoremove && brew cleanup
     }
