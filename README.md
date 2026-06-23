@@ -124,7 +124,7 @@ so the same skills are available across all three tools.
 
 The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, providing:
 
-- **`CLAUDE.md`** — seven development principles loaded automatically into every session
+- **`CLAUDE.md`** — eight development principles loaded automatically into every session
 - **`settings.json`** — preferences including statusline, always-thinking mode, and enabled plugins
 - **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model, and token usage
 

@@ -88,3 +88,15 @@ if [[ -L "$DEST" ]]; then
     pfb info "Symlinked file:"
     ls -lh "$DEST"
 fi
+
+# Migration notice: detect deprecated gemini-cli and leftover ~/.gemini/
+if type brew >/dev/null 2>&1 && brew list gemini-cli >/dev/null 2>&1; then
+    echo
+    pfb warn "gemini-cli is still installed (deprecated 2026-12-18)" "⚠️"
+    pfb info "  To remove: brew uninstall gemini-cli"
+fi
+if [[ -d "$HOME/.gemini" ]]; then
+    echo
+    pfb warn "~/.gemini/ still exists from the old Gemini CLI" "⚠️"
+    pfb info "  To clean up: rm -rf ~/.gemini"
+fi
