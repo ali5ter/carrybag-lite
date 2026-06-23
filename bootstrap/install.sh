@@ -127,20 +127,22 @@ MAC_PKGS=(
     bash git zoxide
     shellcheck vim watch bash-completion@2
     node go
-    jq yq bat fd tree fzf
+    jq yq bat fd tree fzf glow
     btop ncdu nmap wakeonlan
-    codex figlet
+    figlet cfonts
 )
 # shellcheck disable=SC2034
 MAC_CASK_PKGS=(
     iterm2 1password dropbox cleanmymac figma
     microsoft-teams whatsapp visual-studio-code
+    claude claude-code
+    codex
     antigravity-cli
 )
 # shellcheck disable=SC2034
 LINUX_PKGS=(
     curl wget gnupg git nodejs npm
-    jq yq bat tree fd-find fzf figlet
+    jq yq bat tree fd-find fzf figlet glow
     zoxide shellcheck vim watch
     btop ncdu fontconfig wakeonlan
 )
