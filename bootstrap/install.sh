@@ -129,12 +129,13 @@ MAC_PKGS=(
     node go
     jq yq bat fd tree fzf
     btop ncdu nmap wakeonlan
-    gemini-cli codex figlet
+    codex figlet
 )
 # shellcheck disable=SC2034
 MAC_CASK_PKGS=(
     iterm2 1password dropbox cleanmymac figma
     microsoft-teams whatsapp visual-studio-code
+    antigravity-cli
 )
 # shellcheck disable=SC2034
 LINUX_PKGS=(
@@ -510,18 +511,19 @@ EOT
 }
 
 install_ai_tools() {
-    # Install Claude Code, Gemini CLI, and Codex CLI. On macOS uses brew (gemini-cli
-    # and codex) plus the Claude installer script; on Linux uses curl and npm.
+    # Install Claude Code, Antigravity CLI (agy), and Codex CLI. On macOS uses brew
+    # (antigravity-cli cask and codex formula) plus the Claude installer script;
+    # on Linux uses curl and npm. Antigravity CLI (agy) is the successor to Gemini CLI.
     # @return 0 on success, non-zero if any installer fails
     # @example install_ai_tools
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install claude-code
-        # gemini-cli and codex installed in bootstrap_mac via brew
+        # antigravity-cli and codex installed in bootstrap_mac via brew
     else
         curl -fsSL https://claude.ai/install.sh | bash
         # shellcheck disable=SC2016
         echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.bashrc_local"
-        npm install -g @google/gemini-cli
+        # Antigravity CLI (agy) — Linux install method TBD; check https://antigravity.google
         npm install -g @openai/codex
     fi
 }
@@ -554,17 +556,18 @@ config_codex() {
     fi
 }
 
-config_gemini() {
-    # Configure Google Gemini CLI by symlinking CLAUDE.md as GEMINI.md
+config_antigravity() {
+    # Configure Antigravity CLI (agy) by symlinking CLAUDE.md as ANTIGRAVITY.md and
+    # linking Claude Code skills. Antigravity CLI is the successor to Gemini CLI.
     # @param None
     # @return 0 on success, 1 on failure
-    # @example config_gemini
+    # @example config_antigravity
     local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
-    if [[ -d "$repo_dir/gemini" ]]; then
-        "$repo_dir/gemini/install.sh"
+    if [[ -d "$repo_dir/antigravity" ]]; then
+        "$repo_dir/antigravity/install.sh"
     else
-        pfb warn "Gemini CLI configuration directory not found at $repo_dir/gemini"
+        pfb warn "Antigravity CLI configuration directory not found at $repo_dir/antigravity"
     fi
 }
 
@@ -681,9 +684,9 @@ main() {
     config_codex
     pfb success "Codex configured!"
     echo
-    pfb info "Configuring Gemini CLI..."
-    config_gemini
-    pfb success "Gemini CLI configured!"
+    pfb info "Configuring Antigravity CLI (agy)..."
+    config_antigravity
+    pfb success "Antigravity CLI configured!"
     echo
     pfb info "Configuring SSH..."
     config_ssh

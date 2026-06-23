@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
 #
-# install.sh - Install Codex CLI configuration
+# install.sh - Install Antigravity CLI configuration
 #
-# Symlinks CLAUDE.md from the carrybag-lite claude/ directory to ~/.codex/AGENTS.md,
-# making the shared development principles available to OpenAI Codex CLI. Also links
-# any skills defined in ~/.claude/skills/ into ~/.codex/skills/ so Codex can use the
+# Symlinks CLAUDE.md from the carrybag-lite claude/ directory to
+# ~/.antigravity/ANTIGRAVITY.md, making the shared development principles
+# available to the Antigravity CLI (agy). Also links any skills defined in
+# ~/.claude/skills/ into ~/.antigravity/skills/ so Antigravity can use the
 # same skills as Claude Code. Part of the Carrybag-lite environment setup.
+#
+# Antigravity CLI (agy) is the successor to Gemini CLI.
+# Install via: brew install --cask antigravity-cli
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
 # Version: 2.0.0
 # Date: 2026-06-23
 # License: MIT
 #
-# Usage: ./codex/install.sh
-#   Creates symlink from ~/.codex/AGENTS.md to carrybag-lite/claude/CLAUDE.md
-#   Links Claude Code skills into ~/.codex/skills/
+# Usage: ./antigravity/install.sh
+#   Creates symlink from ~/.antigravity/ANTIGRAVITY.md to carrybag-lite/claude/CLAUDE.md
+#   Links Claude Code skills into ~/.antigravity/skills/
 #   Backs up any existing file before symlinking
 #
 # Dependencies: bash 4.0+
@@ -27,14 +31,14 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
-CODEX_DIR="$HOME/.codex"
+ANTIGRAVITY_DIR="$HOME/.antigravity"
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
-DEST="$CODEX_DIR/AGENTS.md"
+DEST="$ANTIGRAVITY_DIR/ANTIGRAVITY.md"
 
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
-pfb heading "Installing Codex CLI configuration" "🤖"
+pfb heading "Installing Antigravity CLI configuration" "🤖"
 echo
 
 if [[ ! -f "$SOURCE" ]]; then
@@ -42,25 +46,25 @@ if [[ ! -f "$SOURCE" ]]; then
     exit 1
 fi
 
-mkdir -p "$CODEX_DIR"
+mkdir -p "$ANTIGRAVITY_DIR"
 
 if [[ -f "$DEST" && ! -L "$DEST" ]]; then
     backup="${DEST}.backup.$(date +"%Y%m%d%H%M%S")"
-    pfb info "  Backing up existing AGENTS.md to $(basename "$backup")"
+    pfb info "  Backing up existing ANTIGRAVITY.md to $(basename "$backup")"
     mv "$DEST" "$backup"
 fi
 
 ln -sf "$SOURCE" "$DEST"
-pfb success "  Linked AGENTS.md"
+pfb success "  Linked ANTIGRAVITY.md"
 
-# Link Claude Code skills into Codex's skills directory
+# Link Claude Code skills into Antigravity's skills directory
 if [[ -d "$CLAUDE_SKILLS_DIR" ]]; then
-    mkdir -p "$CODEX_DIR/skills"
+    mkdir -p "$ANTIGRAVITY_DIR/skills"
     linked=0
     for skill in "$CLAUDE_SKILLS_DIR"/*/; do
         [[ -d "$skill" ]] || continue
         skill_name="$(basename "$skill")"
-        dest="$CODEX_DIR/skills/$skill_name"
+        dest="$ANTIGRAVITY_DIR/skills/$skill_name"
         if [[ -e "$dest" && ! -L "$dest" ]]; then
             pfb warn "  Skill directory exists (not a symlink), skipping: $skill_name"
             continue
@@ -75,8 +79,8 @@ if [[ -d "$CLAUDE_SKILLS_DIR" ]]; then
 fi
 
 echo
-pfb success "Codex CLI configuration installed!"
-pfb info "  Config location: $CODEX_DIR"
+pfb success "Antigravity CLI configuration installed!"
+pfb info "  Config location: $ANTIGRAVITY_DIR"
 pfb info "  Source location: $SOURCE"
 echo
 
