@@ -3,23 +3,28 @@
 # install.sh - Install Antigravity CLI configuration
 #
 # Symlinks CLAUDE.md from the carrybag-lite claude/ directory to
-# ~/.antigravity/ANTIGRAVITY.md, making the shared development principles
+# ~/.gemini/config/AGENTS.md, making the shared development principles
 # available to the Antigravity CLI (agy). Also links Claude Code skills —
 # both plugin-installed (~/.claude/plugins/cache/) and user-defined
-# (~/.claude/skills/) — into ~/.antigravity/skills/. Part of the Carrybag-lite
+# (~/.claude/skills/) — into ~/.gemini/config/skills/. Part of the Carrybag-lite
 # environment setup.
+#
+# Antigravity CLI (agy) uses ~/.gemini/config/ as its Global Customizations Root:
+#   - ~/.gemini/config/AGENTS.md       → global rules read by agy on every run
+#   - ~/.gemini/config/skills/<name>/  → global skills available in all sessions
+#   - ~/.gemini/antigravity-cli/       → agy's own runtime/data directory
 #
 # Antigravity CLI (agy) is the successor to Gemini CLI.
 # Install via: brew install --cask antigravity-cli
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 2.1.0
-# Date: 2026-06-23
+# Version: 2.2.0
+# Date: 2026-06-25
 # License: MIT
 #
 # Usage: ./antigravity/install.sh
-#   Creates symlink from ~/.antigravity/ANTIGRAVITY.md to carrybag-lite/claude/CLAUDE.md
-#   Links plugin-installed and user-defined Claude Code skills into ~/.antigravity/skills/
+#   Creates symlink from ~/.gemini/config/AGENTS.md to carrybag-lite/claude/CLAUDE.md
+#   Links plugin-installed and user-defined Claude Code skills into ~/.gemini/config/skills/
 #   Backs up any existing file before symlinking
 #
 # Dependencies: bash 4.0+
@@ -32,11 +37,11 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
-ANTIGRAVITY_DIR="$HOME/.antigravity"
+ANTIGRAVITY_DIR="$HOME/.gemini/config"
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 CLAUDE_PLUGIN_CACHE="$HOME/.claude/plugins/cache"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
-DEST="$ANTIGRAVITY_DIR/ANTIGRAVITY.md"
+DEST="$ANTIGRAVITY_DIR/AGENTS.md"
 
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
@@ -52,14 +57,14 @@ mkdir -p "$ANTIGRAVITY_DIR"
 
 if [[ -f "$DEST" && ! -L "$DEST" ]]; then
     backup="${DEST}.backup.$(date +"%Y%m%d%H%M%S")"
-    pfb info "  Backing up existing ANTIGRAVITY.md to $(basename "$backup")"
+    pfb info "  Backing up existing AGENTS.md to $(basename "$backup")"
     mv "$DEST" "$backup"
 fi
 
 ln -sf "$SOURCE" "$DEST"
-pfb success "  Linked ANTIGRAVITY.md"
+pfb success "  Linked AGENTS.md"
 
-# Link Claude Code skills into Antigravity's skills directory.
+# Link Claude Code skills into Antigravity's global skills directory.
 # Plugin skills (cache/<ns>/<plugin>/<ver>/skills/) are linked first;
 # user skills (~/.claude/skills/) are linked second and take precedence.
 SKILLS_DEST="$ANTIGRAVITY_DIR/skills"
@@ -105,14 +110,16 @@ if [[ -L "$DEST" ]]; then
     ls -lh "$DEST"
 fi
 
-# Migration notice: detect deprecated gemini-cli and leftover ~/.gemini/
+# Migration notice: detect deprecated gemini-cli
 if type brew >/dev/null 2>&1 && brew list gemini-cli >/dev/null 2>&1; then
     echo
     pfb warn "gemini-cli is still installed (deprecated 2026-12-18)" "⚠️"
     pfb info "  To remove: brew uninstall gemini-cli"
 fi
-if [[ -d "$HOME/.gemini" ]]; then
+
+# Clean up stale ~/.antigravity/ if it exists from prior carrybag-lite versions
+if [[ -d "$HOME/.antigravity" ]]; then
     echo
-    pfb warn "~/.gemini/ still exists from the old Gemini CLI" "⚠️"
-    pfb info "  To clean up: rm -rf ~/.gemini"
+    pfb warn "~/.antigravity/ is a stale directory from an older carrybag-lite install" "⚠️"
+    pfb info "  agy uses ~/.gemini/config/ — safe to remove: rm -rf ~/.antigravity"
 fi

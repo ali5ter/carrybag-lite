@@ -565,8 +565,8 @@ config_codex() {
 }
 
 config_antigravity() {
-    # Configure Antigravity CLI (agy) by symlinking CLAUDE.md as ANTIGRAVITY.md and
-    # linking Claude Code skills. Antigravity CLI is the successor to Gemini CLI.
+    # Configure Antigravity CLI (agy) by symlinking CLAUDE.md as AGENTS.md into
+    # ~/.gemini/config/ and linking Claude Code skills. Antigravity CLI is the successor to Gemini CLI.
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_antigravity
