@@ -13,6 +13,7 @@
 }
 
 set -uo pipefail
+set -m  # Enable job control so `jobs -r` works correctly in --parallel mode
 shopt -s nullglob
 
 # Fall back to a minimal stub if pfb is not installed

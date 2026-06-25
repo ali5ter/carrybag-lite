@@ -203,6 +203,8 @@ ethernet_over_wifi() {
         nmcli --fields autoconnect-priority,name connection
         sudo nmcli connection modify "Wired connection 1" connection.autoconnect-priority 999
         nmcli --fields autoconnect-priority,name connection
+    else
+        return 0
     fi
 }
 
@@ -212,6 +214,10 @@ config_carrybag() {
     # @return 0 on success
     # @example config_carrybag
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        if [[ -f ~/.bash_profile && ! -L ~/.bash_profile ]]; then
+            # shellcheck disable=SC2046
+            cp ~/.bash_profile ~/.bash_profile.$(date +%Y%m%d%H%M%S)
+        fi
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
         if [[ -f ~/.bashrc && ! -L ~/.bashrc ]]; then
@@ -248,11 +254,11 @@ install_nerd_fonts() {
         [[ -d ~/.fonts ]] || mkdir -p ~/.fonts
         cd ~/.fonts || exit
         curl -fLo "Source Code Pro Nerd Font Complete.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/tree/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
         curl -fLo "Symbols Nerd Font-Regular.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf
         curl -fLo "Symbols Nerd Font Mono-Regular.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf
         sudo fc-cache
     fi
 }
@@ -526,7 +532,7 @@ install_ai_tools() {
         # shellcheck disable=SC2016
         echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.bashrc_local"
         # Antigravity CLI (agy) — Linux install method TBD; check https://antigravity.google
-        npm install -g @openai/codex
+        sudo npm install -g @openai/codex
     fi
 }
 
