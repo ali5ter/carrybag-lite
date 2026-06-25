@@ -67,8 +67,8 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 **Common (macOS and Linux):**
 
 - `git`, `vim`, `shellcheck`, `watch`
-- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`
-- `starship` (prompt), `fzf` (history + fuzzy search), `z` (directory jumper)
+- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`, `glow`
+- `starship` (prompt), `fzf` (history + fuzzy search), `zoxide` (directory jumper)
 - Nerd Fonts, Claude Code
 
 **macOS only:**
@@ -112,13 +112,13 @@ so the same skills are available across all three tools.
 | --- | --- | --- |
 | Claude Code | `~/.claude/CLAUDE.md` | symlinked from `claude/CLAUDE.md` |
 | Codex CLI | `~/.codex/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
-| Antigravity CLI | `~/.antigravity/ANTIGRAVITY.md` | symlinked from `claude/CLAUDE.md` |
+| Antigravity CLI | `~/.gemini/config/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
 
 | Tool | Skills location | Source |
 | --- | --- | --- |
 | Claude Code | `~/.claude/skills/` | user-defined |
 | Codex CLI | `~/.codex/skills/<skill>/` | symlinked from `~/.claude/skills/` |
-| Antigravity CLI | `~/.antigravity/skills/<skill>/` | symlinked from `~/.claude/skills/` |
+| Antigravity CLI | `~/.gemini/config/skills/<skill>/` | symlinked from `~/.claude/skills/` |
 
 ### Claude Code
 
@@ -155,10 +155,11 @@ Code without any duplication. It also links each skill directory from `~/.claude
 
 ### Antigravity CLI (agy)
 
-`antigravity/install.sh` symlinks `claude/CLAUDE.md` → `~/.antigravity/ANTIGRAVITY.md`.
-Antigravity CLI (`agy`) is the successor to Gemini CLI and reads `ANTIGRAVITY.md` as its
-user-level instruction file, applying the same development principles as Claude Code and Codex.
-It also links each skill directory from `~/.claude/skills/` into `~/.antigravity/skills/`.
+`antigravity/install.sh` symlinks `claude/CLAUDE.md` → `~/.gemini/config/AGENTS.md`.
+Antigravity CLI (`agy`) is the successor to Gemini CLI and reads `AGENTS.md` from its Global
+Customizations Root (`~/.gemini/config/`), applying the same development principles as Claude
+Code and Codex. Skills are linked into `~/.gemini/config/skills/`. Note: despite the tool
+migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its home directory.
 Install via `brew install --cask antigravity-cli`.
 
 ## Additional Tools
