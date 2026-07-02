@@ -1,4 +1,5 @@
 {
+  "model": "sonnet",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
@@ -6,7 +7,8 @@
   "enabledPlugins": {
     "claude-workflow-skills@ali5ter": true,
     "over-50s-health@ali5ter": true,
-    "obsidian-project-documentation@ali5ter": true
+    "obsidian-project-documentation@ali5ter": true,
+    "frontend-design@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ali5ter": {
@@ -18,7 +20,7 @@
     }
   },
   "alwaysThinkingEnabled": true,
+  "tui": "fullscreen",
   "autoDreamEnabled": true,
-  "skipDangerousModePermissionPrompt": true,
-  "model": "sonnet"
+  "skipDangerousModePermissionPrompt": true
 }
