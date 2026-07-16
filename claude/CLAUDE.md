@@ -222,6 +222,8 @@ use their name. Ask if you don't know their name.
 - Keep functions focused - if it needs a comment explaining a section, extract it
 - Security: validate at system boundaries, never trust external input
 - Logging: structured where possible, appropriate levels
+- Follow the [Command Line Interface Guidelines](https://clig.dev/#foreword) for any CLI tool's UX (help text,
+  flags, error messages, config, output conventions), regardless of implementation language
 
 ## GitHub Repository Standards
 
