@@ -2,8 +2,8 @@
 # @file update.sh
 # @description Update all git repositories in the current (or specified) directory
 # @author Alister Lewis-Bowen <alister@lewis-bowen.org>
-# @version 2.7.0
-# @usage update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [-h|--help] [directory]
+# @version 2.10.0
+# @usage update.sh [-v|--verbose] [-f|--fetch-only] [-s|--stash] [--serial] [--pager] [-h|--help] [directory]
 # @dependencies pfb (pretty feedback for bash)
 # @exit 0 Always exits successfully; individual repo failures are reported
 
@@ -81,10 +81,11 @@ Usage: $(basename "$0") [OPTIONS] [directory]
 Pull the latest changes for every git repository found in a directory.
 
 Options:
-  -q, --quiet       Only show repos with changes or problems
+  -v, --verbose     Show every repo, including those already up to date
   -f, --fetch-only  Fetch only — report how far behind, do not pull
   -s, --stash       Auto-stash local changes, pull, then restore
-  -p, --parallel    Run all repos concurrently (up to UPDATE_MAX_JOBS)
+  --serial          Run repos one at a time instead of concurrently
+  --pager           Page output through \$UPDATE_PAGER (default: less -FRX)
   -h, --help        Show this help and exit
 
 Arguments:
@@ -92,14 +93,20 @@ Arguments:
 
 Environment:
   GIT_PULL_TIMEOUT   Seconds before a git operation is killed (default: 60)
-  UPDATE_MAX_JOBS    Max parallel workers when using --parallel (default: 8)
+  UPDATE_MAX_JOBS    Max parallel workers (default: 8)
+  UPDATE_PAGER       Pager command used with --pager (default: less -FRX)
+
+Note: only repos with changes or problems are shown by default. Use --verbose to see
+everything. Repos are updated concurrently by default; use --serial for one-at-a-time
+output order.
 
 Examples:
   $(basename "$0")
-  $(basename "$0") --quiet
+  $(basename "$0") --verbose
   $(basename "$0") --fetch-only
   $(basename "$0") --stash
-  $(basename "$0") --parallel
+  $(basename "$0") --serial
+  $(basename "$0") --verbose --pager
   $(basename "$0") ~/Documents/projects
   GIT_PULL_TIMEOUT=15 $(basename "$0")
 EOF
@@ -110,18 +117,23 @@ EOF
 # Argument parsing
 # ---------------------------------------------------------------------------
 
-QUIET=false
+QUIET=true
 FETCH_ONLY=false
 STASH=false
-PARALLEL=false
+PARALLEL=true
+PAGER=false
 UPDATE_MAX_JOBS="${UPDATE_MAX_JOBS:-8}"
+UPDATE_PAGER="${UPDATE_PAGER:-less -FRX}"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        -q|--quiet)      QUIET=true; shift ;;
+        -q|--quiet)      QUIET=true; shift ;;      # retained for compatibility; quiet is now the default
+        -v|--verbose)    QUIET=false; shift ;;
         -f|--fetch-only) FETCH_ONLY=true; shift ;;
         -s|--stash)      STASH=true; shift ;;
-        -p|--parallel)   PARALLEL=true; shift ;;
+        -p|--parallel)   PARALLEL=true; shift ;;   # retained for compatibility; parallel is now the default
+        --serial)        PARALLEL=false; shift ;;
+        --pager)         PAGER=true; shift ;;
         -h|--help)       usage 0 ;;
         -*) pfb err "Unknown option: $1"; exit 1 ;;
         *)  break ;;
@@ -279,6 +291,9 @@ display_result() {
 # Main
 # ---------------------------------------------------------------------------
 
+# @description Scan and update every repo, printing progress and a summary
+# @side_effects Reads SCAN_DIR/FETCH_ONLY/PARALLEL and friends from the enclosing scope
+run_update() {
 SCAN_DIR="${1:-$PWD}"
 count_updated=0
 count_current=0
@@ -370,5 +385,14 @@ pfb heading "Summary" "📊"
 [[ $count_current -gt 0 ]] && pfb info    "$count_current already current"
 [[ $count_skipped -gt 0 ]] && pfb warn    "$count_skipped skipped"
 [[ $count_failed  -gt 0 ]] && pfb err     "$count_failed failed"
+}
+
+if $PAGER; then
+    # pfb detects the pipe to the pager as a non-TTY and drops color by default;
+    # force it back on so the paged output still highlights warnings/failures.
+    PFB_FORCE_COLOR=1 run_update "$@" | $UPDATE_PAGER
+else
+    run_update "$@"
+fi
 
 exit 0

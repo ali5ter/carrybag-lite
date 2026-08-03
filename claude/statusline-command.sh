@@ -2,11 +2,12 @@
 #
 # statusline-command.sh - Custom status line for Claude Code
 #
-# Displays hostname, directory, and git status in a Starship-inspired format.
+# Displays hostname, directory, git status, model, context usage, session cost,
+# and token usage in a Starship-inspired format.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 2.0.0
-# Date: 2026-02-08
+# Version: 2.1.0
+# Date: 2026-08-03
 # License: MIT
 #
 # Usage: Piped from Claude Code statusline hook — receives JSON on stdin.
@@ -60,6 +61,26 @@ if [ -n "$agent" ]; then
     agent_info=" | agent:$agent"
 fi
 
+# Session cost in USD
+cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
+cost_info=""
+if [ -n "$cost" ]; then
+    cost_info=$(printf " | \$%.2f" "$cost")
+fi
+
+# Total tokens used this session, abbreviated (e.g. 15.5k, 1.2M)
+tokens=$(echo "$input" | jq -r '((.context_window.total_input_tokens // 0) + (.context_window.total_output_tokens // 0))')
+tokens_info=""
+if [ -n "$tokens" ] && [ "$tokens" -gt 0 ] 2>/dev/null; then
+    tokens_fmt=$(awk -v n="$tokens" 'BEGIN {
+        if (n >= 1000000) printf "%.1fM", n / 1000000;
+        else if (n >= 1000) printf "%.1fk", n / 1000;
+        else printf "%d", n;
+    }')
+    tokens_info=" | ${tokens_fmt} tok"
+fi
+
 # Output format: hostname in directory [on git:branch]
-#                model [| agent:name] | usage
-printf "%s in %s%s\n%s%s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$used"
+#                model [| agent:name] | usage [| cost] [| tokens]
+printf "%s in %s%s\n%s%s | Usage: %d%%%s%s" \
+    "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$used" "$cost_info" "$tokens_info"
