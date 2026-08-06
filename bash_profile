@@ -10,6 +10,13 @@ export PATH="/usr/local/sbin:$PATH"
 [ -x /usr/local/Homebrew/bin/brew ] && export PATH="/usr/local/Homebrew/bin:$PATH" # Intel Mac
 [ -d "$HOME/.docker/bin" ] && export PATH="$PATH:$HOME/.docker/bin"          # Docker Desktop
 
+# Everything below is interactive-only. Bash sources ~/.bashrc for non-interactive shells
+# started by sshd (rsync/scp/git over SSH), and any output here corrupts their binary streams.
+case $- in
+    *i*) ;;
+      *) return ;;
+esac
+
 # ── SHELL OPTIONS ─────────────────────────────────────────────────────────────
 
 # @ref https://www.computerhope.com/unix/bash/shopt.htm
