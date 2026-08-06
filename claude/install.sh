@@ -39,7 +39,8 @@ mkdir -p "$CLAUDE_DIR"
 backup_if_exists() {
     local file="$1"
     if [[ -f "$file" ]] && [[ ! -L "$file" ]]; then
-        local backup="${file}.backup-$(date +%Y%m%d%H%M%S)"
+        local backup
+        backup="${file}.backup-$(date +%Y%m%d%H%M%S)"
         pfb info "  Backing up existing $(basename "$file") to $(basename "$backup")"
         mv "$file" "$backup"
     fi
@@ -67,6 +68,30 @@ for file in "${files[@]}"; do
         pfb warn "  Skipping $file (not found in repo)"
     fi
 done
+
+# Skill directories to symlink into ~/.claude/skills/. Globbed rather than listed, so a new
+# skill is picked up simply by adding its directory to claude/skills/.
+skills_src="$SCRIPT_DIR/skills"
+if [[ -d "$skills_src" ]]; then
+    mkdir -p "$CLAUDE_DIR/skills"
+    for skill in "$skills_src"/*/; do
+        [[ -d "$skill" ]] || continue
+        name="$(basename "$skill")"
+        target="$CLAUDE_DIR/skills/$name"
+
+        # Back up a real directory; a symlink from a previous run is simply replaced
+        if [[ -d "$target" ]] && [[ ! -L "$target" ]]; then
+            backup="${target}.backup-$(date +%Y%m%d%H%M%S)"
+            pfb info "  Backing up existing skill $name to $(basename "$backup")"
+            mv "$target" "$backup"
+        fi
+
+        # -n is required: without it, ln follows the existing symlink and nests
+        # the new link inside the target directory instead of replacing it
+        ln -sfn "${skill%/}" "$target"
+        pfb success "  Linked skill $name"
+    done
+fi
 
 echo
 pfb success "Claude Code configuration installed!"
