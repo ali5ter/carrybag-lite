@@ -537,8 +537,11 @@ install_ai_tools() {
 }
 
 config_claude_code() {
-    # Configure Claude Code by symlinking files from claude/ to ~/.claude/.
-    # Delegates to claude/install.sh which handles backups and idempotency.
+    # Configure Claude Code by symlinking files from claude/ to ~/.claude/, and each
+    # skill directory from claude/skills/ to ~/.claude/skills/. Delegates to
+    # claude/install.sh which handles backups and idempotency. Must run before
+    # config_codex and config_antigravity, which link ~/.claude/skills/ into their own
+    # skills directories.
     # @return 0 on success, 0 with warning if claude/ directory is missing
     # @example config_claude_code
     local repo_dir

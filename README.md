@@ -116,17 +116,22 @@ so the same skills are available across all three tools.
 
 | Tool | Skills location | Source |
 | --- | --- | --- |
-| Claude Code | `~/.claude/skills/` | user-defined |
+| Claude Code | `~/.claude/skills/<skill>/` | symlinked from `claude/skills/` |
 | Codex CLI | `~/.codex/skills/<skill>/` | symlinked from `~/.claude/skills/` |
 | Antigravity CLI | `~/.gemini/config/skills/<skill>/` | symlinked from `~/.claude/skills/` |
+
+`CLAUDE.md` is loaded into every session, so it deliberately holds only guidance that applies
+every time. Language-specific conventions live in `claude/skills/` and are loaded on demand:
+`bash-standards`, `python-standards`, `go-standards`, and `node-ts-standards`.
 
 ### Claude Code
 
 The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, providing:
 
-- **`CLAUDE.md`** — eight development principles loaded automatically into every session
+- **`CLAUDE.md`** — development principles loaded automatically into every session
 - **`settings.json`** — preferences including statusline, always-thinking mode, and enabled plugins
 - **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model, and token usage
+- **`skills/`** — language standards loaded on demand rather than in every session
 
 Enabled plugins (pre-configured in `settings.json`):
 
