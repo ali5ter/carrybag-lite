@@ -28,6 +28,19 @@ sycophancy, vagueness, and hedging directly.
 
 Silently continuing down a broken path is the anti-pattern.
 
+## Language standards
+
+**Load the matching skill before writing or editing code — first, not after the fact.** Each skill
+carries that language's full conventions: documentation format, naming, error handling, terminal
+output style, and the commands to run before committing.
+
+| Editing | Load |
+| ------- | ---- |
+| `.sh`, `.bash`, any shell script | `bash-standards` |
+| `.py` | `python-standards` |
+| `.go` | `go-standards` |
+| `.ts`, `.tsx`, `.js`, `.mjs` | `node-ts-standards` |
+
 ## Codify, don't document
 
 Manual steps are error-prone and not reproducible. Write an executable script instead of
@@ -44,18 +57,6 @@ step-by-step instructions, and have the documentation point at the script rather
 **Author attribution** in file headers: derive from `git config user.name` and
 `git config user.email`, formatted as `Name <email>`. Fall back to the home directory basename
 outside a git repo.
-
-## Language standards
-
-Load the matching skill before writing code — each carries the full conventions, including
-documentation format, terminal output style, and pre-commit verification:
-
-| Writing | Skill |
-| ------- | ----- |
-| Bash / shell | `bash-standards` |
-| Python | `python-standards` |
-| Go | `go-standards` |
-| Node.js / TypeScript / JavaScript | `node-ts-standards` |
 
 ## Markdown
 
