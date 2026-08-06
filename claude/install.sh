@@ -6,8 +6,8 @@
 # Part of the Carrybag-lite environment setup.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.0.0
-# Date: 2026-02-05
+# Version: 1.1.0
+# Date: 2026-08-06
 # License: MIT
 #
 # Usage: ./claude/install.sh
@@ -93,6 +93,22 @@ if [[ -d "$skills_src" ]]; then
     done
 fi
 
+# Hook scripts to symlink into ~/.claude/hooks/. Globbed rather than listed, so a new
+# hook is picked up simply by adding its script to claude/hooks/.
+hooks_src="$SCRIPT_DIR/hooks"
+if [[ -d "$hooks_src" ]]; then
+    mkdir -p "$CLAUDE_DIR/hooks"
+    for hook in "$hooks_src"/*.sh; do
+        [[ -f "$hook" ]] || continue
+        name="$(basename "$hook")"
+        target="$CLAUDE_DIR/hooks/$name"
+
+        backup_if_exists "$target"
+        ln -sf "$hook" "$target"
+        pfb success "  Linked hook $name"
+    done
+fi
+
 echo
 pfb success "Claude Code configuration installed!"
 pfb info "  Config location: $CLAUDE_DIR"
@@ -104,4 +120,8 @@ if [[ -L "$CLAUDE_DIR/CLAUDE.md" ]] && \
    [[ -L "$CLAUDE_DIR/statusline-command.sh" ]]; then
     pfb info "Symlinked files:"
     ls -lh "$CLAUDE_DIR"/{CLAUDE.md,settings.json,statusline-command.sh} 2>/dev/null || true
+    if [[ -d "$CLAUDE_DIR/hooks" ]]; then
+        pfb info "Symlinked hooks:"
+        ls -lh "$CLAUDE_DIR/hooks" 2>/dev/null || true
+    fi
 fi
