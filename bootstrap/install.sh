@@ -336,6 +336,21 @@ preserveNewLines: false
 END_OF_GLOW_CONFIG
 }
 
+install_lint_tools() {
+    # Install ruff (Python) and markdownlint-cli (Markdown), the linters the Claude Code
+    # verify-edit.sh hook shells out to. Without these, that hook silently skips Python and
+    # Markdown checks. Uses brew formulas on macOS; npm and the official installer script on
+    # Linux, since neither ships in the Debian/Raspberry Pi OS apt repos.
+    # @return 0 on success, non-zero if any install step fails
+    # @example install_lint_tools
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install ruff markdownlint-cli
+    else
+        curl -LsSf https://astral.sh/ruff/install.sh | sh
+        sudo npm install -g markdownlint-cli
+    fi
+}
+
 install_starship() {
     # Install the Starship prompt and write a baseline starship.toml config.
     # Uses brew on macOS; downloads the install script on Linux.
@@ -644,7 +659,7 @@ main() {
     pfb success "Bootstrap complete!"
     echo
     echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         ethernet_over_wifi
         pfb success "Network interfaces prioritized!"
@@ -654,7 +669,7 @@ main() {
     remote_management || pfb warn "Remote management setup failed"
     echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         install_pyenv
         pfb success "pyenv installed!"
@@ -672,12 +687,16 @@ main() {
     install_starship
     pfb success "Starship prompt installed!"
     echo
+    pfb info "Installing lint tools (ruff, markdownlint)..."
+    install_lint_tools
+    pfb success "Lint tools installed!"
+    echo
     pfb info "Installing glow MD reader..."
     install_glow
     pfb success "Glow MD reader installed!"
     echo
     echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         install_docker
         pfb success "Docker installed!"
@@ -711,7 +730,7 @@ main() {
     echo
     pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
     echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         pfb info "Rebooting..."
         sudo reboot
