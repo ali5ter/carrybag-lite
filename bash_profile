@@ -8,6 +8,7 @@
 export PATH="/usr/local/sbin:$PATH"
 [ -x /opt/homebrew/bin/brew ] && export PATH="/opt/homebrew/bin:$PATH"       # Apple Silicon
 [ -x /usr/local/Homebrew/bin/brew ] && export PATH="/usr/local/Homebrew/bin:$PATH" # Intel Mac
+[ -d "$HOME/.docker/bin" ] && export PATH="$PATH:$HOME/.docker/bin"          # Docker Desktop
 
 # ── SHELL OPTIONS ─────────────────────────────────────────────────────────────
 
