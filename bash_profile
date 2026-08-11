@@ -107,6 +107,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"                                               # Linux (standard)
 # shellcheck disable=SC1091
 [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"                             # Linux completion
+export PATH=\"$HOME/.npm-global/bin:$PATH\" # user-local npm global installs
 
 # pyenv — Python version management
 # @ref https://opensource.com/article/19/5/python-3-default-mac

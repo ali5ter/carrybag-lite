@@ -229,6 +229,28 @@ config_carrybag() {
     fi
 }
 
+configure_npm() {
+    # Configure npm to use a user-local directory for global installs, avoiding sudo.
+    # @return 0 on success
+    # @example configure_npm
+    mkdir -p "$HOME/.npm-global"
+    npm config set prefix "$HOME/.npm-global"
+    export PATH="$HOME/.npm-global/bin:$PATH"
+}
+
+install_cfonts() {
+    # Install cfonts for fancy ASCII art text in the terminal. Uses brew on macOS;
+    # downloads the latest release binary from GitHub on Linux.
+    # @return 0 on success, non-zero if install fails
+    # @example install_cfonts
+    # @ref https://github.com/dominikwilkowski/cfonts
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install cfonts
+    else
+        npm install -g cfonts
+    fi
+
+}
 
 install_banner() {
     # Copy banner.sh to /etc/profile.d/ on Linux for login-time display. No-op on macOS.
@@ -678,6 +700,14 @@ main() {
     pfb info "Configure carrybag-lite..."
     config_carrybag
     pfb success "carrybag-lite configured!"
+    echo
+    pfb info "Configuring npm..."
+    configure_npm
+    pfb success "npm configured for user-local global installs!"
+    echo
+    pfb info "Installing cfonts..."
+    install_cfonts
+    pfb success "cfonts installed!"
     echo
     pfb info "Installing nerd fonts..."
     install_nerd_fonts
