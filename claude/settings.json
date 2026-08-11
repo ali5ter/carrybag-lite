@@ -1,9 +1,4 @@
 {
-  "model": "opusplan",
-  "statusLine": {
-    "type": "command",
-    "command": "bash ~/.claude/statusline-command.sh"
-  },
   "hooks": {
     "PostToolUse": [
       {
@@ -43,6 +38,11 @@
         ]
       }
     ]
+  },
+  "model": "opusplan",
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "claude-workflow-skills@ali5ter": true,
