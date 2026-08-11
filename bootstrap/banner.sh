@@ -7,7 +7,7 @@
 # install_banner() in bootstrap/install.sh.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.0.0
+# Version: 1.0.1
 # Date: 2026-04-20
 # License: MIT
 #
@@ -38,11 +38,15 @@ else
 fi
 
 echo ""
-echo -e "\e[1;32m$(figlet -f slant "$HOSTNAME")\e[0m"
-echo "=========================================="
+if type cfonts >/dev/null 2>&1 ; then
+    echo -e "\e[1;32m$(cfonts "$HOSTNAME" -f tiny -g red,blue -b "#101010")\e[0m"
+else
+    echo -e "\e[1;32m$(figlet -f slant "$HOSTNAME")\e[0m"
+fi
+echo ""
 echo -e " 🖥️  \e[1;36mOperating System:\e[0m $OS_VER"
 echo -e " 📡 \e[1;36mNetwork Interface:\e[0m $NET_IFACE"
 echo -e " 🌐 \e[1;36mIP Address:       \e[0m $IP"
 echo -e " ⏰ \e[1;36mUptime:           \e[0m $UPTIME"
-echo "=========================================="
+echo ""
 echo ""
