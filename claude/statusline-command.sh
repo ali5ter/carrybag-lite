@@ -61,26 +61,32 @@ if [ -n "$agent" ]; then
     agent_info=" | agent:$agent"
 fi
 
-# ANSI colors for the context-window gauge
+# ANSI colors for the context-window and rate-limit gauges
 RESET=$'\033[0m'
 GREEN=$'\033[32m'
 YELLOW=$'\033[33m'
 RED=$'\033[31m'
 
-# Context window used, color-coded (green <40%, yellow 40-69%, red 70%+) as a
-# visual cue for when to run /compact. This is the model's context window,
-# not the account rate limit reported below.
+# Pick a gauge color for a percentage (green <40%, yellow 40-69%, red 70%+).
+# @param $1  Integer percentage
+# @return 0
+# @example color_for_pct 45  # prints $YELLOW
+color_for_pct() {
+    if [ "$1" -ge 70 ]; then
+        printf '%s' "$RED"
+    elif [ "$1" -ge 40 ]; then
+        printf '%s' "$YELLOW"
+    else
+        printf '%s' "$GREEN"
+    fi
+}
+
+# Context window used, color-coded as a visual cue for when to run /compact.
+# This is the model's context window, not the account rate limit below.
 ctx_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty' | cut -d. -f1)
 ctx_info=""
 if [ -n "$ctx_pct" ]; then
-    if [ "$ctx_pct" -ge 70 ]; then
-        ctx_color="$RED"
-    elif [ "$ctx_pct" -ge 40 ]; then
-        ctx_color="$YELLOW"
-    else
-        ctx_color="$GREEN"
-    fi
-    ctx_info=" | Context: ${ctx_color}${ctx_pct}%${RESET}"
+    ctx_info=" | Context: $(color_for_pct "$ctx_pct")${ctx_pct}%${RESET}"
 fi
 
 # Session cost in USD - resets to $0 on /clear; not a daily total
@@ -92,13 +98,13 @@ fi
 
 # Claude plan rate-limit usage (Pro/Max subscribers only; absent otherwise).
 # This is the account-level limit - a different metric from context usage above.
-five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
-seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' | cut -d. -f1)
+seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' | cut -d. -f1)
 limit_info=""
 if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
     limit_info=" | Limits:"
-    [ -n "$five_h" ] && limit_info="${limit_info} 5h:$(printf '%.0f' "$five_h")%"
-    [ -n "$seven_d" ] && limit_info="${limit_info} 7d:$(printf '%.0f' "$seven_d")%"
+    [ -n "$five_h" ] && limit_info="${limit_info} 5h:$(color_for_pct "$five_h")${five_h}%${RESET}"
+    [ -n "$seven_d" ] && limit_info="${limit_info} 7d:$(color_for_pct "$seven_d")${seven_d}%${RESET}"
 fi
 
 # Output format: hostname in directory [on git:branch]
