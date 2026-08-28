@@ -130,7 +130,8 @@ The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, prov
 
 - **`CLAUDE.md`** — development principles loaded automatically into every session
 - **`settings.json`** — preferences including statusline, always-thinking mode, and enabled plugins
-- **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model, and token usage
+- **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model,
+  color-coded context-window usage, session cost, and Claude plan rate-limit usage (5h/7d)
 - **`skills/`** — language standards loaded on demand rather than in every session
 
 Enabled plugins (pre-configured in `settings.json`):
