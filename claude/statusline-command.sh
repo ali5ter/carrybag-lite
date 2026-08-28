@@ -87,7 +87,7 @@ fi
 cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
 cost_info=""
 if [ -n "$cost" ]; then
-    cost_info=$(printf " | sess:\$%.2f" "$cost")
+    cost_info=$(printf " | Session: \$%.2f" "$cost")
 fi
 
 # Claude plan rate-limit usage (Pro/Max subscribers only; absent otherwise).
@@ -96,12 +96,12 @@ five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty'
 seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
 limit_info=""
 if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
-    limit_info=" |"
+    limit_info=" | Limits:"
     [ -n "$five_h" ] && limit_info="${limit_info} 5h:$(printf '%.0f' "$five_h")%"
     [ -n "$seven_d" ] && limit_info="${limit_info} 7d:$(printf '%.0f' "$seven_d")%"
 fi
 
 # Output format: hostname in directory [on git:branch]
-#                model [| agent:name] [| Context: NN%] [| sess:$cost] [| 5h:NN% 7d:NN%]
+#                model [| agent:name] [| Context: NN%] [| Session: $cost] [| Limits: 5h:NN% 7d:NN%]
 printf "%s in %s%s\n%s%s%s%s%s" \
     "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$ctx_info" "$cost_info" "$limit_info"
