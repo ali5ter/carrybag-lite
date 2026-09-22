@@ -31,6 +31,30 @@ set -o vi
 export EDITOR='vim'
 export GIT_EDITOR="$EDITOR"
 
+# fzf — fuzzy finder (Ctrl-R history, Ctrl-T files, Alt-C directories)
+# Set up before PACKAGE MANAGER below: that section's once-daily update can
+# block on a slow/flaky network (e.g. while travelling) or need an
+# interactive sudo prompt, and an interrupted `source` used to abort the rest
+# of this file before Ctrl-R ever got bound.
+eval "$(fzf --bash)"
+type fdfind >/dev/null 2>&1 && alias fd=fdfind  # Debian installs fd as fdfind
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='
+  --height 40%
+  --layout=reverse
+  --border
+  --info=inline
+'
+_bat_cmd=$(type -P bat 2>/dev/null || type -P batcat 2>/dev/null) # bat on macOS, batcat on Debian
+export FZF_CTRL_T_OPTS="
+  --preview '$_bat_cmd -n --color=always {}'
+  --line-range :500 {}
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+
+export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
+
 # ── PACKAGE MANAGER ───────────────────────────────────────────────────────────
 
 if [[ "$OSTYPE" == 'darwin'* ]]; then
@@ -124,26 +148,6 @@ type starship >/dev/null 2>&1 && eval "$(starship init bash)"
 # shellcheck disable=SC2154
 PS2="… "             # continuation prompt
 PS4="$0.$LINENO ⨠ " # tracing prompt
-
-# fzf — fuzzy finder (Ctrl-R history, Ctrl-T files, Alt-C directories)
-eval "$(fzf --bash)"
-type fdfind >/dev/null 2>&1 && alias fd=fdfind  # Debian installs fd as fdfind
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
-export FZF_DEFAULT_OPTS='
-  --height 40%
-  --layout=reverse
-  --border
-  --info=inline
-'
-_bat_cmd=$(type -P bat 2>/dev/null || type -P batcat 2>/dev/null) # bat on macOS, batcat on Debian
-export FZF_CTRL_T_OPTS="
-  --preview '$_bat_cmd -n --color=always {}'
-  --line-range :500 {}
-  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
-
-export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
 # ── ALIASES ───────────────────────────────────────────────────────────────────
 
