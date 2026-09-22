@@ -7,37 +7,42 @@ Utility scripts for day-to-day development workflow.
 Pull the latest changes for every git repository found in a directory.
 
 ```bash
-update.sh [-q|--quiet] [-f|--fetch-only] [-s|--stash] [-p|--parallel] [-h] [directory]
+update.sh [-v|--verbose] [-f|--fetch-only] [-s|--stash] [--serial] [--pager] [-h] [directory]
 ```
 
 | Argument             | Default | Description                              |
-|----------------------|---------|------------------------------------------|
-| `-q`, `--quiet`      |         | Only show repos with changes or problems |
+|----------------------|---------|-------------------------------------------|
+| `-v`, `--verbose`    |         | Show every repo, including those already up to date |
 | `-f`, `--fetch-only` |         | Fetch only — report behind, no pull      |
 | `-s`, `--stash`      |         | Auto-stash local changes, pull, then pop |
-| `-p`, `--parallel`   |         | Pull all repos concurrently              |
+| `--serial`           |         | Update repos one at a time (default is concurrent) |
+| `--pager`            |         | Page output through `$UPDATE_PAGER` (default: `less -FRX`) |
 | `-h`, `--help`       |         | Show help and exit                       |
 | `directory`          | `$PWD`  | Directory to scan for git repositories   |
 
 **Behaviour:**
 
+- Only shows repos with changes or problems by default; pass `--verbose` to see everything
 - Skips any repository with uncommitted local changes (warns you)
 - Skips any repository whose remote is unreachable (warns you)
 - Uses `--ff-only` to avoid creating merge commits
 - All git operations are subject to a timeout (default 60s; override
   with `GIT_PULL_TIMEOUT=N`)
-- Parallel mode runs up to 8 concurrent jobs (override with
-  `UPDATE_MAX_JOBS=N`); results are displayed in original directory order
+- Runs up to 8 concurrent jobs by default (override with `UPDATE_MAX_JOBS=N`,
+  or pass `--serial` for one-at-a-time output order); results are displayed
+  in original directory order either way
+- `--pager` pipes the report through `less -FRX` (quits automatically if it
+  fits on one screen); override with `UPDATE_PAGER`
 - Prints a summary: updated / already current / skipped / failed
 
 **Examples:**
 
 ```bash
-# Update all repos in the current directory
+# Update all repos in the current directory (quiet + concurrent, by default)
 update.sh
 
-# Only show repos that changed or had problems
-update.sh --quiet
+# Show every repo, including those already up to date
+update.sh --verbose
 
 # See what's pending without pulling anything
 update.sh --fetch-only
@@ -45,11 +50,14 @@ update.sh --fetch-only
 # Auto-stash local changes, pull, then restore
 update.sh --stash
 
-# Pull all repos in parallel (faster for many repos)
-update.sh --parallel
+# Update one repo at a time instead of concurrently
+update.sh --serial
 
-# Parallel with a custom concurrency limit
-UPDATE_MAX_JOBS=4 update.sh --parallel
+# Show every repo, paged so it doesn't blow past your scrollback
+update.sh --verbose --pager
+
+# Custom concurrency limit
+UPDATE_MAX_JOBS=4 update.sh
 
 # Update all repos in a specific directory
 update.sh ~/Documents/projects
@@ -62,6 +70,65 @@ GIT_PULL_TIMEOUT=15 update.sh
 
 ```bash
 DEBUG=1 update.sh
+```
+
+---
+
+## status.sh — Bulk git status reporter
+
+Report local git status for every repository found in a directory — branch,
+dirty files, unpushed/unpulled commits, and stashes — so you can catch up on
+what's going on across projects after switching machines or context.
+
+```bash
+status.sh [-v|--verbose] [-f|--fetch] [--serial] [--pager] [-h] [directory]
+```
+
+| Argument           | Default | Description                                              |
+|--------------------|---------|------------------------------------------------------------|
+| `-v`, `--verbose`  |         | Show every repo, including those already clean and up to date |
+| `-f`, `--fetch`    |         | Fetch from origin first, so ahead/behind counts are current |
+| `--serial`         |         | Scan repos one at a time (default is concurrent)          |
+| `--pager`          |         | Page output through `$STATUS_PAGER` (default: `less -FRX`) |
+| `-h`, `--help`     |         | Show help and exit                                        |
+| `directory`        | `$PWD`  | Directory to scan for git repositories                    |
+
+**Behaviour:**
+
+- Only lists repos that need attention by default; pass `--verbose` to see everything
+  (clean repos are still counted in the summary either way)
+- Read-only by default — no network calls unless `--fetch` is passed
+- Flags a repo as needing attention if it has: uncommitted changes, unpushed
+  or unpulled commits, stashes, or is checked out on a non-default branch
+- Names the dirty files when there are three or fewer, instead of just a count
+- Ahead/behind counts come from the last fetch unless `--fetch` is used
+- Runs up to 8 concurrent jobs by default (override with `STATUS_MAX_JOBS=N`,
+  or pass `--serial` for one-at-a-time output order); results are displayed
+  in original directory order either way
+- `--pager` pipes the report through `less -FRX` (quits automatically if it
+  fits on one screen); override with `STATUS_PAGER`
+- Prints a summary: clean and up to date / need attention
+
+**Examples:**
+
+```bash
+# The "catch me up" view — just the repos that need attention (quiet + concurrent, by default)
+status.sh
+
+# Show every repo, including those already clean and up to date
+status.sh --verbose
+
+# Refresh from origin first for accurate ahead/behind counts
+status.sh --fetch
+
+# Scan one repo at a time instead of concurrently
+status.sh --serial
+
+# Show every repo, paged so it doesn't blow past your scrollback
+status.sh --verbose --pager
+
+# Check a specific directory
+status.sh ~/Documents/projects
 ```
 
 ---

@@ -2,11 +2,13 @@
 #
 # statusline-command.sh - Custom status line for Claude Code
 #
-# Displays hostname, directory, and git status in a Starship-inspired format.
+# Displays hostname, directory, git status, model, color-coded context-window
+# usage, session cost, and Claude plan rate-limit usage in a Starship-inspired
+# two-line format.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 2.0.0
-# Date: 2026-02-08
+# Version: 2.2.0
+# Date: 2026-08-28
 # License: MIT
 #
 # Usage: Piped from Claude Code statusline hook — receives JSON on stdin.
@@ -49,9 +51,8 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     fi
 fi
 
-# Fetch current model and usage data
+# Fetch current model
 model=$(echo "$input" | jq -r '.model.display_name')
-used=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
 
 # Get agent name if one is loaded
 agent_info=""
@@ -60,6 +61,53 @@ if [ -n "$agent" ]; then
     agent_info=" | agent:$agent"
 fi
 
+# ANSI colors for the context-window and rate-limit gauges
+RESET=$'\033[0m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+RED=$'\033[31m'
+
+# Pick a gauge color for a percentage (green <40%, yellow 40-69%, red 70%+).
+# @param $1  Integer percentage
+# @return 0
+# @example color_for_pct 45  # prints $YELLOW
+color_for_pct() {
+    if [ "$1" -ge 70 ]; then
+        printf '%s' "$RED"
+    elif [ "$1" -ge 40 ]; then
+        printf '%s' "$YELLOW"
+    else
+        printf '%s' "$GREEN"
+    fi
+}
+
+# Context window used, color-coded as a visual cue for when to run /compact.
+# This is the model's context window, not the account rate limit below.
+ctx_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty' | cut -d. -f1)
+ctx_info=""
+if [ -n "$ctx_pct" ]; then
+    ctx_info=" | Context: $(color_for_pct "$ctx_pct")${ctx_pct}%${RESET}"
+fi
+
+# Session cost in USD - resets to $0 on /clear; not a daily total
+cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
+cost_info=""
+if [ -n "$cost" ]; then
+    cost_info=$(printf " | Session: \$%.2f" "$cost")
+fi
+
+# Claude plan rate-limit usage (Pro/Max subscribers only; absent otherwise).
+# This is the account-level limit - a different metric from context usage above.
+five_h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty' | cut -d. -f1)
+seven_d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' | cut -d. -f1)
+limit_info=""
+if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
+    limit_info=" | Limits:"
+    [ -n "$five_h" ] && limit_info="${limit_info} 5h:$(color_for_pct "$five_h")${five_h}%${RESET}"
+    [ -n "$seven_d" ] && limit_info="${limit_info} 7d:$(color_for_pct "$seven_d")${seven_d}%${RESET}"
+fi
+
 # Output format: hostname in directory [on git:branch]
-#                model [| agent:name] | usage
-printf "%s in %s%s\n%s%s | Usage: %d%%" "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$used"
+#                model [| agent:name] [| Context: NN%] [| Session: $cost] [| Limits: 5h:NN% 7d:NN%]
+printf "%s in %s%s\n%s%s%s%s%s" \
+    "$hostname" "$display_path" "$git_info" "$model" "$agent_info" "$ctx_info" "$cost_info" "$limit_info"

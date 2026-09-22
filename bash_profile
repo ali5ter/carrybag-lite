@@ -8,6 +8,14 @@
 export PATH="/usr/local/sbin:$PATH"
 [ -x /opt/homebrew/bin/brew ] && export PATH="/opt/homebrew/bin:$PATH"       # Apple Silicon
 [ -x /usr/local/Homebrew/bin/brew ] && export PATH="/usr/local/Homebrew/bin:$PATH" # Intel Mac
+[ -d "$HOME/.docker/bin" ] && export PATH="$PATH:$HOME/.docker/bin"          # Docker Desktop
+
+# Everything below is interactive-only. Bash sources ~/.bashrc for non-interactive shells
+# started by sshd (rsync/scp/git over SSH), and any output here corrupts their binary streams.
+case $- in
+    *i*) ;;
+      *) return ;;
+esac
 
 # ── SHELL OPTIONS ─────────────────────────────────────────────────────────────
 
@@ -116,13 +124,14 @@ type zoxide >/dev/null 2>&1 && eval "$(zoxide init bash --cmd jump)"
 # nvm — Node version management
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
-[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"                          # macOS (Homebrew)
+[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh" # macOS (Homebrew)
 # shellcheck disable=SC1091
-[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # macOS completion
+[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"   # macOS completion
 # shellcheck disable=SC1091
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"                                               # Linux (standard)
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" # Linux (standard)
 # shellcheck disable=SC1091
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"                             # Linux completion
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"   # Linux completion
+export PATH="$HOME/.npm-global/bin:$PATH"   # user-local npm global installs
 
 # pyenv — Python version management
 # @ref https://opensource.com/article/19/5/python-3-default-mac

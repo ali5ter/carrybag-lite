@@ -26,7 +26,7 @@ Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspbe
 - 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
-- 🤖 AI tools: Claude Code, Gemini CLI, and Codex CLI — all sharing the same coding standards from a single source
+- 🤖 AI tools: Claude Code, Antigravity CLI (agy), and Codex CLI — sharing the same standards and skills
 
 ## Quick Install
 
@@ -67,8 +67,8 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 **Common (macOS and Linux):**
 
 - `git`, `vim`, `shellcheck`, `watch`
-- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`
-- `starship` (prompt), `fzf` (history + fuzzy search), `z` (directory jumper)
+- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`, `glow`
+- `starship` (prompt), `fzf` (history + fuzzy search), `zoxide` (directory jumper)
 - Nerd Fonts, Claude Code
 
 **macOS only:**
@@ -81,7 +81,7 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 
 - `curl`, `wget`, `gnupg`, `fontconfig`, `nodejs`, `npm`
 - `btop`, `ncdu` (system monitoring)
-- `gemini-cli`, `codex` (AI tools, installed via npm)
+- `codex` (AI tools, installed via npm; Antigravity CLI Linux install TBD)
 - ufw firewall configuration
 - Login banner with hostname and system info
 
@@ -97,28 +97,42 @@ ln -sf $PWD/bash_profile ~/.bash_profile
 
 ## AI Tools Configuration
 
-The bootstrap installs Claude Code, Gemini CLI, and Codex CLI, and wires up shared
-development standards so all three tools operate from the same principles.
+The bootstrap installs Claude Code, Antigravity CLI (agy), and Codex CLI, and wires up
+shared development standards and skills so all three tools operate from the same principles.
 
 ### Shared development standards
 
 `claude/CLAUDE.md` is the single source of truth for coding standards and project conventions.
 It is automatically loaded by Claude Code as the user-level instruction file. The same file is
-shared with Codex CLI via a symlink so all AI tools enforce the same standards:
+shared with Codex CLI and Antigravity CLI via symlinks so all AI tools enforce the same standards.
+Skills defined in `~/.claude/skills/` are also linked into each tool's skills directory
+so the same skills are available across all three tools.
 
 | Tool | Config location | Source |
 | --- | --- | --- |
 | Claude Code | `~/.claude/CLAUDE.md` | symlinked from `claude/CLAUDE.md` |
 | Codex CLI | `~/.codex/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
-| Gemini CLI | `~/.gemini/GEMINI.md` | symlinked from `claude/CLAUDE.md` |
+| Antigravity CLI | `~/.gemini/config/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
+
+| Tool | Skills location | Source |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills/<skill>/` | symlinked from `claude/skills/` |
+| Codex CLI | `~/.codex/skills/<skill>/` | symlinked from `~/.claude/skills/` |
+| Antigravity CLI | `~/.gemini/config/skills/<skill>/` | symlinked from `~/.claude/skills/` |
+
+`CLAUDE.md` is loaded into every session, so it deliberately holds only guidance that applies
+every time. Language-specific conventions live in `claude/skills/` and are loaded on demand:
+`bash-standards`, `python-standards`, `go-standards`, and `node-ts-standards`.
 
 ### Claude Code
 
 The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, providing:
 
-- **`CLAUDE.md`** — seven development principles loaded automatically into every session
+- **`CLAUDE.md`** — development principles loaded automatically into every session
 - **`settings.json`** — preferences including statusline, always-thinking mode, and enabled plugins
-- **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model, and token usage
+- **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model,
+  color-coded context-window usage, session cost, and Claude plan rate-limit usage (5h/7d)
+- **`skills/`** — language standards loaded on demand rather than in every session
 
 Enabled plugins (pre-configured in `settings.json`):
 
@@ -141,14 +155,18 @@ install them with:
 ### Codex CLI
 
 `codex/install.sh` symlinks `claude/CLAUDE.md` → `~/.codex/AGENTS.md`. Codex reads `AGENTS.md`
-as its user-level instruction file, so it operates from the same seven principles as Claude Code
-without any duplication.
+as its user-level instruction file, so it operates from the same development principles as Claude
+Code without any duplication. It also links each skill directory from `~/.claude/skills/` into
+`~/.codex/skills/` so Codex has access to the same skills as Claude Code.
 
-### Gemini CLI
+### Antigravity CLI (agy)
 
-`gemini/install.sh` symlinks `claude/CLAUDE.md` → `~/.gemini/GEMINI.md`. Gemini CLI reads
-`GEMINI.md` as its user-level instruction file (verified with `/memory show` inside a Gemini
-session), applying the same seven development principles as Claude Code and Codex.
+`antigravity/install.sh` symlinks `claude/CLAUDE.md` → `~/.gemini/config/AGENTS.md`.
+Antigravity CLI (`agy`) is the successor to Gemini CLI and reads `AGENTS.md` from its Global
+Customizations Root (`~/.gemini/config/`), applying the same development principles as Claude
+Code and Codex. Skills are linked into `~/.gemini/config/skills/`. Note: despite the tool
+migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its home directory.
+Install via `brew install --cask antigravity-cli`.
 
 ## Additional Tools
 

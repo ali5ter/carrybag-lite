@@ -167,7 +167,7 @@ sync_local() {
     pfb subheading "  To: $TARGET_DIR"
     $DRY_RUN && pfb warn "Dry run — no files will be transferred"
 
-    [[ -d "$TARGET_DIR" ]] || mkdir -p "$TARGET_DIR"
+    $DRY_RUN || { [[ -d "$TARGET_DIR" ]] || mkdir -p "$TARGET_DIR"; }
 
     rsync "${flags[@]}" "${EXCLUDE_FLAGS[@]}" "$SOURCE_DIR" "$TARGET_DIR"
 }

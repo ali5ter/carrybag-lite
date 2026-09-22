@@ -1,12 +1,55 @@
 {
+  "model": "opusplan",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/verify-edit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guard-secrets.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guard-gh-attribution.sh",
+            "if": "Bash(gh *)"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/resume-context.sh"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
-    "claude-workflow-skills@ali5ter": true,
     "over-50s-health@ali5ter": true,
-    "obsidian-project-documentation@ali5ter": true
+    "claude-workflow-skills@ali5ter": true,
+    "tui-ux-tester@ali5ter": true,
+    "github@claude-plugins-official": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ali5ter": {
@@ -14,11 +57,15 @@
         "source": "github",
         "repo": "ali5ter/claude-plugins"
       },
-      "autoUpdate": false
+      "autoUpdate": true
     }
   },
   "alwaysThinkingEnabled": true,
+  "remote": {
+    "defaultEnvironmentId": "env_01GnpxYGjGbLtWdWQjSYsaVm"
+  },
+  "tui": "default",
   "autoDreamEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "model": "sonnet"
+  "agentPushNotifEnabled": true
 }

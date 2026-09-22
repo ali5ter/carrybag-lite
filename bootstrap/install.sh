@@ -127,19 +127,22 @@ MAC_PKGS=(
     bash git zoxide
     shellcheck vim watch bash-completion@2
     node go
-    jq yq bat fd tree fzf
+    jq yq bat fd tree fzf glow
     btop ncdu nmap wakeonlan
-    gemini-cli codex figlet
+    figlet cfonts
 )
 # shellcheck disable=SC2034
 MAC_CASK_PKGS=(
     iterm2 1password dropbox cleanmymac figma
     microsoft-teams whatsapp visual-studio-code
+    claude claude-code
+    codex
+    antigravity-cli
 )
 # shellcheck disable=SC2034
 LINUX_PKGS=(
     curl wget gnupg git nodejs npm
-    jq yq bat tree fd-find fzf figlet
+    jq yq bat tree fd-find fzf figlet glow
     zoxide shellcheck vim watch
     btop ncdu fontconfig wakeonlan
 )
@@ -200,6 +203,8 @@ ethernet_over_wifi() {
         nmcli --fields autoconnect-priority,name connection
         sudo nmcli connection modify "Wired connection 1" connection.autoconnect-priority 999
         nmcli --fields autoconnect-priority,name connection
+    else
+        return 0
     fi
 }
 
@@ -209,6 +214,10 @@ config_carrybag() {
     # @return 0 on success
     # @example config_carrybag
     if [[ "$OSTYPE" == "darwin"* ]]; then
+        if [[ -f ~/.bash_profile && ! -L ~/.bash_profile ]]; then
+            # shellcheck disable=SC2046
+            cp ~/.bash_profile ~/.bash_profile.$(date +%Y%m%d%H%M%S)
+        fi
         ln -sf "$(src_dir)/carrybag-lite/bash_profile" ~/.bash_profile
     else
         if [[ -f ~/.bashrc && ! -L ~/.bashrc ]]; then
@@ -220,6 +229,28 @@ config_carrybag() {
     fi
 }
 
+configure_npm() {
+    # Configure npm to use a user-local directory for global installs, avoiding sudo.
+    # @return 0 on success
+    # @example configure_npm
+    mkdir -p "$HOME/.npm-global"
+    npm config set prefix "$HOME/.npm-global"
+    export PATH="$HOME/.npm-global/bin:$PATH"
+}
+
+install_cfonts() {
+    # Install cfonts for fancy ASCII art text in the terminal. Uses brew on macOS;
+    # downloads the latest release binary from GitHub on Linux.
+    # @return 0 on success, non-zero if install fails
+    # @example install_cfonts
+    # @ref https://github.com/dominikwilkowski/cfonts
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install cfonts
+    else
+        npm install -g cfonts
+    fi
+
+}
 
 install_banner() {
     # Copy banner.sh to /etc/profile.d/ on Linux for login-time display. No-op on macOS.
@@ -245,11 +276,11 @@ install_nerd_fonts() {
         [[ -d ~/.fonts ]] || mkdir -p ~/.fonts
         cd ~/.fonts || exit
         curl -fLo "Source Code Pro Nerd Font Complete.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/tree/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/db46f01c7a69befc5b656abbaec079d717c2e505/patched-fonts/SourceCodePro/SauceCodeProNerdFontMono-Regular.ttf
         curl -fLo "Symbols Nerd Font-Regular.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFont-Regular.ttf
         curl -fLo "Symbols Nerd Font Mono-Regular.ttf" \
-            https://github.com/ryanoasis/nerd-fonts/blob/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf
+            https://raw.githubusercontent.com/ryanoasis/nerd-fonts/e708dbae2dbc943dca073703f05a34645a5367c0/patched-fonts/NerdFontsSymbolsOnly/SymbolsNerdFontMono-Regular.ttf
         sudo fc-cache
     fi
 }
@@ -325,6 +356,21 @@ showLineNumbers: false
 # preserve newlines in the output
 preserveNewLines: false
 END_OF_GLOW_CONFIG
+}
+
+install_lint_tools() {
+    # Install ruff (Python) and markdownlint-cli (Markdown), the linters the Claude Code
+    # verify-edit.sh hook shells out to. Without these, that hook silently skips Python and
+    # Markdown checks. Uses brew formulas on macOS; npm and the official installer script on
+    # Linux, since neither ships in the Debian/Raspberry Pi OS apt repos.
+    # @return 0 on success, non-zero if any install step fails
+    # @example install_lint_tools
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        install ruff markdownlint-cli
+    else
+        curl -LsSf https://astral.sh/ruff/install.sh | sh
+        sudo npm install -g markdownlint-cli
+    fi
 }
 
 install_starship() {
@@ -510,25 +556,29 @@ EOT
 }
 
 install_ai_tools() {
-    # Install Claude Code, Gemini CLI, and Codex CLI. On macOS uses brew (gemini-cli
-    # and codex) plus the Claude installer script; on Linux uses curl and npm.
+    # Install Claude Code, Antigravity CLI (agy), and Codex CLI. On macOS uses brew
+    # (antigravity-cli cask and codex formula) plus the Claude installer script;
+    # on Linux uses curl and npm. Antigravity CLI (agy) is the successor to Gemini CLI.
     # @return 0 on success, non-zero if any installer fails
     # @example install_ai_tools
     if [[ "$OSTYPE" == "darwin"* ]]; then
         install claude-code
-        # gemini-cli and codex installed in bootstrap_mac via brew
+        # antigravity-cli and codex installed in bootstrap_mac via brew
     else
         curl -fsSL https://claude.ai/install.sh | bash
         # shellcheck disable=SC2016
         echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.bashrc_local"
-        npm install -g @google/gemini-cli
-        npm install -g @openai/codex
+        # Antigravity CLI (agy) — Linux install method TBD; check https://antigravity.google
+        sudo npm install -g @openai/codex
     fi
 }
 
 config_claude_code() {
-    # Configure Claude Code by symlinking files from claude/ to ~/.claude/.
-    # Delegates to claude/install.sh which handles backups and idempotency.
+    # Configure Claude Code by symlinking files from claude/ to ~/.claude/, and each
+    # skill directory from claude/skills/ to ~/.claude/skills/. Delegates to
+    # claude/install.sh which handles backups and idempotency. Must run before
+    # config_codex and config_antigravity, which link ~/.claude/skills/ into their own
+    # skills directories.
     # @return 0 on success, 0 with warning if claude/ directory is missing
     # @example config_claude_code
     local repo_dir
@@ -554,17 +604,18 @@ config_codex() {
     fi
 }
 
-config_gemini() {
-    # Configure Google Gemini CLI by symlinking CLAUDE.md as GEMINI.md
+config_antigravity() {
+    # Configure Antigravity CLI (agy) by symlinking CLAUDE.md as AGENTS.md into
+    # ~/.gemini/config/ and linking Claude Code skills. Antigravity CLI is the successor to Gemini CLI.
     # @param None
     # @return 0 on success, 1 on failure
-    # @example config_gemini
+    # @example config_antigravity
     local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
-    if [[ -d "$repo_dir/gemini" ]]; then
-        "$repo_dir/gemini/install.sh"
+    if [[ -d "$repo_dir/antigravity" ]]; then
+        "$repo_dir/antigravity/install.sh"
     else
-        pfb warn "Gemini CLI configuration directory not found at $repo_dir/gemini"
+        pfb warn "Antigravity CLI configuration directory not found at $repo_dir/antigravity"
     fi
 }
 
@@ -630,7 +681,7 @@ main() {
     pfb success "Bootstrap complete!"
     echo
     echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         ethernet_over_wifi
         pfb success "Network interfaces prioritized!"
@@ -640,7 +691,7 @@ main() {
     remote_management || pfb warn "Remote management setup failed"
     echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         install_pyenv
         pfb success "pyenv installed!"
@@ -650,6 +701,14 @@ main() {
     config_carrybag
     pfb success "carrybag-lite configured!"
     echo
+    pfb info "Configuring npm..."
+    configure_npm
+    pfb success "npm configured for user-local global installs!"
+    echo
+    pfb info "Installing cfonts..."
+    install_cfonts
+    pfb success "cfonts installed!"
+    echo
     pfb info "Installing nerd fonts..."
     install_nerd_fonts
     pfb success "Nerd fonts installed!"
@@ -658,12 +717,16 @@ main() {
     install_starship
     pfb success "Starship prompt installed!"
     echo
+    pfb info "Installing lint tools (ruff, markdownlint)..."
+    install_lint_tools
+    pfb success "Lint tools installed!"
+    echo
     pfb info "Installing glow MD reader..."
     install_glow
     pfb success "Glow MD reader installed!"
     echo
     echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         install_docker
         pfb success "Docker installed!"
@@ -681,9 +744,9 @@ main() {
     config_codex
     pfb success "Codex configured!"
     echo
-    pfb info "Configuring Gemini CLI..."
-    config_gemini
-    pfb success "Gemini CLI configured!"
+    pfb info "Configuring Antigravity CLI (agy)..."
+    config_antigravity
+    pfb success "Antigravity CLI configured!"
     echo
     pfb info "Configuring SSH..."
     config_ssh
@@ -697,7 +760,7 @@ main() {
     echo
     pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
     echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
-    pfb answer ${response:-$default}
+    pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
         pfb info "Rebooting..."
         sudo reboot
