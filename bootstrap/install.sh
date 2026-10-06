@@ -65,11 +65,24 @@ load_brew_env() {
     type brew >/dev/null 2>&1
 }
 
+remove_stale_pfb_tap() {
+    # Untap the retired ali5ter/pfb tap. Homebrew warns about it on every command and refuses
+    # to load its formulae, which includes `brew untap` itself, so trust it just long enough
+    # to remove it. Falls back to --force if formulae from the tap are still installed.
+    # @return 0 whether or not the tap was present
+    # @example remove_stale_pfb_tap
+    brew tap 2>/dev/null | grep -qx 'ali5ter/pfb' || return 0
+    brew trust ali5ter/pfb 2>/dev/null || true
+    brew untap ali5ter/pfb || brew untap --force ali5ter/pfb
+}
+
 ensure_brew() {
     # Make brew available: load an existing install, or install Homebrew first.
+    # Also removes the retired ali5ter/pfb tap so later brew calls are not blocked by it.
     # @return 0 on success, non-zero if Homebrew cannot be installed or found
     # @example ensure_brew
     load_brew_env || { install_brew && load_brew_env; }
+    remove_stale_pfb_tap
 }
 
 install_brew() {
@@ -171,8 +184,6 @@ bootstrap_mac() {
     # @return 0 on success, non-zero if any brew install fails
     # @example bootstrap_mac
     ensure_brew
-    # Retired tap: Homebrew warns about it as untrusted and ignores its formulae
-    ! brew tap | grep -qx 'ali5ter/pfb' || brew untap ali5ter/pfb
     brew tap ali5ter/tap 2>/dev/null || true
     # Newer Homebrew refuses formulae from untrusted taps; older versions lack `brew trust`
     brew trust ali5ter/tap 2>/dev/null || true
