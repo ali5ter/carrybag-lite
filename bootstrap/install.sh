@@ -418,7 +418,16 @@ install_glow() {
         echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
         sudo apt update && sudo apt install glow
     fi
-    cat > "$(glow --help 2>&1 | sed -n 's/.*default \(\/[^)]*\)).*/\1/p')" <<'END_OF_GLOW_CONFIG'
+    # glow --help prints an empty default path until its config directory exists, so build
+    # the path ourselves: ~/Library/Preferences/glow on macOS, XDG config dir on Linux
+    local glow_dir
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        glow_dir="$HOME/Library/Preferences/glow"
+    else
+        glow_dir="${XDG_CONFIG_HOME:-$HOME/.config}/glow"
+    fi
+    mkdir -p "$glow_dir"
+    cat > "$glow_dir/glow.yml" <<'END_OF_GLOW_CONFIG'
 # style name or JSON path (default "auto")
 style: "auto"
 # mouse wheel support (TUI-mode only)
