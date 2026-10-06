@@ -934,11 +934,15 @@ main() {
     pfb info "Open a new terminal window (or log out and back in) so your new login shell and"
     pfb info "carrybag-lite configuration take effect. Until then, run: exec bash -l"
     echo
-    if pfb confirm "Reboot now?" no; then
-        pfb info "Rebooting..."
-        sudo reboot
-    else
-        pfb info "Remember to reboot later for all changes to take effect."
+    # Linux only: apt upgrades, firmware and docker group membership want a reboot or re-login.
+    # macOS needs neither; a new terminal window is enough.
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        if pfb confirm "Reboot now?" no; then
+            pfb info "Rebooting..."
+            sudo reboot
+        else
+            pfb info "Remember to reboot later for all changes to take effect."
+        fi
     fi
 }
 
