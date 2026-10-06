@@ -171,6 +171,8 @@ bootstrap_mac() {
     # @return 0 on success, non-zero if any brew install fails
     # @example bootstrap_mac
     ensure_brew
+    # Retired tap: Homebrew warns about it as untrusted and ignores its formulae
+    ! brew tap | grep -qx 'ali5ter/pfb' || brew untap ali5ter/pfb
     brew tap ali5ter/tap 2>/dev/null || true
     # Newer Homebrew refuses formulae from untrusted taps; older versions lack `brew trust`
     brew trust ali5ter/tap 2>/dev/null || true
@@ -641,6 +643,18 @@ config_antigravity() {
     fi
 }
 
+ensure_modern_bash() {
+    # Re-exec under Homebrew bash when running on macOS system bash 3.2. pfb requires
+    # Bash 4+, and a fresh Mac only has 3.2, so this must run before the first pfb call.
+    # @param args  The original script arguments, passed through to the re-exec
+    # @return does not return when re-exec'ing; 0 if bash is already 4+ or not on macOS
+    # @example ensure_modern_bash "$@"
+    [[ "$OSTYPE" == "darwin"* && "${BASH_VERSINFO[0]}" -lt 4 ]] || return 0
+    ensure_brew
+    brew list bash >/dev/null 2>&1 || brew install bash
+    exec "$(brew --prefix)/bin/bash" "${BASH_SOURCE[0]}" "$@"
+}
+
 main() {
     # Orchestrate the full interactive bootstrap, or dispatch a single component.
     # @param args  Optional subcommand: list | <function_name> | install <pkg> | uninstall <pkg>
@@ -652,6 +666,7 @@ main() {
     # @example ./bootstrap/install.sh uninstall bat
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
+    ensure_modern_bash "$@"
 
     if [[ $# -gt 0 ]]; then
         local cmd="$1"; shift
