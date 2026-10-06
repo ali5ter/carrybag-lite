@@ -110,6 +110,23 @@ install() {
     fi
 }
 
+install_optional() {
+    # Ask before installing each package, using a pfb confirm prompt that defaults to no.
+    # Declining skips that package and is not an error.
+    # @param args  Optional brew flags (e.g. --cask) followed by one or more package names
+    # @return 0 always; a failed install of a confirmed package is propagated
+    # @example install_optional --cask figma whatsapp
+    local flags=() pkg
+    while [[ "${1:-}" == -* ]]; do flags+=("$1"); shift; done
+    for pkg in "$@"; do
+        if pfb confirm "Install optional package '$pkg'?" no; then
+            install "${flags[@]}" "$pkg"
+        else
+            pfb info "Skipped $pkg"
+        fi
+    done
+}
+
 uninstall() {
     # Remove one or more packages using the platform package manager.
     # On macOS uses brew uninstall; on Linux uses apt remove.
@@ -165,11 +182,13 @@ MAC_PKGS=(
 )
 # shellcheck disable=SC2034
 MAC_CASK_PKGS=(
-    iterm2 1password dropbox cleanmymac figma
-    microsoft-teams whatsapp visual-studio-code
-    claude claude-code
-    codex
-    antigravity-cli
+    iterm2 1password dropbox visual-studio-code
+)
+# Casks that are asked about one at a time (see install_optional) instead of installed by default
+# shellcheck disable=SC2034
+MAC_OPTIONAL_CASK_PKGS=(
+    figma cleanmymac whatsapp microsoft-teams
+    claude claude-code codex antigravity-cli
 )
 # shellcheck disable=SC2034
 LINUX_PKGS=(
@@ -195,6 +214,7 @@ bootstrap_mac() {
     export BASH_SILENCE_DEPRECATION_WARNING=1
     install_pyenv
     install --cask "${MAC_CASK_PKGS[@]}"
+    install_optional --cask "${MAC_OPTIONAL_CASK_PKGS[@]}"
 }
 
 bootstrap_linux() {
@@ -597,8 +617,8 @@ install_ai_tools() {
     # @return 0 on success, non-zero if any installer fails
     # @example install_ai_tools
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        install claude-code
-        # antigravity-cli and codex installed in bootstrap_mac via brew
+        # claude-code, codex and antigravity-cli are optional casks, offered in bootstrap_mac
+        :
     else
         curl -fsSL https://claude.ai/install.sh | bash
         # shellcheck disable=SC2016
@@ -689,6 +709,9 @@ main() {
                     echo
                     pfb heading "Homebrew cask apps" "💻"
                     for pkg in "${MAC_CASK_PKGS[@]}"; do pfb subheading "$pkg"; done
+                    echo
+                    pfb heading "Optional Homebrew cask apps (asked first)" "❓"
+                    for pkg in "${MAC_OPTIONAL_CASK_PKGS[@]}"; do pfb subheading "$pkg"; done
                 else
                     pfb heading "APT packages" "📦"
                     for pkg in "${LINUX_PKGS[@]}"; do pfb subheading "$pkg"; done
