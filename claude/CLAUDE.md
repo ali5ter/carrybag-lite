@@ -85,7 +85,9 @@ have". READMEs and tutorials may address the reader directly.
 
 ## GitHub repositories
 
-- Branch protection on the default branch requiring a PR — Alister decides when to merge
+- Branch protection on the default branch blocks force-pushes and deletion. Require a PR only for repos
+  with other contributors, CI, or consumers depending on releases — solo repos promote directly.
+  Alister decides when to merge or promote; never do either unprompted
 - A concise repository description and relevant topics for discoverability
 - `LICENSE` (MIT, copyright Alister Lewis-Bowen) and `README.md` present
 - Releases via annotated semver tags (`v1.2.3`) and GitHub Releases with generated notes
@@ -105,7 +107,8 @@ or `[Claude Code](https://claude.com/claude-code)` when no named skill was respo
 Every project has a `README.md`, `.gitignore`, and `.markdownlint.json`, plus — where relevant —
 `.env.template`, `scripts/`, `lib/` for submodules, and `docs/`.
 
-A project's `CLAUDE.md` holds its AI context (status, decisions, quick resume) and is always
-gitignored. It is managed separately in the private
+A project's `AGENTS.md` holds its AI context (status, decisions, quick resume) and is always
+gitignored. A one-line `CLAUDE.md` containing `@AGENTS.md` may sit beside it for older Claude Code
+versions, and is gitignored too. It is managed separately in the private
 [ai-context](https://github.com/ali5ter/ai-context) repo, keeping project context out of public
 repos while staying available during local development.
