@@ -225,7 +225,7 @@ bootstrap_linux() {
     curl -sL https://raw.githubusercontent.com/ali5ter/pfb/main/install.sh | bash
     pfb heading "Bootstrapping your Linux machine" "🚀"
     sudo apt update
-    if [[ -f /etc/rpi-issue ]]; then
+    if is_rpi; then
         sudo apt full-upgrade
     else
         sudo apt upgrade
@@ -239,7 +239,7 @@ remote_management() {
     # @return 0 on success or non-RPi platform, 1 if rpi-connect sign-in fails
     # @example remote_management || pfb warn "Remote management setup failed"
     # Raspberry Pi remote management tool
-    if [[ -f /etc/rpi-issue ]]; then
+    if is_rpi; then
         install rpi-connect-lite
         rpi-connect on
         loginctl enable-linger
@@ -254,7 +254,7 @@ ethernet_over_wifi() {
     # @return 0 on success or non-RPi platform
     # @example ethernet_over_wifi
     # Prioritize ethernet over wifi if ethernet is available
-    if [[ -f /etc/rpi-issue ]]; then
+    if is_rpi; then
         nmcli --fields autoconnect-priority,name connection
         sudo nmcli connection modify "Wired connection 1" connection.autoconnect-priority 999
         nmcli --fields autoconnect-priority,name connection
@@ -674,6 +674,13 @@ config_antigravity() {
     fi
 }
 
+is_rpi() {
+    # Detect a Raspberry Pi by the /etc/rpi-issue file that Raspberry Pi OS ships.
+    # @return 0 on a Raspberry Pi, 1 otherwise (including every macOS machine)
+    # @example is_rpi && remote_management
+    [[ -f /etc/rpi-issue ]]
+}
+
 ensure_modern_bash() {
     # Re-exec under Homebrew bash when running on macOS system bash 3.2. pfb requires
     # Bash 4+, and a fresh Mac only has 3.2, so this must run before the first pfb call.
@@ -748,19 +755,21 @@ main() {
     else
         bootstrap_linux
     fi
-    install_banner
+    [[ "$OSTYPE" == "darwin"* ]] || install_banner
     pfb success "Bootstrap complete!"
     echo
-    echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
-    pfb answer "${response:-$default}"
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-        ethernet_over_wifi
-        pfb success "Network interfaces prioritized!"
+    if is_rpi; then
+        echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
+        pfb answer "${response:-$default}"
+        if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+            ethernet_over_wifi
+            pfb success "Network interfaces prioritized!"
+        fi
+        echo
+        pfb info "Setting up remote management..."
+        remote_management || pfb warn "Remote management setup failed"
+        echo
     fi
-    echo
-    pfb info "Setting up remote management..."
-    remote_management || pfb warn "Remote management setup failed"
-    echo
     echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
     pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -823,10 +832,12 @@ main() {
     config_ssh
     pfb success "SSH configured!"
     echo
-    pfb info "Configuring firewall..."
-    configure_firewall
-    pfb success "Firewall configured!"
-    echo
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        pfb info "Configuring firewall..."
+        configure_firewall
+        pfb success "Firewall configured!"
+        echo
+    fi
     pfb success "All done!"
     echo
     pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
