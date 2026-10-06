@@ -44,9 +44,10 @@ cd carrybag-lite
 ./bootstrap/install.sh
 ```
 
-This installs all dependencies (including pfb), links configuration, and sets up tools. On macOS it also
-offers to make Homebrew bash your login shell. When it finishes, open a new terminal window (or run
-`exec bash -l`) to load the new configuration.
+This installs all dependencies (including pfb), links configuration, and sets up tools. It works from a
+fresh Mac: it loads Homebrew into the running shell, and re-runs itself under Homebrew bash because the
+system bash (3.2) is too old for pfb. On macOS it also offers to make Homebrew bash your login shell.
+When it finishes, open a new terminal window (or run `exec bash -l`) to load the new configuration.
 
 ### Option 2: Manual Install
 
@@ -72,21 +73,23 @@ Then open a new terminal window to load it.
 **Common (macOS and Linux):**
 
 - `git`, `vim`, `shellcheck`, `watch`
-- `jq`, `yq`, `bat`, `tree`, `fzf`, `figlet`, `glow`
+- `jq`, `yq`, `bat`, `fd`, `tree`, `fzf`, `figlet`, `cfonts`, `glow`
+- `btop`, `ncdu` (system monitoring), `wakeonlan`
 - `starship` (prompt), `fzf` (history + fuzzy search), `zoxide` (directory jumper)
-- Nerd Fonts, Claude Code
+- Nerd Fonts
+- `ruff` and `markdownlint-cli` (used by the Claude Code `verify-edit.sh` hook)
 
 **macOS only:**
 
-- `bash` (latest), `bash-completion`, `node`, `go`
-- `btop`, `ncdu`, `nmap`, `wakeonlan`
-- GUI apps: iTerm2, Visual Studio Code, Figma, 1Password, Dropbox, CleanMyMac
+- `bash` (latest), `bash-completion`, `node`, `go`, `nmap`
+- GUI apps: iTerm2, Visual Studio Code, 1Password, Dropbox
+- [pfb](https://github.com/ali5ter/pfb) from the `ali5ter/tap` Homebrew tap
 
 **Linux only:**
 
 - `curl`, `wget`, `gnupg`, `fontconfig`, `nodejs`, `npm`
-- `btop`, `ncdu` (system monitoring)
-- `codex` (AI tools, installed via npm; Antigravity CLI Linux install TBD)
+- Claude Code and `codex` (AI tools; `codex` via npm; Antigravity CLI Linux install TBD)
+- pfb via its curl installer
 - ufw firewall configuration
 - Login banner with hostname and system info
 
@@ -99,6 +102,8 @@ Then open a new terminal window to load it.
 
 - `pyenv` (Python version management)
 - `docker`
+- macOS apps, asked about one at a time (default no): Figma, CleanMyMac, WhatsApp, Microsoft Teams,
+  Claude, Claude Code, Codex, and Antigravity CLI
 
 ## AI Tools Configuration
 
@@ -138,14 +143,17 @@ The full `claude/` directory is symlinked to `~/.claude/` during bootstrap, prov
 - **`statusline-command.sh`** — custom statusline showing hostname, directory, git branch, model,
   color-coded context-window usage, session cost, and Claude plan rate-limit usage (5h/7d)
 - **`skills/`** — language standards loaded on demand rather than in every session
+- **`hooks/`** — command hooks that enforce standards instead of relying on Claude to remember them:
+  lint on edit, the GitHub attribution footer, secret redaction, and git context after compaction
+  (see [claude/README.md](claude/README.md))
 
 Enabled plugins (pre-configured in `settings.json`):
 
 - [`claude-workflow-skills`](https://github.com/ali5ter/claude-workflow-skills) — `/promote`,
   `/audit-plugin`, `/audit-standards` workflow skills
-- [`obsidian-project-documentation`](https://github.com/ali5ter/obsidian-project-assistant) — automatic
-  project documentation in Obsidian
+- [`tui-ux-tester`](https://github.com/ali5ter/claude-plugins) — UX evaluation of terminal UIs
 - [`over-50s-health`](https://github.com/ali5ter/over-50s-health-advisor) — health and fitness advisor
+- `github`, `mattpocock-skills` and `frontend-design` from the official plugin marketplace
 
 Plugins are distributed via the `ali5ter` Claude Code plugin marketplace. After bootstrapping,
 install them with:
@@ -153,7 +161,7 @@ install them with:
 ```text
 /plugin marketplace add ali5ter/claude-plugins
 /plugin install claude-workflow-skills@ali5ter
-/plugin install obsidian-project-documentation@ali5ter
+/plugin install tui-ux-tester@ali5ter
 /plugin install over-50s-health@ali5ter
 ```
 
