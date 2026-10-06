@@ -161,8 +161,8 @@ install_pyenv() {
     # Latest version of python at time of commit
     # Use `pyenv install --list` for latest
     # @ref https://opensource.com/article/20/4/pyenv
-    pyenv install 3.10.0
-    pyenv install 2.7.18 # last version of 2
+    pyenv install -s 3.10.0
+    pyenv install -s 2.7.18 # last version of 2
     pyenv global 3.10.0
     pyenv versions # confirm current version is set
 
