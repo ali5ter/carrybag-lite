@@ -212,7 +212,6 @@ bootstrap_mac() {
     install "${MAC_PKGS[@]}"
     # ref: https://support.apple.com/en-us/HT208050
     export BASH_SILENCE_DEPRECATION_WARNING=1
-    install_pyenv
     install --cask "${MAC_CASK_PKGS[@]}"
     install_optional --cask "${MAC_OPTIONAL_CASK_PKGS[@]}"
 }
@@ -840,9 +839,8 @@ main() {
     pfb success "Bootstrap complete!"
     echo
     if is_rpi; then
-        echo; local default='N'; read -r -p "Do you want to connect ethernet? [y/N]: " response
-        pfb answer "${response:-$default}"
-        if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+        echo
+        if pfb confirm "Do you want to connect ethernet?" no; then
             ethernet_over_wifi
             pfb success "Network interfaces prioritized!"
         fi
@@ -851,9 +849,8 @@ main() {
         remote_management || pfb warn "Remote management setup failed"
         echo
     fi
-    echo; local default='N'; read -r -p "Install pyenv? [y/N]: " response
-    pfb answer "${response:-$default}"
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    echo
+    if pfb confirm "Install pyenv?" no; then
         install_pyenv
         pfb success "pyenv installed!"
     fi
@@ -896,9 +893,8 @@ main() {
     install_glow
     pfb success "Glow MD reader installed!"
     echo
-    echo; local default='N'; read -r -p "Install Docker? [y/N]: " response
-    pfb answer "${response:-$default}"
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    echo
+    if pfb confirm "Install Docker?" no; then
         install_docker
         pfb success "Docker installed!"
     fi
@@ -927,9 +923,8 @@ main() {
     echo
     pfb info "Open a new terminal window (or log out and back in) so your new login shell and"
     pfb info "carrybag-lite configuration take effect. Until then, run: exec bash -l"
-    echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
-    pfb answer "${response:-$default}"
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    echo
+    if pfb confirm "Reboot now?" no; then
         pfb info "Rebooting..."
         sudo reboot
     else
