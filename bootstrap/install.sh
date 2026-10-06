@@ -689,23 +689,41 @@ offer_config() {
     fi
 }
 
-link_tools() {
-    # Symlink tools/update.sh and tools/status.sh into the projects directory (src_dir) so they
-    # can be run from there. Idempotent: refreshes existing symlinks and never overwrites a
-    # regular file of the same name.
-    # @return 0 on success
-    # @example link_tools
-    local repo_dir projects_dir tool
-    repo_dir="$(src_dir)/carrybag-lite"
-    projects_dir="$(src_dir)"
-    for tool in update.sh status.sh; do
-        if [[ -e "$projects_dir/$tool" && ! -L "$projects_dir/$tool" ]]; then
-            pfb warn "$projects_dir/$tool exists and is not a symlink; leaving it alone"
-        else
-            ln -sf "$repo_dir/tools/$tool" "$projects_dir/$tool"
-            pfb info "Linked $projects_dir/$tool"
-        fi
+projects_dirs() {
+    # Print each existing projects directory, one per line: ~/Documents/Projects and ~/src.
+    # Directories are never created. macOS has case-insensitive paths, so ~/Documents/projects
+    # and ~/Documents/Projects are the same directory there.
+    # @return 0 always; prints nothing if neither directory exists
+    # @example projects_dirs
+    local dir
+    for dir in "$HOME/Documents/Projects" "$HOME/src"; do
+        [[ -d "$dir" ]] && echo "$dir"
     done
+    return 0
+}
+
+link_tools() {
+    # Symlink tools/update.sh and tools/status.sh into each existing projects directory (see
+    # projects_dirs), as `ln -sf <repo>/tools/update.sh` run from that directory would. The
+    # repo is located from this script, so it works wherever it was cloned. Idempotent:
+    # refreshes existing symlinks and never overwrites a regular file of the same name.
+    # @return 0 on success, 0 with a message if no projects directory exists
+    # @example link_tools
+    local repo_dir dir tool found=0
+    repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    while IFS= read -r dir; do
+        found=1
+        for tool in update.sh status.sh; do
+            if [[ -e "$dir/$tool" && ! -L "$dir/$tool" ]]; then
+                pfb warn "$dir/$tool exists and is not a symlink; leaving it alone"
+            else
+                ln -sf "$repo_dir/tools/$tool" "$dir/$tool"
+                pfb info "Linked $dir/$tool"
+            fi
+        done
+    done < <(projects_dirs)
+    [[ $found -eq 1 ]] || pfb info "No ~/Documents/Projects or ~/src directory found; nothing to link"
+    return 0
 }
 
 config_codex() {
@@ -846,12 +864,14 @@ main() {
     echo
     config_default_shell
     echo
-    if pfb confirm "Link update.sh and status.sh into $(src_dir)?" yes; then
-        link_tools
-    else
-        pfb info "Skipped. To do it later: $(basename "$0") link_tools"
+    if [[ -n "$(projects_dirs)" ]]; then
+        if pfb confirm "Link update.sh and status.sh into $(projects_dirs | paste -sd' ' -)?" yes; then
+            link_tools
+        else
+            pfb info "Skipped. To do it later: $(basename "$0") link_tools"
+        fi
+        echo
     fi
-    echo
     pfb info "Configuring npm..."
     configure_npm
     pfb success "npm configured for user-local global installs!"

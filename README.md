@@ -104,8 +104,8 @@ Then open a new terminal window to load it.
 - `docker`
 - Claude Code, Codex, and Antigravity context files and skills, asked about separately (default yes if
   the tool is installed)
-- Symlinks for `tools/update.sh` and `tools/status.sh` in your projects directory
-  (`~/Documents/projects` on macOS, `~/src` on Linux)
+- Symlinks for `tools/update.sh` and `tools/status.sh` in `~/Documents/Projects` and `~/src`, whichever
+  of them exist (neither is created)
 - macOS apps, asked about one at a time (default no): Figma, CleanMyMac, WhatsApp, Microsoft Teams,
   Claude, Claude Code, Codex, and Antigravity CLI
 
@@ -187,9 +187,9 @@ Install via `brew install --cask antigravity-cli`.
 
 ## Additional Tools
 
-The bootstrap offers to symlink `update.sh` and `status.sh` into your projects directory. To do it
-later, run `./bootstrap/install.sh link_tools`. Any single component can be run the same way, for
-example `./bootstrap/install.sh config_codex`.
+The bootstrap offers to symlink `update.sh` and `status.sh` into `~/Documents/Projects` and `~/src`, if
+they exist. To do it later, run `./bootstrap/install.sh link_tools`. Any single component can be run the
+same way, for example `./bootstrap/install.sh config_codex`.
 
 ### Machine Migration
 
