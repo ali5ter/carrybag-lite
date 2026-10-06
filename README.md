@@ -44,7 +44,9 @@ cd carrybag-lite
 ./bootstrap/install.sh
 ```
 
-This installs all dependencies (including pfb), links configuration, and sets up tools.
+This installs all dependencies (including pfb), links configuration, and sets up tools. On macOS it also
+offers to make Homebrew bash your login shell. When it finishes, open a new terminal window (or run
+`exec bash -l`) to load the new configuration.
 
 ### Option 2: Manual Install
 
@@ -52,7 +54,8 @@ For macOS, install latest bash first:
 
 ```bash
 brew install bash
-chsh -s $(brew --prefix)/bin/bash
+echo "$(brew --prefix)/bin/bash" | sudo tee -a /etc/shells
+chsh -s "$(brew --prefix)/bin/bash"
 ```
 
 Then link the configuration:
@@ -61,6 +64,8 @@ Then link the configuration:
 cp ~/.bash_profile ~/.bash_profile.$(date +"%Y%m%d%H%M%S")
 ln -sf $PWD/bash_profile ~/.bash_profile
 ```
+
+Then open a new terminal window to load it.
 
 ## What Gets Installed
 

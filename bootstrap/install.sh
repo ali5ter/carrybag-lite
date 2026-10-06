@@ -284,6 +284,30 @@ config_carrybag() {
     fi
 }
 
+config_default_shell() {
+    # Make Homebrew bash the login shell on macOS, which defaults to zsh. Registers the
+    # shell in /etc/shells (chsh refuses unlisted shells), then asks before running chsh.
+    # Idempotent: does nothing if it is already the login shell. No-op on Linux.
+    # @return 0 on success or when skipped, non-zero if sudo or chsh fails
+    # @example config_default_shell
+    [[ "$OSTYPE" == "darwin"* ]] || return 0
+    local brew_bash current
+    brew_bash="$(brew --prefix)/bin/bash"
+    current="$(dscl . -read "$HOME" UserShell | awk '{print $2}')"
+    if [[ "$current" == "$brew_bash" ]]; then
+        pfb info "Login shell is already $brew_bash"
+        return 0
+    fi
+    if ! grep -qx "$brew_bash" /etc/shells; then
+        echo "$brew_bash" | sudo tee -a /etc/shells >/dev/null
+    fi
+    if pfb confirm "Make $brew_bash your login shell (currently $current)?" yes; then
+        chsh -s "$brew_bash"
+    else
+        pfb info "Skipped. To do it later: chsh -s $brew_bash"
+    fi
+}
+
 configure_npm() {
     # Configure npm to use a user-local directory for global installs, avoiding sudo.
     # @return 0 on success
@@ -781,6 +805,8 @@ main() {
     config_carrybag
     pfb success "carrybag-lite configured!"
     echo
+    config_default_shell
+    echo
     pfb info "Configuring npm..."
     configure_npm
     pfb success "npm configured for user-local global installs!"
@@ -840,7 +866,8 @@ main() {
     fi
     pfb success "All done!"
     echo
-    pfb info "You may need to restart your terminal or log out/in for all changes to take effect."
+    pfb info "Open a new terminal window (or log out and back in) so your new login shell and"
+    pfb info "carrybag-lite configuration take effect. Until then, run: exec bash -l"
     echo; local default='N'; read -r -p "Reboot now? [y/N]: " response
     pfb answer "${response:-$default}"
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
