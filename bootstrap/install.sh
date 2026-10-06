@@ -643,6 +643,50 @@ EOT
     # wakeonlan "$(arp -a | grep -i 192.168.1.16 | awk '{print $4}')"
 }
 
+config_github_ssh() {
+    # Create an ed25519 SSH key for GitHub if none exists, load it into the ssh-agent (macOS
+    # keychain), and register it with GitHub via `gh` when gh is installed and signed in. If gh
+    # is unavailable the public key and the GitHub settings URL are printed instead. Without a
+    # registered key, `git clone git@github.com:...` fails with "Permission denied (publickey)".
+    # Idempotent: an existing key is reused and an existing ssh config block is left alone.
+    # @return 0 on success or when skipped, non-zero if ssh-keygen fails
+    # @example config_github_ssh
+    # @ref https://docs.github.com/en/authentication/connecting-to-github-with-ssh
+    local key="$HOME/.ssh/id_ed25519" email
+    [[ -d "$HOME/.ssh" ]] || { mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"; }
+    if [[ ! -f "$key" ]]; then
+        email="$(git config user.email 2>/dev/null || true)"
+        ssh-keygen -t ed25519 -C "${email:-$(whoami)@$(hostname -s)}" -f "$key" || true
+        if [[ ! -f "$key" ]]; then
+            pfb warn "No SSH key was created. To do it later: $(basename "$0") config_github_ssh"
+            return 0
+        fi
+    fi
+    if ! grep -q 'IdentityFile ~/.ssh/id_ed25519' "$HOME/.ssh/config" 2>/dev/null; then
+        {
+            echo "Host github.com"
+            echo "    AddKeysToAgent yes"
+            [[ "$OSTYPE" == "darwin"* ]] && echo "    UseKeychain yes"
+            echo "    IdentityFile ~/.ssh/id_ed25519"
+        } >> "$HOME/.ssh/config"
+        chmod 600 "$HOME/.ssh/config"
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        ssh-add --apple-use-keychain "$key" 2>/dev/null || ssh-add "$key"
+    else
+        ssh-add "$key" 2>/dev/null || true
+    fi
+    if type gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+        if gh ssh-key add "$key.pub" --title "$(hostname -s)" 2>/dev/null; then
+            pfb success "SSH key added to GitHub"
+            return 0
+        fi
+        pfb warn "gh could not add the key (it may already exist or lack the admin:public_key scope)"
+    fi
+    pfb info "Add this public key to GitHub at https://github.com/settings/ssh/new :"
+    cat "$key.pub"
+}
+
 install_ai_tools() {
     # Install Claude Code, Antigravity CLI (agy), and Codex CLI. On macOS uses brew
     # (antigravity-cli cask and codex formula) plus the Claude installer script;
@@ -922,6 +966,13 @@ main() {
     pfb info "Configuring SSH..."
     config_ssh
     pfb success "SSH configured!"
+    echo
+    if pfb confirm "Set up an SSH key for GitHub (git@github.com clones)?" yes; then
+        config_github_ssh
+        pfb success "GitHub SSH key configured!"
+    else
+        pfb info "Skipped. To do it later: $(basename "$0") config_github_ssh"
+    fi
     echo
     if [[ "$OSTYPE" != "darwin"* ]]; then
         pfb info "Configuring firewall..."
