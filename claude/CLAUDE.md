@@ -105,7 +105,8 @@ or `[Claude Code](https://claude.com/claude-code)` when no named skill was respo
 Every project has a `README.md`, `.gitignore`, and `.markdownlint.json`, plus — where relevant —
 `.env.template`, `scripts/`, `lib/` for submodules, and `docs/`.
 
-A project's `CLAUDE.md` holds its AI context (status, decisions, quick resume) and is always
-gitignored. It is managed separately in the private
+A project's `AGENTS.md` holds its AI context (status, decisions, quick resume) and is always
+gitignored. A one-line `CLAUDE.md` containing `@AGENTS.md` may sit beside it for older Claude Code
+versions, and is gitignored too. It is managed separately in the private
 [ai-context](https://github.com/ali5ter/ai-context) repo, keeping project context out of public
 repos while staying available during local development.
