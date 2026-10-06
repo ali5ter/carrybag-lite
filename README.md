@@ -13,7 +13,7 @@ used to create a bash shell environment I can carry from machine to machine.**
 
 One file, no fuss, less mess.
 
-Tested on macOS Tahoe and Debian-based Linux (Bookworm/Trixie), including Raspberry Pi OS.
+Tested on macOS Golden Gate (27.0.1), macOS Tahoe, and Debian-based Linux (Bookworm/Trixie), including Raspberry Pi OS.
 
 ## Features
 
