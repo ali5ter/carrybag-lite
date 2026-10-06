@@ -624,6 +624,7 @@ config_ssh() {
     # Host * block if ServerAliveInterval is already present.
     # @return 0 on success
     # @example config_ssh
+    [[ -d ~/.ssh ]] || { mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"; }
     [[ -f ~/.ssh/config ]] || {
         touch "$HOME/.ssh/config"
         chmod 600 "$HOME/.ssh/config"
