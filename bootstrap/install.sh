@@ -121,7 +121,7 @@ install_pyenv() {
     # pyenv local <version>
 }
 
-# Packages installed during platform bootstrap (excluding pfb, which requires a custom tap)
+# Packages installed during platform bootstrap (excluding pfb, which comes from the ali5ter/tap tap)
 # shellcheck disable=SC2034
 MAC_PKGS=(
     bash git zoxide
@@ -151,8 +151,11 @@ bootstrap_mac() {
     # Install all standard packages and GUI apps for macOS via Homebrew.
     # @return 0 on success, non-zero if any brew install fails
     # @example bootstrap_mac
-    brew tap ali5ter/pfb 2>/dev/null || true
-    install pfb
+    type brew >/dev/null 2>&1 || install_brew
+    brew tap ali5ter/tap 2>/dev/null || true
+    # Newer Homebrew refuses formulae from untrusted taps; older versions lack `brew trust`
+    brew trust ali5ter/tap 2>/dev/null || true
+    install ali5ter/tap/pfb
     pfb heading "Bootstrapping your Mac" "🚀"
     brew update && brew upgrade && brew cleanup
     install "${MAC_PKGS[@]}"
