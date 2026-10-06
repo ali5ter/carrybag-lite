@@ -85,7 +85,9 @@ have". READMEs and tutorials may address the reader directly.
 
 ## GitHub repositories
 
-- Branch protection on the default branch requiring a PR — Alister decides when to merge
+- Branch protection on the default branch blocks force-pushes and deletion. Require a PR only for repos
+  with other contributors, CI, or consumers depending on releases — solo repos promote directly.
+  Alister decides when to merge or promote; never do either unprompted
 - A concise repository description and relevant topics for discoverability
 - `LICENSE` (MIT, copyright Alister Lewis-Bowen) and `README.md` present
 - Releases via annotated semver tags (`v1.2.3`) and GitHub Releases with generated notes
