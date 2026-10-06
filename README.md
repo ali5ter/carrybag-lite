@@ -102,6 +102,10 @@ Then open a new terminal window to load it.
 
 - `pyenv` (Python version management)
 - `docker`
+- Claude Code, Codex, and Antigravity context files and skills, asked about separately (default yes if
+  the tool is installed)
+- Symlinks for `tools/update.sh` and `tools/status.sh` in your projects directory
+  (`~/Documents/projects` on macOS, `~/src` on Linux)
 - macOS apps, asked about one at a time (default no): Figma, CleanMyMac, WhatsApp, Microsoft Teams,
   Claude, Claude Code, Codex, and Antigravity CLI
 
@@ -182,6 +186,10 @@ migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its h
 Install via `brew install --cask antigravity-cli`.
 
 ## Additional Tools
+
+The bootstrap offers to symlink `update.sh` and `status.sh` into your projects directory. To do it
+later, run `./bootstrap/install.sh link_tools`. Any single component can be run the same way, for
+example `./bootstrap/install.sh config_codex`.
 
 ### Machine Migration
 

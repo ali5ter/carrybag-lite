@@ -669,6 +669,45 @@ config_claude_code() {
     fi
 }
 
+offer_config() {
+    # Ask whether to run one of the AI tool configuration functions. Defaults to yes when the
+    # tool is already installed and to no when it is not, so declining an optional app does not
+    # leave an empty config directory behind. Declining prints how to run it later.
+    # @param label  Human-readable tool name for the prompt
+    # @param fn     The config function to run (e.g. config_codex)
+    # @param tool   Command whose presence on PATH sets the default answer
+    # @return 0 whether or not it ran; non-zero if the config function fails
+    # @example offer_config "Codex" config_codex codex
+    local label="$1" fn="$2" tool="$3" default=no
+    type "$tool" >/dev/null 2>&1 && default=yes
+    if pfb confirm "Configure $label context files and skills?" "$default"; then
+        pfb info "Configuring $label..."
+        "$fn"
+        pfb success "$label configured!"
+    else
+        pfb info "Skipped $label. To do it later: $(basename "$0") $fn"
+    fi
+}
+
+link_tools() {
+    # Symlink tools/update.sh and tools/status.sh into the projects directory (src_dir) so they
+    # can be run from there. Idempotent: refreshes existing symlinks and never overwrites a
+    # regular file of the same name.
+    # @return 0 on success
+    # @example link_tools
+    local repo_dir projects_dir tool
+    repo_dir="$(src_dir)/carrybag-lite"
+    projects_dir="$(src_dir)"
+    for tool in update.sh status.sh; do
+        if [[ -e "$projects_dir/$tool" && ! -L "$projects_dir/$tool" ]]; then
+            pfb warn "$projects_dir/$tool exists and is not a symlink; leaving it alone"
+        else
+            ln -sf "$repo_dir/tools/$tool" "$projects_dir/$tool"
+            pfb info "Linked $projects_dir/$tool"
+        fi
+    done
+}
+
 config_codex() {
     # Configure OpenAI Codex CLI by symlinking CLAUDE.md as AGENTS.md
     # @param None
@@ -807,6 +846,12 @@ main() {
     echo
     config_default_shell
     echo
+    if pfb confirm "Link update.sh and status.sh into $(src_dir)?" yes; then
+        link_tools
+    else
+        pfb info "Skipped. To do it later: $(basename "$0") link_tools"
+    fi
+    echo
     pfb info "Configuring npm..."
     configure_npm
     pfb success "npm configured for user-local global installs!"
@@ -842,17 +887,11 @@ main() {
     install_ai_tools
     pfb success "AI tools installed!"
     echo
-    pfb info "Configuring Claude Code..."
-    config_claude_code
-    pfb success "Claude Code configured!"
+    offer_config "Claude Code" config_claude_code claude
     echo
-    pfb info "Configuring Codex..."
-    config_codex
-    pfb success "Codex configured!"
+    offer_config "Codex" config_codex codex
     echo
-    pfb info "Configuring Antigravity CLI (agy)..."
-    config_antigravity
-    pfb success "Antigravity CLI configured!"
+    offer_config "Antigravity CLI (agy)" config_antigravity agy
     echo
     pfb info "Configuring SSH..."
     config_ssh
