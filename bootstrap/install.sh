@@ -50,15 +50,34 @@ src_dir() {
     fi
 }
 
+load_brew_env() {
+    # Put an existing Homebrew on PATH for this process. A fresh Mac runs zsh with no
+    # bash_profile linked yet, so nothing has evaluated `brew shellenv` at this point.
+    # @return 0 if brew is on PATH afterwards, 1 if Homebrew is not installed
+    # @example load_brew_env || install_brew
+    local brew_bin
+    for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+        if [[ -x "$brew_bin" ]]; then
+            eval "$("$brew_bin" shellenv bash)"
+            return 0
+        fi
+    done
+    type brew >/dev/null 2>&1
+}
+
+ensure_brew() {
+    # Make brew available: load an existing install, or install Homebrew first.
+    # @return 0 on success, non-zero if Homebrew cannot be installed or found
+    # @example ensure_brew
+    load_brew_env || { install_brew && load_brew_env; }
+}
+
 install_brew() {
-    # Install Homebrew and add standard taps.
-    # @return 0 on success, non-zero if curl or brew fails
+    # Install Homebrew. The old homebrew/cask* taps are built in or retired, so none are added.
+    # @return 0 on success, non-zero if curl or the installer fails
     # @example install_brew
     # @ref https://brew.sh/
     bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    brew tap homebrew/cask
-    brew tap homebrew/cask-versions
-    brew tap homebrew/cask-fonts
 }
 
 install() {
@@ -69,7 +88,7 @@ install() {
     # @example install git vim
     # @example install --cask iterm2
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        type brew >/dev/null 2>/dev/null || install_brew
+        ensure_brew
         brew install "$@"
         # use `install --cask` for brew cask install
     else
@@ -151,7 +170,7 @@ bootstrap_mac() {
     # Install all standard packages and GUI apps for macOS via Homebrew.
     # @return 0 on success, non-zero if any brew install fails
     # @example bootstrap_mac
-    type brew >/dev/null 2>&1 || install_brew
+    ensure_brew
     brew tap ali5ter/tap 2>/dev/null || true
     # Newer Homebrew refuses formulae from untrusted taps; older versions lack `brew trust`
     brew trust ali5ter/tap 2>/dev/null || true
