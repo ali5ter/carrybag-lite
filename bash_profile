@@ -194,6 +194,11 @@ type claude >/dev/null 2>&1 && {
     alias claudeit="$cmd"
 }
 
+# Local-model Claude Code session, only where the launcher exists
+CLAUDE_LOCAL_SCRIPT="${CLAUDE_LOCAL_SCRIPT:-$HOME/Documents/Projects/ai-local-first/scripts/claude-local.sh}"
+# shellcheck disable=SC2139
+[[ -x "$CLAUDE_LOCAL_SCRIPT" ]] && alias claude-local="$CLAUDE_LOCAL_SCRIPT"
+
 # ls and grep colours (Linux dircolors)
 if [ -x /usr/bin/dircolors ]; then
     if test -r ~/.dircolors; then
