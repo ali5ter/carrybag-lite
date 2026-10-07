@@ -68,5 +68,6 @@
   "tui": "default",
   "autoDreamEnabled": true,
   "skipDangerousModePermissionPrompt": true,
+  "theme": "auto",
   "agentPushNotifEnabled": true
 }
