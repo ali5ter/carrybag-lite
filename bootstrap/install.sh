@@ -196,6 +196,7 @@ LINUX_PKGS=(
     jq yq bat tree fd-find fzf figlet glow
     zoxide shellcheck vim watch
     btop ncdu fontconfig wakeonlan
+    go nmap
 )
 
 bootstrap_mac() {
