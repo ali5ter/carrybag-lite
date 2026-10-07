@@ -102,12 +102,12 @@ Then open a new terminal window to load it.
 
 - `pyenv` (Python version management)
 - `docker`
-- Claude Code, Codex, and Antigravity context files and skills, asked about separately (default yes if
+- Claude Code, Codex, Antigravity, and OpenCode context files and skills, asked about separately (default yes if
   the tool is installed)
 - Symlinks for `tools/update.sh` and `tools/status.sh` in `~/Documents/Projects` and `~/src`, whichever
   of them exist (neither is created)
 - macOS apps, asked about one at a time (default no): Figma, CleanMyMac, WhatsApp, Microsoft Teams,
-  Claude, Claude Code, Codex, and Antigravity CLI
+  Claude, Claude Code, Codex, and Antigravity CLI; plus the `opencode` formula
 
 ## AI Tools Configuration
 
@@ -184,6 +184,17 @@ Customizations Root (`~/.gemini/config/`), applying the same development princip
 Code and Codex. Skills are linked into `~/.gemini/config/skills/`. Note: despite the tool
 migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its home directory.
 Install via `brew install --cask antigravity-cli`.
+
+### OpenCode
+
+`opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.0.20 does not
+fall back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered
+natively; plugin-installed skills are linked into `~/.config/opencode/skills/`. It also writes a baseline
+`opencode.json` (`autoupdate: false`, `share: "disabled"`). Where `ollama` is installed the config gains a local
+lane: an Ollama provider, a default model (first listed, or set `OPENCODE_LOCAL_MODEL`), and
+`enabled_providers: ["ollama"]` so no cloud provider is reached by accident. `bash_profile` exports
+`OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is present. Claude Code's
+hooks have no OpenCode equivalent, so OpenCode sessions run without them. Install via `brew install opencode`.
 
 ## Additional Tools
 

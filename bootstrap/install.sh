@@ -214,6 +214,7 @@ bootstrap_mac() {
     export BASH_SILENCE_DEPRECATION_WARNING=1
     install --cask "${MAC_CASK_PKGS[@]}"
     install_optional --cask "${MAC_OPTIONAL_CASK_PKGS[@]}"
+    install_optional opencode
 }
 
 bootstrap_linux() {
@@ -808,6 +809,22 @@ config_antigravity() {
     fi
 }
 
+config_opencode() {
+    # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.config/opencode/,
+    # linking plugin skills and writing a baseline opencode.json (plus a local Ollama lane
+    # when ollama is installed).
+    # @param None
+    # @return 0 on success, 1 on failure
+    # @example config_opencode
+    local repo_dir
+    repo_dir="$(src_dir)/carrybag-lite"
+    if [[ -d "$repo_dir/opencode" ]]; then
+        "$repo_dir/opencode/install.sh"
+    else
+        pfb warn "OpenCode configuration directory not found at $repo_dir/opencode"
+    fi
+}
+
 is_rpi() {
     # Detect a Raspberry Pi by the /etc/rpi-issue file that Raspberry Pi OS ships.
     # @return 0 on a Raspberry Pi, 1 otherwise (including every macOS machine)
@@ -962,6 +979,8 @@ main() {
     offer_config "Codex" config_codex codex
     echo
     offer_config "Antigravity CLI (agy)" config_antigravity agy
+    echo
+    offer_config "OpenCode" config_opencode opencode
     echo
     pfb info "Configuring SSH..."
     config_ssh

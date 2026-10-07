@@ -187,6 +187,12 @@ alias gd="git diff"
 type bat >/dev/null 2>&1 && alias more=bat && alias less=bat
 type batcat >/dev/null 2>&1 && alias more=batcat && alias less=batcat
 
+# OpenCode — Homebrew owns upgrades; skip the api.opencode.ai model-list fetch
+type opencode >/dev/null 2>&1 && {
+    export OPENCODE_DISABLE_AUTOUPDATE=1
+    export OPENCODE_DISABLE_MODELS_FETCH=1
+}
+
 # claude-code
 type claude >/dev/null 2>&1 && {
     cmd="claude --dangerously-skip-permissions"
