@@ -196,6 +196,18 @@ lane: an Ollama provider, a default model (first listed, or set `OPENCODE_LOCAL_
 `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is present. Claude Code's
 hooks have no OpenCode equivalent, so OpenCode sessions run without them. Install via `brew install opencode`.
 
+### Shared Ollama server
+
+To use another machine's Ollama (for example the Mac Studio) from the `ollama` CLI, put its address in
+`~/.config/ollama_host`:
+
+```bash
+echo '192.168.1.63:11434' > ~/.config/ollama_host
+```
+
+`bash_profile` exports it as `OLLAMA_HOST`. With no file, nothing changes, so a machine running its own local Ollama
+is unaffected. An `OLLAMA_HOST` already in the environment wins. The file is per-machine and not tracked.
+
 ## Additional Tools
 
 The bootstrap offers to symlink `update.sh` and `status.sh` into `~/Documents/Projects` and `~/src`, if

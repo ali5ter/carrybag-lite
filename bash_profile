@@ -39,6 +39,14 @@ set -o vi
 export EDITOR='vim'
 export GIT_EDITOR="$EDITOR"
 
+# Ollama — point the CLI at a shared server (e.g. the Mac Studio) when this
+# machine has ~/.config/ollama_host holding host:port. No file, no change, so a
+# machine running its own local Ollama is left alone.
+if [[ -z "${OLLAMA_HOST:-}" && -r "$HOME/.config/ollama_host" ]]; then
+    OLLAMA_HOST=$(<"$HOME/.config/ollama_host")
+    export OLLAMA_HOST
+fi
+
 # fzf — fuzzy finder (Ctrl-R history, Ctrl-T files, Alt-C directories)
 # Set up before PACKAGE MANAGER below: that section's once-daily update can
 # block on a slow/flaky network (e.g. while travelling) or need an
