@@ -406,6 +406,30 @@ configure_firewall() {
     fi
 }
 
+# Shared Ollama server (the Mac Studio) as host:port; prefer a hostname once the router resolves one
+OLLAMA_SERVER_DEFAULT="192.168.1.63:11434"
+
+install_ollama_host() {
+    # Point the ollama CLI at the shared server by writing ~/.config/ollama_host, which
+    # bash_profile reads into OLLAMA_HOST. An existing file is never overwritten, so a
+    # per-machine edit survives a re-run. Set OLLAMA_SERVER=none on a machine that runs
+    # its own local Ollama to skip the file; OLLAMA_SERVER=host:port overrides the default.
+    # @return 0
+    # @example OLLAMA_SERVER=none ./bootstrap/install.sh install_ollama_host
+    # @side_effects Creates ~/.config/ollama_host when missing
+    local file="$HOME/.config/ollama_host"
+    local server="${OLLAMA_SERVER:-$OLLAMA_SERVER_DEFAULT}"
+    if [[ -e "$file" ]]; then
+        pfb success "Ollama host already set: $(<"$file") ($file)"
+    elif [[ "$server" == "none" ]]; then
+        pfb info "Skipping Ollama host file (OLLAMA_SERVER=none)"
+    else
+        mkdir -p "$HOME/.config"
+        printf '%s\n' "$server" > "$file"
+        pfb success "Ollama host created: $server ($file)"
+    fi
+}
+
 install_glow() {
     # Install Glow CLI for rendering markdown in the terminal. Uses brew on macOS;
     # downloads the latest release binary from GitHub on Linux.
@@ -974,6 +998,8 @@ main() {
     pfb info "Installing AI tools..."
     install_ai_tools
     pfb success "AI tools installed!"
+    echo
+    install_ollama_host
     echo
     offer_config "Claude Code" config_claude_code claude
     echo
