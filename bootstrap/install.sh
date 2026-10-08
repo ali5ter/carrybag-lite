@@ -406,7 +406,8 @@ configure_firewall() {
     fi
 }
 
-# Shared Ollama server (the Mac Studio) as host:port; prefer a hostname once the router resolves one
+# Shared Ollama server (the Mac Studio) as host:port. Deliberately an IP, not studio.diffnet.arpa:
+# Twingate may not resolve the FQDN when reaching the server externally.
 OLLAMA_SERVER_DEFAULT="192.168.1.63:11434"
 
 install_ollama_host() {
