@@ -212,7 +212,7 @@ type claude >/dev/null 2>&1 && {
 for dir in "$HOME/Documents/Projects" "$HOME/Documents/projects" "$HOME/src"; do
     if [[ -x "$dir/ai-local-first/scripts/claude-local.sh" ]]; then
         # shellcheck disable=SC2139
-        alias claude-local="$dir/ai-local-first/scripts/claude-local.sh"
+        alias claude-local="$dir/ai-local-first/scripts/claude-local.sh --switchable"
         break
     fi
 done
