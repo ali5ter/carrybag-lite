@@ -102,6 +102,13 @@ Every PR, issue, and comment ends with:
 `[claude-workflow-skills:audit-standards](https://github.com/ali5ter/claude-workflow-skills)` —
 or `[Claude Code](https://claude.com/claude-code)` when no named skill was responsible.
 
+## AGENTS.md size limit
+
+Keep every project's `AGENTS.md` at or under **40,000 characters** (including whitespace).
+That file is loaded into every Claude Code session's context — bloat costs tokens on every
+interaction. Trim aggressively: remove closed issues, outdated section descriptions, and
+anything an AI can re-derive from the repo itself.
+
 ## Project layout
 
 Every project has a `README.md`, `.gitignore`, and `.markdownlint.json`, plus — where relevant —
