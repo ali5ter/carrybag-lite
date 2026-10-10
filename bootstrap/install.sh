@@ -42,8 +42,11 @@ src_dir() {
     # @return 0; prints directory path to stdout
     # @example local dir; dir="$(src_dir)"
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        [[ -d ~/Documents/projects ]] || mkdir -p ~/Documents/projects
-        echo ~/Documents/projects
+        # Capital P matches the directory on disk. APFS is case-insensitive, so a lowercase
+        # spelling here silently resolves to the same place and then bakes the wrong case into
+        # every symlink, which breaks on a case-sensitive volume or a Linux host.
+        [[ -d ~/Documents/Projects ]] || mkdir -p ~/Documents/Projects
+        echo ~/Documents/Projects
     else
         [[ -d ~/src ]] || mkdir -p ~/src
         echo ~/src

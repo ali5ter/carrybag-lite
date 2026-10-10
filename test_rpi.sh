@@ -21,6 +21,9 @@ set -euo pipefail
 
 # Host-side repo
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# pwd reports the path as the caller spelled it, and pwd -P does not correct case on a
+# case-insensitive volume. realpath does, so symlinks cannot record the wrong case.
+SCRIPT_DIR="$(realpath "$SCRIPT_DIR" 2>/dev/null || printf '%s' "$SCRIPT_DIR")"
 
 # Docker details
 IMAGE="debian:stable"

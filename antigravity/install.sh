@@ -36,6 +36,9 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# pwd reports the path as the caller spelled it, and pwd -P does not correct case on a
+# case-insensitive volume. realpath does, so symlinks cannot record the wrong case.
+SCRIPT_DIR="$(realpath "$SCRIPT_DIR" 2>/dev/null || printf '%s' "$SCRIPT_DIR")"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 ANTIGRAVITY_DIR="$HOME/.gemini/config"
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
