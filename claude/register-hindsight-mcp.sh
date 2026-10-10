@@ -38,8 +38,10 @@ set -uo pipefail
 # Where a key may be kept outside any repo. Owner-readable only.
 readonly CREDENTIALS_FILE="${HOME}/.config/hindsight/credentials"
 
-# 1Password item to read when the op CLI is available.
+# 1Password item and vault to read when the op CLI is available. Both are overridable because
+# vault names differ between accounts; "Private" is only the common default.
 readonly OP_ITEM="${HINDSIGHT_OP_ITEM:-Hindsight API key}"
+readonly OP_VAULT="${HINDSIGHT_OP_VAULT:-Private}"
 
 URL="${HINDSIGHT_URL:-http://127.0.0.1:8888}"
 BANK="${HINDSIGHT_BANK_ID:-health}"
@@ -85,12 +87,12 @@ resolve_api_key() {
     fi
 
     if command -v op >/dev/null 2>&1; then
-        API_KEY="$(op read "op://Private/${OP_ITEM}/credential" 2>/dev/null)"
+        API_KEY="$(op read "op://${OP_VAULT}/${OP_ITEM}/credential" 2>/dev/null)"
         if [[ -n "${API_KEY}" ]]; then
-            pfb subheading "key from 1Password (${OP_ITEM})"
+            pfb subheading "key from 1Password (op://${OP_VAULT}/${OP_ITEM})"
             return 0
         fi
-        pfb subheading "op is installed but '${OP_ITEM}' did not resolve; trying other sources"
+        pfb subheading "op is installed but op://${OP_VAULT}/${OP_ITEM} did not resolve; trying other sources"
     fi
 
     if [[ -r "${CREDENTIALS_FILE}" ]]; then

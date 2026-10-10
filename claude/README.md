@@ -34,14 +34,50 @@ key. A registration pointing at an unreachable or unauthenticated service is wor
 The API key is **never stored in this repo**. The script tries, in order:
 
 1. `HINDSIGHT_API_TENANT_API_KEY` in the environment
-2. 1Password, if the `op` CLI is installed — item name from `HINDSIGHT_OP_ITEM`, default
-   `Hindsight API key`. The CLI is the `1password-cli` cask, installed by `bootstrap/install.sh`;
-   add the key to 1Password as an item whose `credential` field holds it
+2. 1Password, if the `op` CLI is installed and signed in — reads
+   `op://$HINDSIGHT_OP_VAULT/$HINDSIGHT_OP_ITEM/credential`, defaulting to
+   `op://Private/Hindsight API key/credential`. Override either when your vault or item is named
+   differently. See [Storing the key in 1Password](#storing-the-key-in-1password) below
 3. `~/.config/hindsight/credentials`, which should be `chmod 600`
 4. An interactive prompt, when stdin is a terminal
 
 Registration writes the bearer token into `~/.claude.json`. That file is outside this repo and
 must never be committed.
+
+### Storing the key in 1Password
+
+One-off setup, after which the script needs no environment variable on any machine.
+
+The CLI needs the desktop app's authorisation first, and that part cannot be scripted:
+
+1. Open the 1Password app, unlock it
+2. **Settings → Developer → Integrate with 1Password CLI**
+3. Confirm it worked: `op whoami` should name your account rather than erroring
+
+Then create the item. This reads the key out of the service's `.env` so it is never typed, pasted,
+or echoed:
+
+```bash
+KEY=$(grep '^HINDSIGHT_API_TENANT_API_KEY=' \
+  ~/Documents/Projects/server-setup/studio/.env | cut -d= -f2)
+op item create --category "API Credential" --title "Hindsight API key" \
+  --vault "$(op vault list --format=json | jq -r '.[0].name')" \
+  "credential=$KEY" "url=http://192.168.1.63:8888"
+unset KEY
+```
+
+The `API Credential` category already has a `credential` field, which is what the script reads.
+Check the vault name first with `op vault list`; if it is not `Private`, set `HINDSIGHT_OP_VAULT`
+to match, or export it in your shell profile.
+
+Verify without printing the secret:
+
+```bash
+op read "op://Private/Hindsight API key/credential" | wc -c   # expect 65
+./claude/register-hindsight-mcp.sh --url http://192.168.1.63:8888
+```
+
+The second command should report `key from 1Password`.
 
 ### Server side
 
