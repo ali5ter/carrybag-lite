@@ -7,8 +7,54 @@ This directory contains Claude Code configuration files that are symlinked to `~
 - **CLAUDE.md** - Global development standards applied to all projects (user-level instructions)
 - **settings.json** - Claude Code settings and preferences, including hook registrations
 - **statusline-command.sh** - Custom status line display script
+- **register-hindsight-mcp.sh** - Registers a Hindsight memory server with Claude Code
 - **skills/** - Language standards loaded on demand rather than in every session
 - **hooks/** - Command hooks that enforce standards that skills only state as guidance
+
+## Hindsight memory server
+
+[Hindsight](https://github.com/vectorize-io/hindsight) is a self-hosted agent memory service. It
+exposes a standard HTTP MCP endpoint, so any MCP-capable agent can use it for long-term recall and
+reflection — not only Claude Code.
+
+`register-hindsight-mcp.sh` registers it in the **user scope**, making it available to every
+project on the machine:
+
+```bash
+./claude/register-hindsight-mcp.sh                  # loopback:8888, bank "health"
+./claude/register-hindsight-mcp.sh --url http://192.168.1.63:8888 --bank health
+./claude/register-hindsight-mcp.sh --remove         # unregister
+```
+
+It probes before registering: the endpoint must answer, refuse anonymous callers, and accept the
+key. A registration pointing at an unreachable or unauthenticated service is worse than none.
+
+### Where the key comes from
+
+The API key is **never stored in this repo**. The script tries, in order:
+
+1. `HINDSIGHT_API_TENANT_API_KEY` in the environment
+2. 1Password, if the `op` CLI is installed — item name from `HINDSIGHT_OP_ITEM`, default
+   `Hindsight API key`
+3. `~/.config/hindsight/credentials`, which should be `chmod 600`
+4. An interactive prompt, when stdin is a terminal
+
+Registration writes the bearer token into `~/.claude.json`. That file is outside this repo and
+must never be committed.
+
+### Server side
+
+The server itself is not configured from here. It is set up by the scripts in
+[`server-setup/studio/`](https://github.com/ali5ter/server-setup/tree/main/studio), which hold the
+install, the launchd service, the import and the recall evaluation. The host restricts the MCP
+surface with `HINDSIGHT_API_MCP_ENABLED_TOOLS`, so a client cannot reach a tool the server does not
+expose.
+
+The current instance on the Mac Studio binds to `127.0.0.1:8888`, so only agents running on that
+machine can reach it. Pass `--url` once it is bound more widely.
+
+Tools appear to agents as `mcp__<name>__<tool>`, for example `mcp__hindsight-health__recall`. Grant
+an agent only `recall`, `reflect` and `retain`.
 
 ## Skills
 
