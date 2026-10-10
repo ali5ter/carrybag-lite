@@ -88,6 +88,9 @@ have". READMEs and tutorials may address the reader directly.
 - Branch protection on the default branch blocks force-pushes and deletion. Require a PR only for repos
   with other contributors, CI, or consumers depending on releases — solo repos promote directly.
   Alister decides when to merge or promote; never do either unprompted
+- `PUT /repos/{owner}/{repo}/branches/{branch}/protection` needs every field, so send
+  `"required_pull_request_reviews": null` unless that repo genuinely needs a PR. Passing an object
+  adds the rule, and every later direct push then warns "Bypassed rule violations"
 - A concise repository description and relevant topics for discoverability
 - `LICENSE` (MIT, copyright Alister Lewis-Bowen) and `README.md` present
 - Releases via annotated semver tags (`v1.2.3`) and GitHub Releases with generated notes
