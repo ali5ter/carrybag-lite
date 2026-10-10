@@ -121,6 +121,7 @@ if type brew >/dev/null 2>&1 && brew list gemini-cli >/dev/null 2>&1; then
 fi
 
 # Clean up stale ~/.antigravity/ if it exists from prior carrybag-lite versions
+# shellcheck disable=SC2088  # the tildes are display text, and the rm is meant to be pasted as-is
 if [[ -d "$HOME/.antigravity" ]]; then
     echo
     pfb warn "~/.antigravity/ is a stale directory from an older carrybag-lite install" "⚠️"
