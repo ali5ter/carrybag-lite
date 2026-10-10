@@ -35,7 +35,8 @@ The API key is **never stored in this repo**. The script tries, in order:
 
 1. `HINDSIGHT_API_TENANT_API_KEY` in the environment
 2. 1Password, if the `op` CLI is installed — item name from `HINDSIGHT_OP_ITEM`, default
-   `Hindsight API key`
+   `Hindsight API key`. The CLI is the `1password-cli` cask, installed by `bootstrap/install.sh`;
+   add the key to 1Password as an item whose `credential` field holds it
 3. `~/.config/hindsight/credentials`, which should be `chmod 600`
 4. An interactive prompt, when stdin is a terminal
 
@@ -50,8 +51,9 @@ install, the launchd service, the import and the recall evaluation. The host res
 surface with `HINDSIGHT_API_MCP_ENABLED_TOOLS`, so a client cannot reach a tool the server does not
 expose.
 
-The current instance on the Mac Studio binds to `127.0.0.1:8888`, so only agents running on that
-machine can reach it. Pass `--url` once it is bound more widely.
+The instance on the Mac Studio binds to all interfaces on port 8888, so any machine on
+192.168.1.0/24 can reach it at `http://192.168.1.63:8888`. The API key is the only boundary there,
+so treat it as a credential.
 
 Tools appear to agents as `mcp__<name>__<tool>`, for example `mcp__hindsight-health__recall`. Grant
 an agent only `recall`, `reflect` and `retain`.

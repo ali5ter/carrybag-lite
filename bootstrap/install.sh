@@ -182,7 +182,7 @@ MAC_PKGS=(
 )
 # shellcheck disable=SC2034
 MAC_CASK_PKGS=(
-    iterm2 1password dropbox visual-studio-code
+    iterm2 1password 1password-cli dropbox visual-studio-code
 )
 # Casks that are asked about one at a time (see install_optional) instead of installed by default
 # shellcheck disable=SC2034
