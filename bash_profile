@@ -208,15 +208,9 @@ type claude >/dev/null 2>&1 && {
     alias claudeit="$cmd"
 }
 
-# Local-model Claude Code session, only where the launcher exists
-for dir in "$HOME/Documents/Projects" "$HOME/Documents/projects" "$HOME/src"; do
-    if [[ -x "$dir/ai-local-first/scripts/claude-local.sh" ]]; then
-        # shellcheck disable=SC2139
-        alias claude-local="$dir/ai-local-first/scripts/claude-local.sh --switchable"
-        break
-    fi
-done
-unset dir
+# Local-model Claude Code session (brew install ali5ter/tap/claude-local), with
+# /model opus mapped to the second model. Run `command claude-local` for one model.
+type claude-local >/dev/null 2>&1 && alias claude-local="command claude-local --switchable"
 
 # ls and grep colours (Linux dircolors)
 if [ -x /usr/bin/dircolors ]; then
