@@ -208,9 +208,10 @@ type claude >/dev/null 2>&1 && {
     alias claudeit="$cmd"
 }
 
-# Local-model Claude Code session (brew install ali5ter/tap/claude-local), with
-# /model opus mapped to the second model. Run `command claude-local` for one model.
-type claude-local >/dev/null 2>&1 && alias claude-local="command claude-local --switchable"
+# Local-model Claude Code session (Homebrew tap or curl to ~/.local/bin/).
+# Use `command claude-local` for one model; add --switchable + --hard-model
+# manually if you want two models.
+type claude-local >/dev/null 2>&1 && alias claude-local="command claude-local"
 
 # ls and grep colours (Linux dircolors)
 if [ -x /usr/bin/dircolors ]; then
