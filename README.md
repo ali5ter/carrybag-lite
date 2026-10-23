@@ -187,14 +187,25 @@ Install via `brew install --cask antigravity-cli`.
 
 ### OpenCode
 
-`opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.0.20 does not
-fall back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered
-natively; plugin-installed skills are linked into `~/.config/opencode/skills/`. It also writes a baseline
-`opencode.json` (`autoupdate: false`, `share: "disabled"`). Where `ollama` is installed the config gains a local
-lane: an Ollama provider, a default model (first listed, or set `OPENCODE_LOCAL_MODEL`), and
-`enabled_providers: ["ollama"]` so no cloud provider is reached by accident. `bash_profile` exports
-`OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is present. Claude Code's
-hooks have no OpenCode equivalent, so OpenCode sessions run without them. Install via `brew install opencode`.
+`opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.x does not fall
+back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered natively;
+plugin-installed skills are linked into `~/.config/opencode/skills/`. It then merges a baseline into the global
+config, `~/.config/opencode/opencode.json` (or an existing `opencode.jsonc`, since OpenCode loads both):
+`autoupdate: false` and `share: "disabled"`. Keys the script does not manage survive; comments in a `.jsonc` do not.
+
+The Ollama endpoint is resolved from `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, then `~/.config/ollama_host`, then
+`localhost:11434`. When it answers, the config gains a local lane: a custom `ollama` provider
+(`@ai-sdk/openai-compatible`) listing every model the endpoint serves with explicit context and output limits
+(`OPENCODE_CONTEXT_LIMIT`, default 131072, capped at the model's own architecture limit; `OPENCODE_OUTPUT_LIMIT`,
+default 32768), `enabled_providers: ["ollama"]` so no cloud provider is reached by accident, and a default `model`.
+The default is `OPENCODE_LOCAL_MODEL` when served (the bootstrap prefers the Studio's coding model), else the model
+the existing config already used, else the first one listed. No API key or `/connect` is needed: the provider
+block alone enables it, so `opencode auth list` legitimately shows nothing. Rerun the installer after pulling new
+models; the provider block is rebuilt from the endpoint each time.
+
+`bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
+present. Claude Code's hooks have no OpenCode equivalent, so OpenCode sessions run without them. Install via
+`brew install opencode`.
 
 ### Shared Ollama server
 

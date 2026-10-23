@@ -6,8 +6,8 @@
 # packages, links shell configuration, sets up AI tools, and configures SSH.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.9.1
-# Date: 2026-05-05
+# Version: 1.9.2
+# Date: 2026-10-23
 # License: MIT
 #
 # Usage: ./bootstrap/install.sh
@@ -412,6 +412,9 @@ configure_firewall() {
 # Shared Ollama server (the Mac Studio) as host:port. Deliberately an IP, not studio.diffnet.arpa:
 # Twingate may not resolve the FQDN when reaching the server externally.
 OLLAMA_SERVER_DEFAULT="192.168.1.63:11434"
+# Preferred OpenCode default model on that server; the installer falls back to
+# whatever the endpoint serves when this one is absent.
+OPENCODE_MODEL_DEFAULT="qwen3.6:35b-a3b-coding"
 
 install_ollama_host() {
     # Point the ollama CLI at the shared server by writing ~/.config/ollama_host, which
@@ -839,16 +842,18 @@ config_antigravity() {
 }
 
 config_opencode() {
-    # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.opencode/,
-    # linking plugin skills and writing ~/.opencode.json (plus a local Ollama lane
-    # when LOCAL_ENDPOINT is set or ollama is installed).
+    # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.config/opencode/,
+    # linking plugin skills and merging a baseline into ~/.config/opencode/opencode.json
+    # (plus a local Ollama lane when an endpoint answers). The installer resolves the
+    # endpoint itself from LOCAL_ENDPOINT, OLLAMA_HOST or ~/.config/ollama_host, so
+    # nothing is defaulted here that would shadow the shared-server setup.
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_opencode
     local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
     if [[ -d "$repo_dir/opencode" ]]; then
-        LOCAL_ENDPOINT="${LOCAL_ENDPOINT:-http://localhost:11434/v1}" \
+        OPENCODE_LOCAL_MODEL="${OPENCODE_LOCAL_MODEL:-$OPENCODE_MODEL_DEFAULT}" \
         "$repo_dir/opencode/install.sh"
     else
         pfb warn "OpenCode configuration directory not found at $repo_dir/opencode"
