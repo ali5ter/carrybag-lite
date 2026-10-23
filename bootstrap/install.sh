@@ -839,15 +839,16 @@ config_antigravity() {
 }
 
 config_opencode() {
-    # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.config/opencode/,
-    # linking plugin skills and writing a baseline opencode.json (plus a local Ollama lane
-    # when ollama is installed).
+    # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.opencode/,
+    # linking plugin skills and writing ~/.opencode.json (plus a local Ollama lane
+    # when LOCAL_ENDPOINT is set or ollama is installed).
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_opencode
     local repo_dir
     repo_dir="$(src_dir)/carrybag-lite"
     if [[ -d "$repo_dir/opencode" ]]; then
+        LOCAL_ENDPOINT="${LOCAL_ENDPOINT:-http://localhost:11434/v1}" \
         "$repo_dir/opencode/install.sh"
     else
         pfb warn "OpenCode configuration directory not found at $repo_dir/opencode"

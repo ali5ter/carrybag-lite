@@ -2,21 +2,20 @@
 #
 # install.sh - Install OpenCode configuration
 #
-# Symlinks CLAUDE.md from the carrybag-lite claude/ directory to ~/.config/opencode/AGENTS.md,
-# making the shared development principles available to OpenCode (OpenCode 2.0.20 does not
-# fall back to ~/.claude/CLAUDE.md). Links plugin-installed Claude Code skills into
-# ~/.config/opencode/skills/ (user skills in ~/.claude/skills/ are discovered natively), and
-# writes a baseline opencode.json. When ollama is installed the config also gets a local lane:
-# an Ollama provider, a default model, and enabled_providers restricted to ollama.
+# Symlinks CLAUDE.md from the carrybag-lite claude/ directory into the OpenCode
+# config directory, and writes ~/.opencode.json with a local Ollama provider
+# when available. OpenCode discovers models at startup from LOCAL_ENDPOINT via
+# the OpenAI-compatible /v1/models endpoint — no per-model config needed.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.0.0
-# Date: 2026-10-07
+# Version: 1.1.0
+# Date: 2026-10-23
 # License: MIT
 #
 # Usage: ./opencode/install.sh
-#   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh   # pick the Ollama model (default: first listed)
-#   Backs up any existing file before replacing it; running twice changes nothing.
+#   LOCAL_ENDPOINT=<url> ./opencode/install.sh   # custom Ollama endpoint
+#   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh  # force a specific model
+#   Backs up any existing file before replacing it; running twice is idempotent.
 #
 # Dependencies: bash 4.0+, jq; optional: ollama, pfb
 #
@@ -27,15 +26,13 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# pwd reports the path as the caller spelled it, and pwd -P does not correct case on a
-# case-insensitive volume. realpath does, so symlinks cannot record the wrong case.
 SCRIPT_DIR="$(realpath "$SCRIPT_DIR" 2>/dev/null || printf '%s' "$SCRIPT_DIR")"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
-OPENCODE_DIR="$HOME/.config/opencode"
+OPENCODE_DIR="$HOME/.opencode"
 CLAUDE_PLUGIN_CACHE="$HOME/.claude/plugins/cache"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
 DEST="$OPENCODE_DIR/AGENTS.md"
-CONFIG="$OPENCODE_DIR/opencode.json"
+CONFIG="$OPENCODE_DIR/.opencode.json"
 
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
@@ -44,7 +41,7 @@ backup_if_exists() {
     # file or a symlink.
     # @param $1  Absolute path of the file to check and back up
     # @return 0
-    # @example backup_if_exists "$HOME/.config/opencode/AGENTS.md"
+    # @example backup_if_exists "$HOME/.opencode/.opencode.json"
     # @side_effects Moves the file to <path>.backup.YYYYMMDDHHMMSS
     local file="$1" backup
     if [[ -f "$file" && ! -L "$file" ]]; then
@@ -54,12 +51,29 @@ backup_if_exists() {
     fi
 }
 
-local_model() {
-    # Print the Ollama model to use: OPENCODE_LOCAL_MODEL, else the first model ollama lists.
-    # @return 0; prints nothing when ollama is absent or has no models
-    # @example model="$(local_model)"
+local_endpoint() {
+    # Print the Ollama endpoint: LOCAL_ENDPOINT env var, or derive from OLLAMA_HOST.
+    # @return 0; prints nothing when no endpoint is available
+    # @example endpoint="$(local_endpoint)"
+    if [[ -n "${LOCAL_ENDPOINT:-}" ]]; then
+        printf '%s' "$LOCAL_ENDPOINT"
+    elif [[ -n "${OLLAMA_HOST:-}" ]]; then
+        printf 'http://%s/v1' "$OLLAMA_HOST"
+    fi
+    return 0
+}
+
+first_model() {
+    # Print the first Ollama model name: OPENCODE_LOCAL_MODEL, else the first model
+    # listed by the remote endpoint. Prints nothing when no model is available.
+    # @return 0; prints nothing when no model found
+    # @example model="$(first_model)"
     if [[ -n "${OPENCODE_LOCAL_MODEL:-}" ]]; then
         echo "$OPENCODE_LOCAL_MODEL"
+    elif [[ -n "${LOCAL_ENDPOINT:-}" ]]; then
+        local models
+        models="$(curl -s "${LOCAL_ENDPOINT%/v1}"'/v1/models' 2>/dev/null | jq -r '.data[].id' 2>/dev/null)"
+        echo "$models" | head -1
     elif type ollama >/dev/null 2>&1; then
         ollama list 2>/dev/null | awk 'NR==2 {print $1}'
     fi
@@ -67,29 +81,46 @@ local_model() {
 }
 
 build_config() {
-    # Print the opencode.json content. Baseline always; Ollama lane only when a model exists.
-    # @param $1  Ollama model name, or empty for the baseline only
+    # Print the ~/.opencode.json content.
+    # @param $1  Ollama model name (e.g. "qwen3.6:35b-a3b-coding"), or empty for baseline
+    # @param $2  LOCAL_ENDPOINT to enable the local provider, or empty
     # @return 0; JSON on stdout
-    # @example build_config "qwen3:8b"
-    local model="$1"
-    jq -n --arg model "$model" '
-        {
-            "$schema": "https://opencode.ai/config.json",
-            "autoupdate": false,
-            "share": "disabled"
-        }
-        + (if $model == "" then {} else {
-            "model": ("ollama/" + $model),
-            "enabled_providers": ["ollama"],
-            "provider": {
-                "ollama": {
-                    "npm": "@ai-sdk/openai-compatible",
-                    "name": "Ollama",
-                    "options": {"baseURL": "http://localhost:11434/v1"},
-                    "models": {($model): {"name": $model}}
-                }
+    # @example build_config "qwen3:8b" "http://192.168.1.63:11434/v1"
+    local model="$1" endpoint="$2"
+    local local_provider="" local_agents=""
+
+    if [[ -n "$model" && -n "$endpoint" ]]; then
+        local host="${endpoint%/v1}"
+        local_provider=$(jq -n --arg host "$host" '{
+            "local": {
+                "apiKey": "dummy",
+                "disabled": false
             }
-        } end)'
+        }')
+        # Model ID prefix is "local." + the Ollama model name
+        local model_id="local.${model}"
+        local_agents=$(jq -n --arg mid "$model_id" '{
+            "coder": { "model": $mid, "maxTokens": 131072 },
+            "task":  { "model": $mid, "maxTokens": 4096 },
+            "title": { "model": $mid, "maxTokens": 80 }
+        }')
+    fi
+
+    jq -n \
+        --argjson local_provider "${local_provider:-null}" \
+        --argjson local_agents "${local_agents:-null}" \
+        '{
+            "autoCompact": true,
+            "contextPaths": [
+                ".github/copilot-instructions.md",
+                "CLAUDE.md",
+                "CLAUDE.local.md",
+                "opencode.md",
+                "opencode.local.md"
+            ]
+        }
+        + (if $local_provider != null then { "providers": $local_provider } else {} end)
+        + (if $local_agents  != null then $local_agents  else {} end)'
 }
 
 link_plugin_skills() {
@@ -118,23 +149,24 @@ link_plugin_skills() {
 }
 
 write_config() {
-    # Write opencode.json, backing up the old file only when the content changes.
+    # Write ~/.opencode.json, backing up the old file only when the content changes.
     # @return 0
     # @example write_config
-    # @side_effects Creates or replaces ~/.config/opencode/opencode.json
-    local model new
-    model="$(local_model)"
-    new="$(build_config "$model")"
+    # @side_effects Creates or replaces ~/.opencode/.opencode.json
+    local model endpoint new
+    model="$(first_model)"
+    endpoint="$(local_endpoint)"
+    new="$(build_config "$model" "$endpoint")"
     if [[ -f "$CONFIG" && "$(cat "$CONFIG")" == "$new" ]]; then
-        pfb info "  opencode.json already up to date"
+        pfb info "  .opencode.json already up to date"
         return 0
     fi
     backup_if_exists "$CONFIG"
-    echo "$new" >"$CONFIG"
+    echo "$new" > "$CONFIG"
     if [[ -n "$model" ]]; then
-        pfb success "  Wrote opencode.json (local lane: ollama/$model)"
+        pfb success "  Wrote .opencode.json (local: $model via $endpoint)"
     else
-        pfb success "  Wrote opencode.json (baseline; no ollama model found)"
+        pfb success "  Wrote .opencode.json (baseline; no local endpoint or model)"
     fi
 }
 
@@ -147,7 +179,7 @@ main() {
         exit 1
     fi
     if ! type jq >/dev/null 2>&1; then
-        pfb error "jq is required to write opencode.json. Install it (brew install jq / apt install jq) and rerun."
+        pfb error "jq is required to write .opencode.json. Install it (brew install jq / apt install jq) and rerun."
         exit 1
     fi
 
@@ -162,6 +194,7 @@ main() {
     echo
     pfb success "OpenCode configuration installed!"
     pfb info "  Config location: $OPENCODE_DIR"
+    pfb info "  AGENTS.md location: $DEST"
     pfb info "  Source location: $SOURCE"
 }
 
