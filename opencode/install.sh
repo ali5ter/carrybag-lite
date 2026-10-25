@@ -181,7 +181,7 @@ build_config() {
     jq --arg p "$PROVIDER" --argjson prov "${provider:-null}" --arg model "$model" '
         . + { "$schema": "https://opencode.ai/config.json", autoupdate: false, share: "disabled" }
         | if $prov != null then
-            .plugins[$p] = $prov
+            .provider[$p] = $prov
             | .enabled_providers = (((.enabled_providers // []) + [$p]) | unique)
             | .model = ($p + "/" + $model)
           else . end' <<<"$existing"
