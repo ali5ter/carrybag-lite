@@ -5,8 +5,7 @@
 # Symlinks CLAUDE.md from the carrybag-lite claude/ directory into
 # ~/.config/opencode/AGENTS.md, links plugin-installed Claude Code skills into
 # ~/.config/opencode/skills/, and merges a baseline into the global OpenCode
-# config (~/.config/opencode/opencode.json, or opencode.jsonc when only that
-# exists). When an Ollama endpoint answers, the config also gains a local lane:
+# config (~/.config/opencode/opencode.json). When an Ollama endpoint answers, the config also gains a local lane:
 # a custom "ollama" provider listing every model the endpoint serves, with
 # enabled_providers restricted to it so no cloud provider is reached by accident.
 #
@@ -23,7 +22,7 @@
 #   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh   # preferred default model
 #   OPENCODE_CONTEXT_LIMIT=<tokens> OPENCODE_OUTPUT_LIMIT=<tokens> ./opencode/install.sh
 #   Backs up any existing file before replacing it; running twice is idempotent.
-#   Keys the script does not manage are preserved; comments in a .jsonc are not.
+#   Keys the script does not manage are preserved; comments are stripped before parsing.
 #
 # Dependencies: bash 4.0+, curl, jq; optional: pfb
 #
@@ -189,9 +188,9 @@ build_config() {
 }
 
 target_config() {
-    # Print the config file to write: an existing opencode.jsonc when no
-    # opencode.json exists (OpenCode loads both, so writing the other would race it),
-    # otherwise opencode.json.
+    # Print the config file to write: opencode.json by default. If an opencode.jsonc
+    # exists but no opencode.json does (a leftover from a prior run), honour the
+    # existing file to avoid racing OpenCode which loads both formats.
     # @return 0; prints the path
     # @example target="$(target_config)"
     if [[ -f "$CONFIG_JSONC" && ! -f "$CONFIG_JSON" ]]; then
@@ -203,7 +202,7 @@ target_config() {
 
 read_existing() {
     # Print an existing config as plain JSON, dropping whole-line // comments so a
-    # .jsonc parses. Inline comments and trailing commas are not handled.
+    # JSONC file parses. Inline comments and trailing commas are not handled.
     # @param $1  Config path
     # @return 0 with JSON on stdout; 1 when the file exists but does not parse
     # @example existing="$(read_existing "$CONFIG_JSONC")"
