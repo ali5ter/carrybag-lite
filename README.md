@@ -191,8 +191,9 @@ Install via `brew install --cask antigravity-cli`.
 `opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.x does not fall
 back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered natively;
 plugin-installed skills are linked into `~/.config/opencode/skills/`. It then merges a baseline into the global
-config, `~/.config/opencode/opencode.json` (or an existing `opencode.jsonc`, since OpenCode loads both):
-`autoupdate: false` and `share: "disabled"`. Keys the script does not manage survive; comments in a `.jsonc` do not.
+config, `~/.config/opencode/opencode.json`, with `autoupdate: false` and
+`share: "disabled"`. Keys the script does not manage survive; comments are
+stripped before parsing.
 
 The Ollama endpoint is resolved from `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, then `~/.config/ollama_host`, then
 `localhost:11434`. When it answers, the config gains a local lane: a custom `ollama` provider

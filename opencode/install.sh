@@ -41,7 +41,6 @@ CLAUDE_PLUGIN_CACHE="$HOME/.claude/plugins/cache"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
 DEST="$OPENCODE_DIR/AGENTS.md"
 CONFIG_JSON="$OPENCODE_DIR/opencode.json"
-CONFIG_JSONC="$OPENCODE_DIR/opencode.jsonc"
 OLLAMA_HOST_FILE="$HOME/.config/ollama_host"
 PROVIDER="ollama"
 # OpenCode needs at least a 64k context window; the shared Studio serves 128k.
@@ -188,21 +187,15 @@ build_config() {
 }
 
 target_config() {
-    # Print the config file to write: opencode.json by default. If an opencode.jsonc
-    # exists but no opencode.json does (a leftover from a prior run), honour the
-    # existing file to avoid racing OpenCode which loads both formats.
+    # Print the config file to write: always opencode.json.
     # @return 0; prints the path
     # @example target="$(target_config)"
-    if [[ -f "$CONFIG_JSONC" && ! -f "$CONFIG_JSON" ]]; then
-        printf '%s' "$CONFIG_JSONC"
-    else
-        printf '%s' "$CONFIG_JSON"
-    fi
+    printf '%s' "$CONFIG_JSON"
 }
 
 read_existing() {
-    # Print an existing config as plain JSON, dropping whole-line // comments so a
-    # JSONC file parses. Inline comments and trailing commas are not handled.
+    # Print an existing config as plain JSON, dropping whole-line // comments.
+    # Inline comments and trailing commas are not handled.
     # @param $1  Config path
     # @return 0 with JSON on stdout; 1 when the file exists but does not parse
     # @example existing="$(read_existing "$CONFIG_JSONC")"
