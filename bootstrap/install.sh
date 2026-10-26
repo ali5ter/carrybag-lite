@@ -335,6 +335,17 @@ install_cfonts() {
 
 }
 
+install_ascii_art() {
+    # Install ascii-magic-art, the animated ASCII art player used for the login splash by
+    # bootstrap/banner.sh and handy on its own (`ascii-magic-art` browses 600+ pieces).
+    # Pure ES modules with no dependencies; needs Node 18+. Installs into the user-local npm
+    # prefix set by configure_npm, so no sudo.
+    # @return 0 on success, non-zero if install fails
+    # @example install_ascii_art
+    # @ref https://github.com/kailashsr38/ascii-magic-art
+    npm install -g ascii-magic-art
+}
+
 install_banner() {
     # Copy banner.sh to /etc/profile.d/ on Linux for login-time display. No-op on macOS.
     # @return 0 on success
@@ -982,6 +993,10 @@ main() {
     pfb info "Installing cfonts..."
     install_cfonts
     pfb success "cfonts installed!"
+    echo
+    pfb info "Installing ascii-magic-art..."
+    install_ascii_art
+    pfb success "ascii-magic-art installed!"
     echo
     pfb info "Installing nerd fonts..."
     install_nerd_fonts

@@ -75,6 +75,7 @@ Then open a new terminal window to load it.
 
 - `git`, `vim`, `shellcheck`, `watch`
 - `jq`, `yq`, `bat`, `fd`, `tree`, `fzf`, `figlet`, `cfonts`, `glow`
+- `ascii-magic-art` (animated ASCII art player, used by the Linux login banner)
 - `btop`, `ncdu` (system monitoring), `wakeonlan`
 - `starship` (prompt), `fzf` (history + fuzzy search), `zoxide` (directory jumper)
 - Nerd Fonts
@@ -92,7 +93,9 @@ Then open a new terminal window to load it.
 - Claude Code and `codex` (AI tools; `codex` via npm; Antigravity CLI Linux install TBD)
 - pfb via its curl installer
 - ufw firewall configuration
-- Login banner with hostname and system info
+- Login banner: a short animated ASCII splash, then hostname and system info. Pick the
+  splash by writing a piece name (see `ascii-magic-art --list`), `random` or `none` to
+  `~/.config/banner_piece`, optionally followed by a duration in seconds
 
 **Raspberry Pi extras:**
 
