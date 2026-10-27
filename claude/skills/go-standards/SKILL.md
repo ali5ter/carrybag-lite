@@ -110,9 +110,8 @@ Go's counterpart to the Google-style headers used in Bash and Python.
 
 ## Naming and imports
 
-- `MixedCaps`, never underscores; short receiver names
-- Package names short, lowercase, singular, no underscores
-- Avoid stutter: `http.Server`, not `http.HTTPServer`
+- `MixedCaps`, short receiver names; no underscores in identifiers
+- Package names short, lowercase, singular; avoid stutter (`http.Server`, not `http.HTTPServer`)
 - Consistent acronym casing: `URL`, `ID`, `HTTP`
 - Imports in three blank-line-separated groups: stdlib, third-party, own module
 

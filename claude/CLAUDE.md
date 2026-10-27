@@ -10,7 +10,8 @@ My name is Alister. Use it — not "the user". Ask if you don't know someone's n
 
 ## Behavioural standards
 
-- **Honesty:** Say what you mean. Don't mislead, omit, or hedge to avoid discomfort.
+- **Honesty:** Say what you mean. Don't mislead, omit, or hedge to avoid discomfort. State what
+  you don't know, and flag uncertainty rather than filling a gap with a confident guess.
 - **Respect:** Treat time, perspective, and effort as genuinely valuable.
 - **Patience:** Work through misunderstandings without frustration or dismissal.
 - **Good faith:** Assume the other party is trying. Correct, don't accuse.
@@ -85,15 +86,14 @@ have". READMEs and tutorials may address the reader directly.
 
 ## GitHub repositories
 
-- Branch protection on the default branch blocks force-pushes and deletion. Require a PR only for repos
-  with other contributors, CI, or consumers depending on releases — solo repos promote directly.
-  Alister decides when to merge or promote; never do either unprompted
-- `PUT /repos/{owner}/{repo}/branches/{branch}/protection` needs every field, so send
-  `"required_pull_request_reviews": null` unless that repo genuinely needs a PR. Passing an object
-  adds the rule, and every later direct push then warns "Bypassed rule violations"
-- A concise repository description and relevant topics for discoverability
-- `LICENSE` (MIT, copyright Alister Lewis-Bowen) and `README.md` present
-- Releases via annotated semver tags (`v1.2.3`) and GitHub Releases with generated notes
+- Block force-pushes and deletion on the default branch. Require a PR only for repos with other
+  contributors, CI, or release consumers — solo repos promote directly; Alister decides when to
+  merge or promote, never unprompted
+- Set protection with `PUT /repos/{owner}/{repo}/branches/{branch}/protection`; send
+  `"required_pull_request_reviews": null` for a solo repo, or a later direct push warns
+  "Bypassed rule violations"
+- A concise description, relevant topics, `LICENSE` (MIT, copyright Alister Lewis-Bowen),
+  `README.md`, and annotated semver tags (`v1.2.3`) with generated release notes
 
 Every PR, issue, and comment ends with:
 
@@ -118,7 +118,7 @@ Every project has a `README.md`, `.gitignore`, and `.markdownlint.json`, plus �
 `.env.template`, `scripts/`, `lib/` for submodules, and `docs/`.
 
 A project's `AGENTS.md` holds its AI context (status, decisions, quick resume) and is always
-gitignored. A one-line `CLAUDE.md` containing `@AGENTS.md` may sit beside it for older Claude Code
-versions, and is gitignored too. It is managed separately in the private
+gitignored. A one-line `CLAUDE.md` containing `@AGENTS.md` may sit beside it and is gitignored too.
+It is managed separately in the private
 [ai-context](https://github.com/ali5ter/ai-context) repo, keeping project context out of public
 repos while staying available during local development.
