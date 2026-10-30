@@ -122,3 +122,10 @@ gitignored. A one-line `CLAUDE.md` containing `@AGENTS.md` may sit beside it and
 It is managed separately in the private
 [ai-context](https://github.com/ali5ter/ai-context) repo, keeping project context out of public
 repos while staying available during local development.
+
+## ComfyUI image output
+
+The terminal cannot render images inline. When ComfyUI (via MCP) generates an image, always:
+
+1. Save it to `~/Desktop/` with a descriptive filename
+2. Open it with `open -a Preview <path>` so the user can see it
