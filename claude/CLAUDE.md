@@ -101,9 +101,10 @@ Every PR, issue, and comment ends with:
 🤖 Generated with [SOURCE](URL) on behalf of [Alister](https://github.com/ali5ter)
 ```
 
-`SOURCE` is the invoking skill or agent with its repo URL — for example
-`[claude-workflow-skills:audit-standards](https://github.com/ali5ter/claude-workflow-skills)` —
-or `[Claude Code](https://claude.com/claude-code)` when no named skill was responsible.
+`SOURCE` is the harness or skill that generated the content — e.g. `Claude Code`, `OpenCode`,
+a named skill like `claude-workflow-skills:audit-standards`, or another tool name. `[URL]` is that
+tool's site or repo URL. If a named skill is responsible, use `skill-name:repo-name` as the source
+text. When no named skill was responsible, the harness substitutes its own name.
 
 ## AGENTS.md size limit
 
