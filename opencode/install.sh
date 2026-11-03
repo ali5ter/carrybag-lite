@@ -19,7 +19,7 @@
 # modify Claude Code's config, and vice versa.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 3.0.0
+# Version: 3.1.0
 # Date: 2026-11-03
 # License: MIT
 #
@@ -351,12 +351,50 @@ bootstrap_command() {
 }
 
 bootstrap_mcp() {
-    # Hindsight is a machine-specific server (192.168.1.63:8888 on the Studio).
-    # Not bootstrapped automatically — the user adds it with:
-    #   opencode mcp add hindsight --url http://192.168.1.63:8888/mcp/health/ --transport streamable-http
-    # The API key is in ~/.hindsight/api_key and is used via authorization header.
-    # See carrybag-lite/claude/register-hindsight-mcp.sh for the Claude Code equivalent.
-    pfb info "  Hindsight MCP not auto-configured; see carrybag-lite/claude/register-hindsight-mcp.sh"
+    # Hindsight is machine-specific (Studio URL + API key). Bootstrap reads the key
+    # from either the env var or ~/.hindsight/api_key, never committed (see
+    # register-hindsight-mcp.sh, which does the same for Claude Code).
+    local key
+    if [[ -n "${HINDSIGHT_API_KEY:-}" ]]; then
+        key="$HINDSIGHT_API_KEY"
+    elif [[ -r ~/.hindsight/api_key && -s ~/.hindsight/api_key ]]; then
+        key="$(head -1 ~/.hindsight/api_key)"
+        key="$(sed -n 's/^HINDSIGHT_API_TENANT_API_KEY=//p;' <<<"$key")"
+        key="$(printf '%s' "$key" | tr -d '[:space:]')"
+    else
+        return 0
+    fi
+    [[ -z "$key" ]] && return 0
+
+    local existing has_mcp
+    existing="$(read_existing "$CONFIG_JSON")"
+    has_mcp=$(jq -r 'has("mcp") and (.mcp | has("servers") and (.servers | has("hindsight")))' <<<"$existing")
+    if [[ "$has_mcp" == "true" ]]; then
+        return 0
+    fi
+
+    local mcp_block
+    mcp_block=$(jq -n '{
+        mcp: {
+            servers: {
+                hindsight: {
+                    type: "remote",
+                    url: "http://192.168.1.63:8888/mcp/health/",
+                    oauth: false,
+                    headers: {
+                        "Authorization": "Bearer {env:HINDSIGHT_API_KEY}"
+                    }
+                }
+            }
+        }
+    }')
+
+    local new
+    new=$(jq --argjson mcp "$mcp_block" '. + $mcp' <<<"$existing")
+
+    backup_if_exists "$CONFIG_JSON"
+    printf '%s\n' "$new" > "$CONFIG_JSON"
+    pfb success "  Wrote OpenCode Hindsight MCP server"
 }
 
 write_config() {
