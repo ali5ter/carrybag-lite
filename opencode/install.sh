@@ -184,8 +184,16 @@ link_plugin_skills() {
 }
 
 # ── Phase 2: agents, commands, MCP ──────────────────────────────────────────
+# Standard agents (advisor, reviewer, ux-tester) + 4 slash commands are
+# bootstrapped here. Custom agents and skills live in their own repos
+# (e.g. over-50s-health, claude-workflow-skills) with their own
+# opencode/ directory; bootstrap there is separate.
 
 bootstrap_agents() {
+    # Creates the 3 standard agents + ux-tester skill. Custom agents and skills
+    # live in their own repos (over-50s-health, claude-workflow-skills, etc.) —
+    # each plugin owns its OpenCode port under an opencode/ dir in that repo.
+    # Bootstrap for those is run manually; install.sh only ships the shared defaults.
     # Phase 2: create the standard agent files if they don't already exist.
     bootstrap_agent advisor \
 '---
