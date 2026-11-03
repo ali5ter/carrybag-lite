@@ -186,7 +186,16 @@ Code and Codex. Skills are linked into `~/.gemini/config/skills/`. Note: despite
 migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its home directory.
 Install via `brew install --cask antigravity-cli`.
 
-### OpenCode
+### OpenCode (parallel channel)
+
+OpenCode runs as a **parallel channel** alongside Claude Code — not a replacement. Both harnesses share the same
+`CLAUDE.md` → `AGENTS.md` source of truth, the same `~/.claude/skills/` directory, and the same skill symlinks. Each
+has its own config directory and does not modify the other's:
+
+- **Claude Code:** `~/.claude/` — `settings.json`, hooks, marketplace, statusline, `installed_plugins.json`
+- **OpenCode:** `~/.config/opencode/` — provider config, agents, commands, MCP, plugins
+- **Shared:** `carrybag-lite/claude/CLAUDE.md` (via symlink), `~/.claude/skills/`, skill symlinks in
+  `~/.config/opencode/skills/`, Ollama server endpoint
 
 `opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.x does not fall
 back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered natively;
@@ -206,8 +215,8 @@ block alone enables it, so `opencode auth list` legitimately shows nothing. Reru
 models; the provider block is rebuilt from the endpoint each time.
 
 `bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
-present. Claude Code's hooks have no OpenCode equivalent, so OpenCode sessions run without them. Install via
-`brew install opencode`.
+present. Claude Code-specific hooks have no OpenCode event-system equivalent, so OpenCode sessions run without them.
+Install via `brew install opencode`.
 
 ### Shared Ollama server
 

@@ -146,6 +146,28 @@ The `install.sh` script is called automatically by `bootstrap/install.sh` and cr
 Because `codex/install.sh` and `antigravity/install.sh` link `~/.claude/skills/` into their own
 skills directories, these skills reach Codex CLI and Antigravity CLI as well.
 
+## Parallel OpenCode channel
+
+OpenCode runs as a **parallel channel**, not a replacement. Both harnesses share:
+
+- The same `CLAUDE.md` → `AGENTS.md` symlink (CarryBag-lite `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`)
+- The same `~/.claude/skills/` skills directory (OpenCode reads it natively)
+- The same skill symlinks from `~/.config/opencode/skills/` (linked from the Claude Code plugin cache)
+
+What OpenCode **does not** have — and these stay in Claude Code's lane:
+
+- **Hooks:** `verify-edit.sh`, `guard-secrets.sh`, `guard-gh-attribution.sh`, `resume-context.sh`. OpenCode has no
+  `PreToolUse`/`PostToolUse` event system. Security hooks remain Claude Code only.
+- **Statusline:** `statusline-command.sh` is Claude Code only (no OpenCode statusline API in the docs).
+- **Plugin marketplace:** `ali5ter/claude-plugins` and `claude-plugins-official` are Claude Code only. OpenCode uses npm
+  packages or local plugin directories for plugins — no `marketplace.json` equivalent.
+- **`claude-local`**: the `-s/--switchable` model switcher stays as the Claude Code launcher. OpenCode uses its
+  built-in `/model` command for model switching (no wrapper needed).
+
+The OpenCode config lives in `~/.config/opencode/` — `opencode/install.sh` writes there, not into `~/.claude/`. The
+installer is idempotent and backed up before replacing. OpenCode does not read or modify Claude Code's `settings.json`
+or `~/.claude/`.
+
 ## Manual Installation
 
 ```bash

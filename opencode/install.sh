@@ -2,29 +2,37 @@
 #
 # install.sh - Install OpenCode configuration
 #
-# Symlinks CLAUDE.md from the carrybag-lite claude/ directory into
-# ~/.config/opencode/AGENTS.md, links plugin-installed Claude Code skills into
-# ~/.config/opencode/skills/, and merges a baseline into the global OpenCode
-# config (~/.config/opencode/opencode.json). When an Ollama endpoint answers, the config also gains a local lane:
-# a custom "ollama" provider listing every model the endpoint serves, with
-# enabled_providers restricted to it so no cloud provider is reached by accident.
+# Phase 1 (v2.0): symlinks CLAUDE.md from carrybag-lite/claude/ into
+#   ~/.config/opencode/AGENTS.md, links plugin-installed Claude Code skills
+#   into ~/.config/opencode/skills/, and merges a baseline provider config
+#   into the global OpenCode config (~/.config/opencode/opencode.json).
 #
-# Endpoint resolution order: LOCAL_ENDPOINT, OLLAMA_HOST, ~/.config/ollama_host,
-# then http://localhost:11434/v1.
+# Phase 2 (v3.0): adds the following on top of v2.0:
+#   • agents/  — reusable subagent definitions (frontmatter-based .md files)
+#   • commands/ — slash-command definitions (frontmatter .md + shell blocks)
+#   • MCP config — optional hindsight server entry in opencode.json
+#
+# Parallel architecture (Issue #32): Claude Code owns ~/.claude/ (settings.json,
+# hooks, marketplace, statusline). OpenCode owns ~/.config/opencode/ (provider
+# config, agents, commands, MCP, skills). Both share CLAUDE.md → AGENTS.md,
+# ~/.claude/skills/, and the same Ollama server. OpenCode does not read or
+# modify Claude Code's config, and vice versa.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 2.0.0
-# Date: 2026-10-23
+# Version: 3.0.0
+# Date: 2026-11-03
 # License: MIT
 #
 # Usage: ./opencode/install.sh
 #   LOCAL_ENDPOINT=<url> ./opencode/install.sh          # explicit Ollama endpoint
 #   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh   # preferred default model
+#   HINDSIGHT_URL=<url>  ./opencode/install.sh          # enable Hindsight MCP
 #   OPENCODE_CONTEXT_LIMIT=<tokens> OPENCODE_OUTPUT_LIMIT=<tokens> ./opencode/install.sh
 #   Backs up any existing file before replacing it; running twice is idempotent.
-#   Keys the script does not manage are preserved; comments are stripped before parsing.
+#   Keys the script does not manage are preserved; comments are stripped before
+#   parsing.
 #
-# Dependencies: bash 4.0+, curl, jq; optional: pfb
+# Dependencies: bash 4.0+, curl, jq, md5 (or shasum); optional: pfb
 #
 # Exit codes:
 #   0 - Success
@@ -39,11 +47,12 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 OPENCODE_DIR="$HOME/.config/opencode"
 CLAUDE_PLUGIN_CACHE="$HOME/.claude/plugins/cache"
 SOURCE="$REPO_DIR/claude/CLAUDE.md"
-DEST="$OPENCODE_DIR/AGENTS.md"
+AGENTS_DIR="$OPENCODE_DIR/agents"
+COMMANDS_DIR="$OPENCODE_DIR/commands"
 CONFIG_JSON="$OPENCODE_DIR/opencode.json"
+AGENTS_LINK="$OPENCODE_DIR/AGENTS.md"
 OLLAMA_HOST_FILE="$HOME/.config/ollama_host"
 PROVIDER="ollama"
-# OpenCode needs at least a 64k context window; the shared Studio serves 128k.
 CONTEXT_LIMIT="${OPENCODE_CONTEXT_LIMIT:-131072}"
 OUTPUT_LIMIT="${OPENCODE_OUTPUT_LIMIT:-32768}"
 CURL_TIMEOUT=5
@@ -51,12 +60,6 @@ CURL_TIMEOUT=5
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 backup_if_exists() {
-    # Move an existing regular file aside to a timestamped copy. No-op for a missing
-    # file or a symlink.
-    # @param $1  Absolute path of the file to check and back up
-    # @return 0
-    # @example backup_if_exists "$HOME/.config/opencode/opencode.json"
-    # @side_effects Moves the file to <path>.backup.YYYYMMDDHHMMSS
     local file="$1" backup
     if [[ -f "$file" && ! -L "$file" ]]; then
         backup="${file}.backup.$(date +"%Y%m%d%H%M%S")"
@@ -66,10 +69,6 @@ backup_if_exists() {
 }
 
 normalize_endpoint() {
-    # Turn a host:port or URL into an OpenAI-compatible base URL ending in /v1.
-    # @param $1  Endpoint as host:port, http://host:port or http://host:port/v1
-    # @return 0; prints the normalized URL
-    # @example normalize_endpoint 192.168.1.63:11434  # -> http://192.168.1.63:11434/v1
     local url="${1%/}"
     [[ "$url" == http://* || "$url" == https://* ]] || url="http://$url"
     [[ "$url" == */v1 ]] || url="$url/v1"
@@ -77,10 +76,6 @@ normalize_endpoint() {
 }
 
 local_endpoint() {
-    # Print the Ollama endpoint: LOCAL_ENDPOINT, then OLLAMA_HOST, then the
-    # ~/.config/ollama_host file bash_profile reads, then localhost.
-    # @return 0; prints the normalized endpoint URL
-    # @example endpoint="$(local_endpoint)"
     local raw
     if [[ -n "${LOCAL_ENDPOINT:-}" ]]; then
         raw="$LOCAL_ENDPOINT"
@@ -95,33 +90,17 @@ local_endpoint() {
 }
 
 list_models() {
-    # Print the model ids an Ollama endpoint serves, one per line.
-    # @param $1  Endpoint base URL ending in /v1
-    # @return 0; prints nothing when the endpoint does not answer
-    # @example list_models "http://192.168.1.63:11434/v1"
     curl -s --max-time "$CURL_TIMEOUT" "$1/models" 2>/dev/null \
         | jq -r '.data[]?.id // empty' 2>/dev/null || true
 }
 
 model_context_length() {
-    # Print the architecture context length Ollama reports for a model, so the
-    # configured limit never overstates what the model can take.
-    # @param $1  Endpoint base URL ending in /v1
-    # @param $2  Model id
-    # @return 0; prints nothing when unavailable
-    # @example model_context_length "http://localhost:11434/v1" "qwen3.8:27b"
     curl -s --max-time "$CURL_TIMEOUT" "${1%/v1}/api/show" -d "{\"model\":\"$2\"}" 2>/dev/null \
         | jq -r '.model_info | to_entries[] | select(.key | endswith(".context_length")) | .value' 2>/dev/null \
         | head -1 || true
 }
 
 build_provider() {
-    # Print the provider block for the Ollama endpoint, one entry per model with
-    # explicit context/output limits (both required by the OpenCode schema).
-    # @param $1  Endpoint base URL ending in /v1
-    # @param $@  Model ids (after $1)
-    # @return 0; JSON on stdout
-    # @example build_provider "http://localhost:11434/v1" qwen3.8:27b
     local endpoint="$1" host models="{}" model arch context
     shift
     host="${endpoint#http://}"; host="${host#https://}"; host="${host%/v1}"
@@ -144,13 +123,6 @@ build_provider() {
 }
 
 pick_default_model() {
-    # Choose the default model: OPENCODE_LOCAL_MODEL when the endpoint serves it,
-    # else the model the existing config already points at when still served, else
-    # the first served id.
-    # @param $1  Existing config JSON
-    # @param $@  Served model ids (after $1)
-    # @return 0; prints the model id
-    # @example pick_default_model "$existing" qwen3.8:27b qwen3.6:35b-a3b-coding
     local existing="$1" current
     shift
     if [[ -n "${OPENCODE_LOCAL_MODEL:-}" ]]; then
@@ -169,13 +141,6 @@ pick_default_model() {
 }
 
 build_config() {
-    # Merge the managed keys into an existing config. Unmanaged keys survive; the
-    # ollama provider block is replaced wholesale so stale models never linger.
-    # @param $1  Existing config JSON ("{}" when none)
-    # @param $2  Provider block JSON, or empty when no endpoint answered
-    # @param $3  Default model id, or empty
-    # @return 0; JSON on stdout
-    # @example build_config '{}' "$provider" qwen3.8:27b
     local existing="$1" provider="$2" model="$3"
     jq --arg p "$PROVIDER" --argjson prov "${provider:-null}" --arg model "$model" '
         . + { "$schema": "https://opencode.ai/config.json", autoupdate: false, share: "disabled" }
@@ -187,29 +152,18 @@ build_config() {
 }
 
 target_config() {
-    # Print the config file to write: always opencode.json.
-    # @return 0; prints the path
-    # @example target="$(target_config)"
     printf '%s' "$CONFIG_JSON"
 }
 
 read_existing() {
-    # Print an existing config as plain JSON, dropping whole-line // comments.
-    # Inline comments and trailing commas are not handled.
-    # @param $1  Config path
-    # @return 0 with JSON on stdout; 1 when the file exists but does not parse
-    # @example existing="$(read_existing "$CONFIG_JSONC")"
     local file="$1"
     [[ -f "$file" ]] || { printf '{}'; return 0; }
-    sed -E 's#^[[:space:]]*//.*$##' "$file" | jq -e 'if type == "object" then . else error("not an object") end' 2>/dev/null
+    # Strip whole-line // comments, collapse to single line, fix trailing commas
+    # before } and ] so jq can parse the result.
+    sed -E 's#^[[:space:]]*//.*$##' "$file" | tr '\n' ' ' | sed 's/, *}/}/g; s/, *\]/]/g' | jq -e 'if type == "object" then . else error("not an object") end' 2>/dev/null
 }
 
 link_plugin_skills() {
-    # Link plugin-installed Claude Code skills (cache/<ns>/<plugin>/<ver>/skills/*) into
-    # OpenCode's skills directory. User skills need no linking: OpenCode reads ~/.claude/skills.
-    # @return 0
-    # @example link_plugin_skills
-    # @side_effects Creates symlinks under ~/.config/opencode/skills/
     local skills_dest="$OPENCODE_DIR/skills" skills_dir skill skill_name dest linked=0
     mkdir -p "$skills_dest"
     if [[ -d "$CLAUDE_PLUGIN_CACHE" ]]; then
@@ -229,12 +183,183 @@ link_plugin_skills() {
     return 0
 }
 
+# ── Phase 2: agents, commands, MCP ──────────────────────────────────────────
+
+bootstrap_agents() {
+    # Phase 2: create the standard agent files if they don't already exist.
+    bootstrap_agent advisor \
+'---
+description: Architecture advisor for design decisions and code organization. Uses qwen3.8:27b for heavy thinking.
+mode: subagent
+model: ollama/qwen3.6:35b-a3b-coding
+steps: 16
+---
+
+You are an architecture advisor. Focus on design decisions, code organization, and long-term maintainability.
+
+Guidelines:
+- Evaluate trade-offs across performance, complexity, and team velocity
+- Prefer existing patterns over inventing new ones
+- Flag dependencies that couple unrelated subsystems
+- When the question is concrete, name files and lines
+- If the answer requires deep analysis, say so and break the work into steps
+
+Do not write code. Recommend, do not implement.
+'
+
+    bootstrap_agent reviewer \
+'---
+description: Read-only reviewer focused on correctness, security, and testing gaps.
+mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "git status"
+    effect: allow
+  - action: shell
+    resource: "git diff * --cached"
+    effect: allow
+  - action: shell
+    resource: "git diff * --"
+    effect: allow
+  - action: shell
+    resource: "git log --oneline *"
+    effect: allow
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: "*"
+    effect: deny
+---
+
+You are a code reviewer. Focus on correctness, security, and testing gaps.
+
+Review the provided changes and report findings in severity order (critical, high, medium, low):
+- **Critical:** data loss, security vulnerabilities, breaking changes
+- **High:** incorrect behavior, missing error handling, race conditions
+- **Medium:** style violations against existing project standards, missing edge cases
+- **Low:** suggestions for clarity, minor optimisations
+
+Reference specific files and line numbers. Do not suggest changes unless the defect is critical — report, do not fix.
+'
+
+    bootstrap_agent ux-tester \
+'---
+description: UX/UI tester for terminal apps and frontend interfaces. Loads the tui-ux-tester skill.
+mode: all
+steps: 12
+---
+
+You are a UX tester specializing in terminal interfaces and frontend designs.
+
+Use the tui-ux-tester skill when reviewing terminal UIs. Evaluate:
+- Navigation flow and discoverability
+- Keyboard shortcut ergonomics (no more than 2 levels deep)
+- Color contrast and information density
+- Onboarding clarity (first run should produce value in under 30 seconds)
+- Layout consistency across terminals and sizes
+
+Use the frontend-design skill when reviewing web UIs. Evaluate:
+- Visual hierarchy and spacing
+- Typography choices and consistency
+- Component reusability vs over-engineering
+- Loading states and error handling UX
+
+Reference real examples. Avoid generic "looks good" feedback. Be specific about what to change.
+'
+}
+
+bootstrap_agent() {
+    local name="$1" content
+    content="$2"
+    local file
+    file="$AGENTS_DIR/${name}.md"
+    if [[ -e "$file" || -L "$file" ]]; then
+        return 0
+    fi
+    mkdir -p "$AGENTS_DIR"
+    if [[ -f "$file" && ! -L "$file" ]]; then
+        backup_if_exists "$file"
+    fi
+    printf '%s\n' "$content" > "$file"
+    pfb success "  Wrote agent: $name"
+}
+
+bootstrap_commands() {
+    # Phase 2: create the standard command files if they don't already exist.
+    bootstrap_command review \
+'---
+description: Review the staged diff for correctness, security, and missing tests.
+---
+Review the staged diff for correctness, security, and missing tests.
+
+!`git diff --cached --stat && echo && git diff --cached --`'
+
+    bootstrap_command triage \
+'---
+description: Triage a GitHub issue — label, assign, find duplicates, suggest next action.
+model: ollama/qwen3.8:27b
+agent: plan
+---
+Review this issue and triage it:
+
+!`gh issue view $1 --json title,body,labels,state,assignees,reactions,comments`
+
+Label if appropriate, suggest next action, and check for duplicates.'
+
+    bootstrap_command status \
+'---
+description: Produce a workspace status snapshot.
+---
+Produce a workspace status snapshot: branch, uncommitted changes, recent commits, dependency state.
+
+!`git branch --show-current && echo && git status --short && echo && git log --oneline -10 && echo && ls -la node_modules/.package-lock.json 2>/dev/null | head -3 || echo "No node_modules lock"`'
+
+    bootstrap_command commit-msg \
+'---
+description: Generate a conventional commit message from the staged diff.
+---
+Generate a conventional commit message for the staged changes:
+
+!`git diff --cached --stat && echo && git diff --cached --`
+
+Follow Conventional Commits: type(scope): description
+Types: feat, fix, chore, docs, refactor, test, style, perf
+Scope: the affected subsystem or file group (optional).'
+}
+
+bootstrap_command() {
+    local name="$1" content
+    content="$2"
+    local file
+    file="$COMMANDS_DIR/${name}.md"
+    if [[ -e "$file" || -L "$file" ]]; then
+        return 0
+    fi
+    mkdir -p "$COMMANDS_DIR"
+    if [[ -f "$file" && ! -L "$file" ]]; then
+        backup_if_exists "$file"
+    fi
+    printf '%s\n' "$content" > "$file"
+    pfb success "  Wrote command: $name"
+}
+
+bootstrap_mcp() {
+    # Hindsight is a machine-specific server (192.168.1.63:8888 on the Studio).
+    # Not bootstrapped automatically — the user adds it with:
+    #   opencode mcp add hindsight --url http://192.168.1.63:8888/mcp/health/ --transport streamable-http
+    # The API key is in ~/.hindsight/api_key and is used via authorization header.
+    # See carrybag-lite/claude/register-hindsight-mcp.sh for the Claude Code equivalent.
+    pfb info "  Hindsight MCP not auto-configured; see carrybag-lite/claude/register-hindsight-mcp.sh"
+}
+
 write_config() {
-    # Write the global OpenCode config, backing up the old file only when the
-    # content changes.
-    # @return 0 on success, 2 when the existing config cannot be parsed
-    # @example write_config
-    # @side_effects Creates or replaces ~/.config/opencode/opencode.json[c]
     local target existing endpoint provider="" model="" new
     local -a models=()
     target="$(target_config)"
@@ -285,18 +410,34 @@ main() {
     done
 
     mkdir -p "$OPENCODE_DIR"
-    backup_if_exists "$DEST"
-    ln -sfn "$SOURCE" "$DEST"
+
+    # -- symlink AGENTS.md --
+    backup_if_exists "$AGENTS_LINK"
+    ln -sfn "$SOURCE" "$AGENTS_LINK"
     pfb success "  Linked AGENTS.md"
 
+    # -- Phase 2: agents --
+    bootstrap_agents
+
+    # -- Phase 2: commands --
+    bootstrap_commands
+
+    # -- Phase 2: MCP (optional) --
+    bootstrap_mcp
+
+    # -- link plugin skills --
     link_plugin_skills
+
+    # -- baseline provider config --
     write_config || exit $?
 
     echo
     pfb success "OpenCode configuration installed!"
     pfb info "  Config location: $OPENCODE_DIR"
-    pfb info "  AGENTS.md location: $DEST"
+    pfb info "  AGENTS.md location: $AGENTS_LINK"
     pfb info "  Source location: $SOURCE"
+    pfb info "  Agents: $(find "$AGENTS_DIR" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
+    pfb info "  Commands: $(find "$COMMANDS_DIR" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 }
 
 main "$@"
