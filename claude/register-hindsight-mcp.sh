@@ -43,7 +43,7 @@ readonly CREDENTIALS_FILE="${HOME}/.config/hindsight/credentials"
 readonly OP_ITEM="${HINDSIGHT_OP_ITEM:-Hindsight API key}"
 readonly OP_VAULT="${HINDSIGHT_OP_VAULT:-Private}"
 
-URL="${HINDSIGHT_URL:-http://127.0.0.1:8888}"
+URL="${HINDSIGHT_URL:-http://192.168.1.63:8888}"
 BANK="${HINDSIGHT_BANK_ID:-health}"
 SERVER_NAME=""
 DO_REMOVE=0
