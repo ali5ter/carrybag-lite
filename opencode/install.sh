@@ -57,6 +57,14 @@ CONTEXT_LIMIT="${OPENCODE_CONTEXT_LIMIT:-131072}"
 OUTPUT_LIMIT="${OPENCODE_OUTPUT_LIMIT:-32768}"
 CURL_TIMEOUT=5
 
+# Source machine-specific overrides from .env.local (gitignored).
+# Sets HINDSIGHT_MCP_URL_DEFAULT for bootstrap_mcp() below.
+_env_file="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/.env.local"
+if [[ -r "$_env_file" ]]; then
+    # shellcheck source=/dev/null
+    source "$_env_file"
+fi
+
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
 backup_if_exists() {
@@ -420,13 +428,16 @@ bootstrap_mcp() {
         return 0
     fi
 
+    local mcp_url
+    mcp_url="${HINDSIGHT_MCP_URL_DEFAULT:-http://192.168.1.63:8888/mcp/health/}"
+
     local mcp_block
-    mcp_block=$(jq -n '{
+    mcp_block=$(jq -n --arg url "$mcp_url" '{
         mcp: {
             servers: {
                 hindsight: {
                     type: "remote",
-                    url: "http://192.168.1.63:8888/mcp/health/",
+                    url: $url,
                     oauth: false,
                     headers: {
                         "Authorization": "Bearer {env:HINDSIGHT_API_KEY}"

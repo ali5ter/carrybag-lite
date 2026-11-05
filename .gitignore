@@ -16,6 +16,7 @@ get-pip.py
 # Environment files
 .env
 .envrc
+.env.local
 .bashrc_local
 
 # CarryBag runtime state

@@ -22,11 +22,26 @@
 # Read JSON input from stdin
 input=$(cat)
 
-# Get hostname with alias mapping (matching Starship config)
+# Get hostname with alias mapping (matching Starship config).
+# Aliases come from STARSHIP_HOSTNAME_ALIASES env var — semicolon-separated
+# "host:alias" pairs (e.g. "Alisters-iMac:imac;Alisters-MacBook-Air:mb-air").
+# Falls back to the hardcoded list below if the env var is not set.
 hostname=$(hostname -s)
-case "$hostname" in
-    "Alisters-iMac") hostname="imac" ;;
-esac
+_alias=""
+if [[ -n "${STARSHIP_HOSTNAME_ALIASES:-}" ]]; then
+    IFS=';' read -ra _pairs <<< "$STARSHIP_HOSTNAME_ALIASES"
+    for _pair in "${_pairs[@]}"; do
+        _h="${_pair%%:*}"
+        _a="${_pair#*:}"
+        [[ "$hostname" == "$_h" ]] && { _alias="$_a"; break; }
+    done
+fi
+if [[ -z "$_alias" ]]; then
+    case "$hostname" in
+        "Alisters-iMac") _alias="imac" ;;
+    esac
+fi
+hostname="$_alias"
 
 # Get current directory (use workspace info from JSON)
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // empty')

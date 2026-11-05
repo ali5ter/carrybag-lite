@@ -37,6 +37,34 @@
 #   pbcopy < ~/.ssh/id_ed25519.pub  # macOS
 #   xclip -sel clip < ~/.ssh/id_ed25519.pub  # Linux
 
+source_env() {
+    # Source machine-specific overrides from .env.local (gitignored).
+    # Sets OLLAMA_SERVER_DEFAULT, OPENCODE_MODEL_DEFAULT,
+    # HINDSIGHT_MCP_URL_DEFAULT, STARSHIP_HOSTNAME_ALIASES.
+    local _env_file="${BASH_SOURCE[0]%/*}/.env.local"
+    if [[ -r "$_env_file" ]]; then
+        # shellcheck source=/dev/null
+        source "$_env_file"
+    fi
+    # Convert STARSHIP_HOSTNAME_ALIASES from semicolon-separated "host:alias"
+    # into a JSON object for starship.toml. Example input:
+    #   Alisters-iMac:imac;Alisters-MacBook-Air:mb-air
+    # Output: { "Alisters-iMac": "imac", "Alisters-MacBook-Air": "mb-air" }
+    if [[ -n "${STARSHIP_HOSTNAME_ALIASES:-}" ]]; then
+        local json="{"
+        local first=true
+        local IFS=';'
+        for pair in $STARSHIP_HOSTNAME_ALIASES; do
+            local host="${pair%%:*}"
+            local alias="${pair#*:}"
+            if $first; then first=false; else json+=", "; fi
+            json+="\"${host}\": \"${alias}\""
+        done
+        json+="}"
+        STARSHIP_HOSTNAME_ALIASES="$json"
+    fi
+}
+
 src_dir() {
     # Return the platform-appropriate projects root directory, creating it if absent.
     # @return 0; prints directory path to stdout
@@ -411,10 +439,14 @@ configure_firewall() {
 
 # Shared Ollama server (the Mac Studio) as host:port. Deliberately an IP, not studio.diffnet.arpa:
 # Twingate may not resolve the FQDN when reaching the server externally.
-OLLAMA_SERVER_DEFAULT="192.168.1.63:11434"
+# Override by setting OLLAMA_SERVER_DEFAULT in .env.local (see .env.template).
+# shellcheck disable=SC2034
+OLLAMA_SERVER_DEFAULT="${OLLAMA_SERVER_DEFAULT:-192.168.1.63:11434}"
 # Preferred OpenCode default model on that server; the installer falls back to
 # whatever the endpoint serves when this one is absent.
-OPENCODE_MODEL_DEFAULT="qwen3.6:35b-a3b-coding"
+# Override by setting OPENCODE_MODEL_DEFAULT in .env.local (see .env.template).
+# shellcheck disable=SC2034
+OPENCODE_MODEL_DEFAULT="${OPENCODE_MODEL_DEFAULT:-qwen3.6:35b-a3b-coding}"
 
 install_ollama_host() {
     # Point the ollama CLI at the shared server by writing ~/.config/ollama_host, which
@@ -508,7 +540,7 @@ install_starship() {
         rm -f install.sh
     fi
     [ -f ~/.config/starship.toml ] || { mkdir -p ~/.config && touch ~/.config/starship.toml; }
-    cat > ~/.config/starship.toml <<'END_OF_STARSHIP_CONFIG'
+    cat > ~/.config/starship.toml <<END_OF_STARSHIP_CONFIG
 [aws]
 disabled = true
 [battery]
@@ -571,7 +603,7 @@ disabled = true
 disabled = true
 [hostname]
 ssh_only = false
-aliases = { "Alisters-iMac" = "imac", "Alisters-MacBook-Air" = "mb-air", "Alisters-Mac-Studio" = "studio" }
+aliases = ${STARSHIP_HOSTNAME_ALIASES:-{}}
 [java]
 disabled = true
 [julia]
@@ -890,6 +922,7 @@ main() {
     # @example ./bootstrap/install.sh uninstall bat
     [[ -n $DEBUG ]] && set -x
     set -eou pipefail
+    source_env
     ensure_modern_bash "$@"
 
     if [[ $# -gt 0 ]]; then
