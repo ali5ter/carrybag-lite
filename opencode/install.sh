@@ -217,7 +217,8 @@ bootstrap_agents() {
     # live in their own repos (over-50s-health, claude-workflow-skills, etc.) —
     # each plugin owns its OpenCode port under an opencode/ dir in that repo.
     # Bootstrap for those is run manually; install.sh only ships the shared defaults.
-    # Phase 2: create the standard agent files if they don't already exist.
+    # Phase 2: refresh the standard agent files on every run (Carrybag-owned;
+    # backup-then-overwrite, see bootstrap_agent).
     bootstrap_agent advisor \
 '---
 description: Architecture advisor for design decisions and code organization. Uses qwen3.8:27b for heavy thinking.
@@ -306,21 +307,31 @@ Reference real examples. Avoid generic "looks good" feedback. Be specific about 
 bootstrap_agent() {
     local name="$1" content
     content="$2"
-    local file
-    file="$AGENTS_DIR/${name}.md"
-    if [[ -e "$file" || -L "$file" ]]; then
+    local file="$AGENTS_DIR/${name}.md"
+    mkdir -p "$AGENTS_DIR"
+
+    # Carrybag owns these agents and refreshes them on every run, so an update to
+    # this script reaches an already-installed agent instead of being skipped. A
+    # symlink is dropped (never followed), an already-current file is left alone
+    # to avoid churn, and a file with a genuine difference is backed up first.
+    [[ -L "$file" ]] && rm -f "$file"
+    local tmp
+    tmp="$(mktemp)" || return 1
+    printf '%s\n' "$content" > "$tmp"
+    if [[ -f "$file" ]] && cmp -s "$tmp" "$file"; then
+        rm -f "$tmp"
+        pfb info "  Agent up to date: $name"
         return 0
     fi
-    mkdir -p "$AGENTS_DIR"
-    if [[ -f "$file" && ! -L "$file" ]]; then
-        backup_if_exists "$file"
-    fi
-    printf '%s\n' "$content" > "$file"
+    [[ -f "$file" ]] && backup_if_exists "$file"
+    mv "$tmp" "$file"
     pfb success "  Wrote agent: $name"
+    return 0
 }
 
 bootstrap_commands() {
-    # Phase 2: create the standard command files if they don't already exist.
+    # Phase 2: refresh the standard command files on every run (Carrybag-owned;
+    # backup-then-overwrite, see bootstrap_command).
     bootstrap_command review \
 '---
 description: Review the staged diff for correctness, security, and missing tests.
@@ -365,17 +376,25 @@ Scope: the affected subsystem or file group (optional).'
 bootstrap_command() {
     local name="$1" content
     content="$2"
-    local file
-    file="$COMMANDS_DIR/${name}.md"
-    if [[ -e "$file" || -L "$file" ]]; then
+    local file="$COMMANDS_DIR/${name}.md"
+    mkdir -p "$COMMANDS_DIR"
+
+    # Carrybag owns these commands and refreshes them on every run, mirroring
+    # bootstrap_agent: drop a symlink, skip an already-current file to avoid
+    # churn, and back up any genuine difference before overwriting.
+    [[ -L "$file" ]] && rm -f "$file"
+    local tmp
+    tmp="$(mktemp)" || return 1
+    printf '%s\n' "$content" > "$tmp"
+    if [[ -f "$file" ]] && cmp -s "$tmp" "$file"; then
+        rm -f "$tmp"
+        pfb info "  Command up to date: $name"
         return 0
     fi
-    mkdir -p "$COMMANDS_DIR"
-    if [[ -f "$file" && ! -L "$file" ]]; then
-        backup_if_exists "$file"
-    fi
-    printf '%s\n' "$content" > "$file"
+    [[ -f "$file" ]] && backup_if_exists "$file"
+    mv "$tmp" "$file"
     pfb success "  Wrote command: $name"
+    return 0
 }
 
 bootstrap_mcp() {
