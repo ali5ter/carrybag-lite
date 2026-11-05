@@ -200,19 +200,20 @@ has its own config directory and does not modify the other's:
 `opencode/install.sh` symlinks `claude/CLAUDE.md` → `~/.config/opencode/AGENTS.md`. OpenCode 2.x does not fall
 back to `~/.claude/CLAUDE.md`, so the link is required. User skills in `~/.claude/skills/` are discovered natively;
 plugin-installed skills are linked into `~/.config/opencode/skills/`. It then merges a baseline into the global
-config, `~/.config/opencode/opencode.json`, with `autoupdate: false` and
-`share: "disabled"`. Keys the script does not manage survive; comments are
-stripped before parsing.
+config, `~/.config/opencode/opencode.json`, with `update: "disable"` and `share: "disabled"`. Keys the script
+does not manage survive; whole-line `//` comments are stripped before parsing.
 
 The Ollama endpoint is resolved from `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, then `~/.config/ollama_host`, then
-`localhost:11434`. When it answers, the config gains a local lane: a custom `ollama` provider
-(`@ai-sdk/openai-compatible`) listing every model the endpoint serves with explicit context and output limits
-(`OPENCODE_CONTEXT_LIMIT`, default 131072, capped at the model's own architecture limit; `OPENCODE_OUTPUT_LIMIT`,
-default 32768), `enabled_providers: ["ollama"]` so no cloud provider is reached by accident, and a default `model`.
-The default is `OPENCODE_LOCAL_MODEL` when served (the bootstrap prefers the Studio's coding model), else the model
-the existing config already used, else the first one listed. No API key or `/connect` is needed: the provider
-block alone enables it, so `opencode auth list` legitimately shows nothing. Rerun the installer after pulling new
-models; the provider block is rebuilt from the endpoint each time.
+`localhost:11434`. When it answers, the config gains a local lane: a `providers.ollama` entry whose `package`
+is `@opencode/ai/providers/openai-compatible` and whose `settings.baseURL` points at the endpoint, listing every
+model the server exposes, each with explicit context and output limits (`OPENCODE_CONTEXT_LIMIT`, default 131072,
+capped at the model's own architecture limit; `OPENCODE_OUTPUT_LIMIT`, default 32768), plus a default `model`. V2
+has no `enabled_providers`; no cloud provider is reached because none are configured — restrict further with the
+top-level `policies` (`provider.use` deny) if you need an explicit fence. The default is `OPENCODE_LOCAL_MODEL`
+when served (the bootstrap prefers the Studio's coding model), else the model the existing config already used,
+else the first one listed. No API key or `/connect` is needed: the `providers` block alone enables it, so
+`opencode auth list` legitimately shows nothing. Rerun the installer after pulling new models; the `providers`
+block is rebuilt from the endpoint each time.
 
 `bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
 present. Claude Code-specific hooks have no OpenCode event-system equivalent, so OpenCode sessions run without them.

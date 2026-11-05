@@ -115,9 +115,9 @@ build_provider() {
             '$m + { ($id): { name: $id, limit: { context: $ctx, output: $out } } }')"
     done
     jq -n --arg host "$host" --arg url "$endpoint" --argjson models "$models" '{
-        npm: "@ai-sdk/openai-compatible",
+        package: "@opencode/ai/providers/openai-compatible",
         name: ("Ollama (" + $host + ")"),
-        options: { baseURL: $url },
+        settings: { baseURL: $url },
         models: $models
     }'
 }
@@ -142,12 +142,20 @@ pick_default_model() {
 
 build_config() {
     local existing="$1" provider="$2" model="$3"
+    # Migrate any legacy V1 keys the script used to write, and emit the V2-native
+    # shape: `update` (not `autoupdate`), plural `providers` (not singular
+    # `provider`), and no `enabled_providers`. Legacy singular providers and
+    # top-level V1 keys are folded in before being removed.
     jq --arg p "$PROVIDER" --argjson prov "${provider:-null}" --arg model "$model" '
-        . + { "$schema": "https://opencode.ai/config.json", autoupdate: false, share: "disabled" }
+        (.providers // {}) as $base
+        | (.provider // {}) as $legacy
+        | del(.provider, .autoupdate, .enabled_providers)
+        + { "$schema": "https://opencode.ai/config.json", update: "disable", share: "disabled" }
         | if $prov != null then
-            .provider[$p] = $prov
-            | .enabled_providers = (((.enabled_providers // []) + [$p]) | unique)
+            .providers = ($base + $legacy + { ($p): $prov })
             | .model = ($p + "/" + $model)
+          elif (($base + $legacy)) != {} then
+            .providers = ($base + $legacy)
           else . end' <<<"$existing"
 }
 
@@ -166,10 +174,25 @@ read_existing() {
 link_plugin_skills() {
     local skills_dest="$OPENCODE_DIR/skills" skills_dir skill skill_name dest linked=0
     mkdir -p "$skills_dest"
+
+    # The Claude plugin cache can hold more than one version of a plugin after
+    # an update. A symlink left pointing at a since-removed version dangles, so
+    # prune any destination that no longer resolves before re-linking. Only
+    # symlinks are pruned — a real directory a user added is left untouched.
+    for dest in "$skills_dest"/*; do
+        [[ -L "$dest" && ! -e "$dest" ]] || continue
+        rm -f "$dest"
+        pfb warn "  Pruned dead skill link: $(basename "$dest")"
+    done
+
     if [[ -d "$CLAUDE_PLUGIN_CACHE" ]]; then
+        # Cache layout: <org>/<plugin>/<version>/skills/<skill>. Sort the skill
+        # roots and skip any whose skill directory is gone, so the final
+        # `ln -sfn` keeps a deterministic live target and a removed version can
+        # never dangle a destination.
         while IFS= read -r -d '' skills_dir; do
             for skill in "$skills_dir"/*/; do
-                [[ -d "$skill" ]] || continue
+                [[ -e "$skill" ]] || continue
                 skill_name="$(basename "$skill")"
                 dest="$skills_dest/$skill_name"
                 [[ -e "$dest" && ! -L "$dest" ]] && { pfb warn "  Skipping non-symlink: $skill_name"; continue; }
@@ -177,7 +200,7 @@ link_plugin_skills() {
                 pfb success "  Linked skill: $skill_name"
                 (( linked++ )) || true
             done
-        done < <(find "$CLAUDE_PLUGIN_CACHE" -mindepth 4 -maxdepth 4 -type d -name "skills" -print0 2>/dev/null)
+        done < <(find "$CLAUDE_PLUGIN_CACHE" -mindepth 4 -maxdepth 4 -type d -name "skills" -print0 2>/dev/null | sort -z)
     fi
     [[ $linked -gt 0 ]] || pfb info "  No plugin skills found in $CLAUDE_PLUGIN_CACHE"
     return 0
@@ -199,7 +222,7 @@ bootstrap_agents() {
 '---
 description: Architecture advisor for design decisions and code organization. Uses qwen3.8:27b for heavy thinking.
 mode: subagent
-model: ollama/qwen3.6:35b-a3b-coding
+model: ollama/qwen3.8:27b
 steps: 16
 ---
 
@@ -224,6 +247,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
+    resource: "*"
+    effect: deny
+  - action: shell
     resource: "git status"
     effect: allow
   - action: shell
@@ -238,12 +264,6 @@ permissions:
   - action: read
     resource: "*"
     effect: allow
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: edit
-    resource: "*"
-    effect: deny
 ---
 
 You are a code reviewer. Focus on correctness, security, and testing gaps.
