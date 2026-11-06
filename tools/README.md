@@ -10,15 +10,15 @@ Pull the latest changes for every git repository found in a directory.
 update.sh [-v|--verbose] [-f|--fetch-only] [-s|--stash] [--serial] [--pager] [-h] [directory]
 ```
 
-| Argument             | Default | Description                              |
-|----------------------|---------|-------------------------------------------|
-| `-v`, `--verbose`    |         | Show every repo, including those already up to date |
-| `-f`, `--fetch-only` |         | Fetch only — report behind, no pull      |
-| `-s`, `--stash`      |         | Auto-stash local changes, pull, then pop |
-| `--serial`           |         | Update repos one at a time (default is concurrent) |
-| `--pager`            |         | Page output through `$UPDATE_PAGER` (default: `less -FRX`) |
-| `-h`, `--help`       |         | Show help and exit                       |
-| `directory`          | `$PWD`  | Directory to scan for git repositories   |
+| Argument | Default | Description |
+| --- | --- | --- |
+| `-v`, `--verbose` | | Show every repo, including those already up to date |
+| `-f`, `--fetch-only` | | Fetch only — report behind, no pull |
+| `-s`, `--stash` | | Auto-stash local changes, pull, then pop |
+| `--serial` | | Update repos one at a time (default is concurrent) |
+| `--pager` | | Page output through `$UPDATE_PAGER` (default: `less -FRX`) |
+| `-h`, `--help` | | Show help and exit |
+| `directory` | `$PWD` | Directory to scan for git repositories |
 
 **Behaviour:**
 
@@ -84,14 +84,14 @@ what's going on across projects after switching machines or context.
 status.sh [-v|--verbose] [-f|--fetch] [--serial] [--pager] [-h] [directory]
 ```
 
-| Argument           | Default | Description                                              |
-|--------------------|---------|------------------------------------------------------------|
-| `-v`, `--verbose`  |         | Show every repo, including those already clean and up to date |
-| `-f`, `--fetch`    |         | Fetch from origin first, so ahead/behind counts are current |
-| `--serial`         |         | Scan repos one at a time (default is concurrent)          |
-| `--pager`          |         | Page output through `$STATUS_PAGER` (default: `less -FRX`) |
-| `-h`, `--help`     |         | Show help and exit                                        |
-| `directory`        | `$PWD`  | Directory to scan for git repositories                    |
+| Argument | Default | Description |
+| --- | --- | --- |
+| `-v`, `--verbose` | | Show every repo, including those already clean and up to date |
+| `-f`, `--fetch` | | Fetch from origin first, so ahead/behind counts are current |
+| `--serial` | | Scan repos one at a time (default is concurrent) |
+| `--pager` | | Page output through `$STATUS_PAGER` (default: `less -FRX`) |
+| `-h`, `--help` | | Show help and exit |
+| `directory` | `$PWD` | Directory to scan for git repositories |
 
 **Behaviour:**
 
@@ -250,3 +250,28 @@ sync.sh --port 2222 --key ~/.ssh/id_backup $HOME/ alice@myserver.local:/backups/
 # Pull a directory from a remote machine to local
 sync.sh alice@myserver.local:/home/alice/projects/ ~/projects/
 ```
+
+---
+
+## migrate.sh — Machine-to-machine migration
+
+Transfer a predefined set of home-directory paths from an old machine to this one over SSH, generating an
+SSH key and copying it to the remote if one is missing.
+
+```bash
+migrate.sh <username> <FQDN_or_IP>
+```
+
+| Argument | Description |
+| --- | --- |
+| `username` | Remote SSH username |
+| `FQDN_or_IP` | Remote hostname or IP address |
+
+**Behaviour:**
+
+- Prompts for each home-directory path to migrate and transfers it in turn
+- Uses rsync by default, with an indefinite retry loop so long transfers survive slow links
+- Keeps the SSH connection alive for 30 minutes via `CON_ALIVE=1800` (seconds)
+- A `cpio` transfer method is also available
+
+Run it via the bootstrap (`./bootstrap/install.sh migrate`) or directly as `./bootstrap/migrate.sh <username> <FQDN_or_IP>`.

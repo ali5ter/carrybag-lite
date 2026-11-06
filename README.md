@@ -27,7 +27,7 @@ Tested on macOS Golden Gate (27.0.1) and Debian-based Linux (Bookworm/Trixie), i
 - 🔍 History search via fzf (Ctrl-R)
 - 🎨 Syntax highlighting (bat)
 - 🔄 Automatic daily package updates
-- 🤖 AI tools: Claude Code, Antigravity CLI (agy), and Codex CLI — sharing the same standards and skills
+- 🤖 AI tools: Claude Code, Antigravity CLI (agy), Codex CLI, and OpenCode — sharing the same standards and skills
 
 ## Quick Install
 
@@ -73,7 +73,7 @@ Then open a new terminal window to load it.
 
 **Common (macOS and Linux):**
 
-- `git`, `vim`, `shellcheck`, `watch`
+- `git`, `go`, `nmap`, `vim`, `shellcheck`, `watch`
 - `jq`, `yq`, `bat`, `fd`, `tree`, `fzf`, `figlet`, `cfonts`, `glow`
 - `btop`, `ncdu` (system monitoring), `wakeonlan`
 - `starship` (prompt), `fzf` (history + fuzzy search), `zoxide` (directory jumper)
@@ -82,14 +82,14 @@ Then open a new terminal window to load it.
 
 **macOS only:**
 
-- `bash` (latest), `bash-completion`, `node`, `go`, `nmap`
-- GUI apps: iTerm2, Visual Studio Code, 1Password, Dropbox
+- `bash` (latest), `bash-completion`, `node`
+- GUI apps: iTerm2, Visual Studio Code, 1Password (incl. CLI), Dropbox
 - [pfb](https://github.com/ali5ter/pfb) from the `ali5ter/tap` Homebrew tap
 
 **Linux only:**
 
 - `curl`, `wget`, `gnupg`, `fontconfig`, `nodejs`, `npm`
-- Claude Code and `codex` (AI tools; `codex` via npm; Antigravity CLI Linux install TBD)
+- Claude Code (via its curl installer) and `codex` (via npm; Antigravity CLI Linux install TBD)
 - pfb via its curl installer
 - ufw firewall configuration
 - Login banner with hostname and system info
@@ -112,28 +112,32 @@ Then open a new terminal window to load it.
 
 ## AI Tools Configuration
 
-The bootstrap installs Claude Code, Antigravity CLI (agy), and Codex CLI, and wires up
-shared development standards and skills so all three tools operate from the same principles.
+The bootstrap configures the four AI tools — Claude Code, Antigravity CLI (agy),
+Codex CLI, and OpenCode — and wires up shared development standards and skills so they
+all operate from the same source. OpenCode keeps its own config (see its section below);
+the other three read that source from their own config directories.
 
 ### Shared development standards
 
 `claude/CLAUDE.md` is the single source of truth for coding standards and project conventions.
-It is automatically loaded by Claude Code as the user-level instruction file. The same file is
-shared with Codex CLI and Antigravity CLI via symlinks so all AI tools enforce the same standards.
-Skills defined in `~/.claude/skills/` are also linked into each tool's skills directory
-so the same skills are available across all three tools.
+It is loaded by Claude Code as its user-level instruction file, and is shared with
+Codex CLI, Antigravity CLI, and OpenCode via a symlink to `AGENTS.md`, so every AI tool
+enforces the same standards. The two tables below show where each tool reads its standards
+and skills; OpenCode's skill population differs (see its section below).
 
-| Tool | Config location | Source |
+| Harness | Config location | Source |
 | --- | --- | --- |
 | Claude Code | `~/.claude/CLAUDE.md` | symlinked from `claude/CLAUDE.md` |
 | Codex CLI | `~/.codex/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
 | Antigravity CLI | `~/.gemini/config/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
+| OpenCode | `~/.config/opencode/AGENTS.md` | symlinked from `claude/CLAUDE.md` |
 
-| Tool | Skills location | Source |
+| Harness | Skills location | Source |
 | --- | --- | --- |
 | Claude Code | `~/.claude/skills/<skill>/` | symlinked from `claude/skills/` |
 | Codex CLI | `~/.codex/skills/<skill>/` | symlinked from `~/.claude/skills/` |
 | Antigravity CLI | `~/.gemini/config/skills/<skill>/` | symlinked from `~/.claude/skills/` |
+| OpenCode | `~/.config/opencode/skills/<skill>/` | plugin skills linked from `~/.claude/plugins/cache`; user skills discovered natively |
 
 `CLAUDE.md` is loaded into every session, so it deliberately holds only guidance that applies
 every time. Language-specific conventions live in `claude/skills/` and are loaded on demand:
@@ -158,7 +162,7 @@ Enabled plugins (pre-configured in `settings.json`):
   `/audit-plugin`, `/audit-standards` workflow skills
 - [`tui-ux-tester`](https://github.com/ali5ter/claude-plugins) — UX evaluation of terminal UIs
 - [`over-50s-health`](https://github.com/ali5ter/over-50s-health-advisor) — health and fitness advisor
-- `github`, `mattpocock-skills` and `frontend-design` from the official plugin marketplace
+- `github` and `frontend-design` from the official plugin marketplace
 
 Plugins are distributed via the `ali5ter` Claude Code plugin marketplace. After bootstrapping,
 install them with:
@@ -186,11 +190,11 @@ Code and Codex. Skills are linked into `~/.gemini/config/skills/`. Note: despite
 migrating away from the Gemini CLI brand, `agy` still uses `~/.gemini/` as its home directory.
 Install via `brew install --cask antigravity-cli`.
 
-### OpenCode (parallel channel)
+### OpenCode
 
-OpenCode runs as a **parallel channel** alongside Claude Code — not a replacement. Both harnesses share the same
-`CLAUDE.md` → `AGENTS.md` source of truth, the same `~/.claude/skills/` directory, and the same skill symlinks. Each
-has its own config directory and does not modify the other's:
+OpenCode is a separate AI harness. It shares the same source of truth as the others — `CLAUDE.md` →
+`AGENTS.md`, `~/.claude/skills/`, and the Ollama server — but keeps its own config directory and never reads or
+modifies another harness's config:
 
 - **Claude Code:** `~/.claude/` — `settings.json`, hooks, marketplace, statusline, `installed_plugins.json`
 - **OpenCode:** `~/.config/opencode/` — provider config, agents, commands, MCP, plugins
@@ -203,26 +207,24 @@ plugin-installed skills are linked into `~/.config/opencode/skills/`. It then me
 config, `~/.config/opencode/opencode.json`, with `update: "disable"` and `share: "disabled"`. Keys the script
 does not manage survive; whole-line `//` comments are stripped before parsing.
 
-The Ollama endpoint is resolved from `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, then `~/.config/ollama_host`, then
-`localhost:11434`. When it answers, the config gains a local lane: a `providers.ollama` entry whose `package`
-is `@opencode/ai/providers/openai-compatible` and whose `settings.baseURL` points at the endpoint, listing every
-model the server exposes, each with explicit context and output limits (`OPENCODE_CONTEXT_LIMIT`, default 131072,
-capped at the model's own architecture limit; `OPENCODE_OUTPUT_LIMIT`, default 32768), plus a default `model`. V2
-has no `enabled_providers`; no cloud provider is reached because none are configured — restrict further with the
-top-level `policies` (`provider.use` deny) if you need an explicit fence. The default is `OPENCODE_LOCAL_MODEL`
-when served (the bootstrap prefers the Studio's coding model), else the model the existing config already used,
-else the first one listed. No API key or `/connect` is needed: the `providers` block alone enables it, so
-`opencode auth list` legitimately shows nothing. Rerun the installer after pulling new models; the `providers`
-block is rebuilt from the endpoint each time.
+The endpoint is resolved in this order: `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, then `~/.config/ollama_host`, then
+`localhost:11434`. When it responds, the installer writes a `providers.ollama` entry (package
+`@opencode/ai/providers/openai-compatible`, `settings.baseURL` pointing at the endpoint) listing every model the
+server serves, each with its own context and output limits (`OPENCODE_CONTEXT_LIMIT` and `OPENCODE_OUTPUT_LIMIT`,
+default 131072 and 32768; context is capped at the model's own architecture limit), plus a default `model`.
+
+The default model is `OPENCODE_LOCAL_MODEL` when the endpoint serves it, otherwise the model the config already used,
+otherwise the first in the list. The `providers` block alone enables the local lane — no API key or `/connect` is
+needed, so `opencode auth list` showing nothing is expected. No cloud provider is configured, so requests stay
+local. Rerun `./opencode/install.sh` after adding models to the server; the `providers` block is rebuilt each time.
 
 `bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
 present. Claude Code-specific hooks have no OpenCode event-system equivalent, so OpenCode sessions run without them.
 Install via `brew install opencode`.
 
-### Shared Ollama server
+### Remote Ollama server
 
-To use another machine's Ollama (for example the Mac Studio) from the `ollama` CLI, put its address in
-`~/.config/ollama_host`:
+To point the `ollama` CLI at a remote Ollama server, put its address in `~/.config/ollama_host`:
 
 ```bash
 echo '192.168.1.63:11434' > ~/.config/ollama_host
@@ -239,22 +241,18 @@ same way, for example `./bootstrap/install.sh config_codex`.
 
 ### Machine Migration
 
-Transfer configurations from old machine to new:
-
-```bash
-./bootstrap/migrate.sh <username> <remote-host>
-```
+Move a home-directory tree from an old machine to this one over SSH, with an SSH key generated if one is
+needed and an rsync retry loop for slow links. See [tools/README.md](tools/README.md) for details and usage.
 
 ### Bulk Git Repository Updates
 
-Update all git repositories in a directory in one pass, with optional parallel
-mode (`--parallel`). See [tools/README.md](tools/README.md) for full details.
+Pull every git repository under a directory in one pass — concurrent by default, skipping any repo with
+uncommitted changes or an unreachable remote. See [tools/README.md](tools/README.md) for details.
 
 ### Local and Remote Sync
 
-Sync a directory to a local drive or a remote host over SSH, with custom port
-and key support (`--port`, `--key`). See [tools/README.md](tools/README.md)
-for full details.
+Back up a directory to a local drive or a remote host over SSH, mode auto-detected from whether the target
+contains a colon. See [tools/README.md](tools/README.md) for details.
 
 ## Testing in a Raspberry Pi–like Docker Container
 
@@ -286,18 +284,42 @@ docker rm -f carrybag-test
 
 ## Customization
 
-Add personal overrides without modifying `bash_profile`:
+Two override files adapt the system to a machine or personal preference without
+editing tracked files. Both are gitignored.
+
+### Personal overrides (`~/.bashrc_local`)
+
+Add aliases and functions without modifying `bash_profile`:
 
 ```bash
-# Create local overrides file
 echo "alias myalias='echo hello'" >> ~/.bashrc_local
 ```
 
-The `bash_profile` automatically sources `~/.bashrc_local` if it exists.
+`bash_profile` sources `~/.bashrc_local` at the end of every login shell, if it
+exists.
 
-## Documentation
+### Machine-specific values (`.env.local`)
 
-See [tools/README.md](tools/README.md) for the utility script reference.
+The install scripts bake in sensible machine-specific defaults. To override any
+of them for a machine, copy the template and edit it:
+
+```bash
+cp .env.template .env.local
+$EDITOR .env.local
+```
+
+The install scripts source `.env.local` on each run; a missing file is
+harmless, so a bare install keeps the built-in defaults. The variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `OLLAMA_SERVER_DEFAULT` | Remote Ollama server `host:port` |
+| `OPENCODE_MODEL_DEFAULT` | Preferred OpenCode default model |
+| `HINDSIGHT_MCP_URL_DEFAULT` | Hindsight MCP server URL (also read as `HINDSIGHT_URL`) |
+| `STARSHIP_HOSTNAME_ALIASES` | Semicolon-separated `host:alias` pairs for the prompt and statusline |
+
+The template's header lists which script consumes each variable and how to
+format it, so it is the detailed reference.
 
 ## License
 
