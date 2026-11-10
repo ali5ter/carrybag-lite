@@ -284,3 +284,10 @@ fi
 
 # shellcheck disable=SC1091
 [ -r ~/.bashrc_local ] && source "$HOME/.bashrc_local"
+
+# Added by LM Studio CLI (lms)
+if [ -d "$HOME/.lmstudio/bin" ]; then
+    export PATH="$PATH:$HOME/.lmstudio/bin"
+fi
+# End of LM Studio CLI section
+
