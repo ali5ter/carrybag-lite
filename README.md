@@ -212,11 +212,16 @@ The endpoint is resolved in this order: `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, th
 `@opencode/ai/providers/openai-compatible`, `settings.baseURL` pointing at the endpoint) listing every model the
 server serves, each with its own context and output limits (`OPENCODE_CONTEXT_LIMIT` and `OPENCODE_OUTPUT_LIMIT`,
 default 131072 and 32768; context is capped at the model's own architecture limit), plus a default `model`.
+A second, optional provider is written the same way when `LMSTUDIO_ENDPOINT` is set and that endpoint serves a
+model: a `providers.lmstudio` entry that also becomes the default. This is the Studio's lane for its local LM
+Studio build — machines without LM Studio leave `LMSTUDIO_ENDPOINT` unset and stay on Ollama unchanged.
 
-The default model is `OPENCODE_LOCAL_MODEL` when the endpoint serves it, otherwise the model the config already used,
-otherwise the first in the list. The `providers` block alone enables the local lane — no API key or `/connect` is
-needed, so `opencode auth list` showing nothing is expected. No cloud provider is configured, so requests stay
-local. Rerun `./opencode/install.sh` after adding models to the server; the `providers` block is rebuilt each time.
+The default model is `lmstudio/<model>` when LM Studio is configured and serves one (preferring `LMSTUDIO_MODEL`
+when it is named and present), otherwise `OPENCODE_LOCAL_MODEL` for Ollama when the endpoint serves it, otherwise
+the model the config already used, otherwise the first in the list. The `providers` block alone enables the local
+lane — no API key or `/connect` is needed, so `opencode auth list` showing nothing is expected. No cloud provider is
+configured, so requests stay local. Rerun `./opencode/install.sh` after adding models to a server; the `providers`
+block is rebuilt each time.
 
 `bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
 present. Claude Code-specific hooks have no OpenCode event-system equivalent, so OpenCode sessions run without them.
@@ -314,7 +319,9 @@ harmless, so a bare install keeps the built-in defaults. The variables:
 | Variable | Purpose |
 | --- | --- |
 | `OLLAMA_SERVER_DEFAULT` | Remote Ollama server `host:port` |
-| `OPENCODE_MODEL_DEFAULT` | Preferred OpenCode default model |
+| `OPENCODE_MODEL_DEFAULT` | Preferred OpenCode default model (Ollama) |
+| `LMSTUDIO_ENDPOINT` | LM Studio server URL; adds a second provider and makes it the OpenCode default |
+| `LMSTUDIO_MODEL` | Preferred OpenCode default model on the LM Studio endpoint |
 | `HINDSIGHT_MCP_URL_DEFAULT` | Hindsight MCP server URL (also read as `HINDSIGHT_URL`) |
 | `STARSHIP_HOSTNAME_ALIASES` | Semicolon-separated `host:alias` pairs for the prompt and statusline |
 

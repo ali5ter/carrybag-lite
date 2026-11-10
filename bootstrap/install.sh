@@ -6,8 +6,8 @@
 # packages, links shell configuration, sets up AI tools, and configures SSH.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 1.9.2
-# Date: 2026-10-23
+# Version: 1.10.0
+# Date: 2026-11-09
 # License: MIT
 #
 # Usage: ./bootstrap/install.sh
@@ -876,9 +876,12 @@ config_antigravity() {
 config_opencode() {
     # Configure OpenCode by symlinking CLAUDE.md as AGENTS.md into ~/.config/opencode/,
     # linking plugin skills and merging a baseline into ~/.config/opencode/opencode.json
-    # (plus a local Ollama lane when an endpoint answers). The installer resolves the
-    # endpoint itself from LOCAL_ENDPOINT, OLLAMA_HOST or ~/.config/ollama_host, so
-    # nothing is defaulted here that would shadow the shared-server setup.
+    # (plus a local Ollama lane, and an optional LM Studio lane when configured). The
+    # installer resolves the Ollama endpoint itself from LOCAL_ENDPOINT, OLLAMA_HOST or
+    # ~/.config/ollama_host, so nothing is defaulted here that would shadow the
+    # shared-server setup. LMSTUDIO_ENDPOINT/LMSTUDIO_MODEL are forwarded when set (empty
+    # by default); the installer makes LM Studio the default model only when it serves a
+    # model, so machines without it keep the Ollama default.
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_opencode
@@ -886,6 +889,8 @@ config_opencode() {
     repo_dir="$(src_dir)/carrybag-lite"
     if [[ -d "$repo_dir/opencode" ]]; then
         OPENCODE_LOCAL_MODEL="${OPENCODE_LOCAL_MODEL:-$OPENCODE_MODEL_DEFAULT}" \
+        LMSTUDIO_ENDPOINT="${LMSTUDIO_ENDPOINT:-}" \
+        LMSTUDIO_MODEL="${LMSTUDIO_MODEL:-}" \
         "$repo_dir/opencode/install.sh"
     else
         pfb warn "OpenCode configuration directory not found at $repo_dir/opencode"

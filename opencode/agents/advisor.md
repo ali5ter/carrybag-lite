@@ -1,7 +1,7 @@
 ---
-description: Architecture advisor for design decisions and code organization. Uses qwen3.8:27b for heavy thinking.
+description: Architecture advisor for design decisions and code organization. Uses qwen3.8-27b-splash for heavy thinking.
 mode: subagent
-model: ollama/qwen3.8:27b
+model: lmstudio/qwen3.8-27b-splash
 steps: 16
 ---
 

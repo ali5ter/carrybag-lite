@@ -19,15 +19,21 @@
 # modify Claude Code's config, and vice versa.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 3.1.0
-# Date: 2026-11-03
+# Version: 3.2.0
+# Date: 2026-11-09
 # License: MIT
 #
 # Usage: ./opencode/install.sh
 #   LOCAL_ENDPOINT=<url> ./opencode/install.sh          # explicit Ollama endpoint
-#   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh   # preferred default model
+#   OPENCODE_LOCAL_MODEL=<name> ./opencode/install.sh   # preferred Ollama default model
+#   LMSTUDIO_ENDPOINT=<url> ./opencode/install.sh       # add an LM Studio provider
+#   LMSTUDIO_MODEL=<name> ./opencode/install.sh         # preferred LM Studio model
 #   HINDSIGHT_URL=<url>  ./opencode/install.sh          # enable Hindsight MCP
 #   OPENCODE_CONTEXT_LIMIT=<tokens> OPENCODE_OUTPUT_LIMIT=<tokens> ./opencode/install.sh
+#
+# When LMSTUDIO_ENDPOINT is set and serves a model, it becomes the OpenCode default
+# (a second provider, id "lmstudio"); Ollama stays a fallback provider. Machines
+# without LM Studio (no LMSTUDIO_ENDPOINT) keep the Ollama default unchanged.
 #   Backs up any existing file before replacing it; running twice is idempotent.
 #   Keys the script does not manage are preserved; comments are stripped before
 #   parsing.
@@ -56,6 +62,12 @@ PROVIDER="ollama"
 CONTEXT_LIMIT="${OPENCODE_CONTEXT_LIMIT:-131072}"
 OUTPUT_LIMIT="${OPENCODE_OUTPUT_LIMIT:-32768}"
 CURL_TIMEOUT=5
+
+# Result of resolve_default_model(), stashed in globals so the agent/command bootstrap and
+# the config write reuse one probe instead of querying the servers twice.
+RESOLVED_MODEL=""
+DEFAULT_PROVIDER=""
+PROVIDER_MERGED_JSON="{}"
 
 # Source machine-specific overrides from .env.local (gitignored).
 # Sets HINDSIGHT_MCP_URL_DEFAULT for bootstrap_mcp() below.
@@ -109,8 +121,8 @@ model_context_length() {
 }
 
 build_provider() {
-    local endpoint="$1" host models="{}" model arch context
-    shift
+    local endpoint="$1" name="$2" host models="{}" model arch context
+    shift 2
     host="${endpoint#http://}"; host="${host#https://}"; host="${host%/v1}"
     for model in "$@"; do
         context="$CONTEXT_LIMIT"
@@ -122,9 +134,10 @@ build_provider() {
             --argjson ctx "$context" --argjson out "$OUTPUT_LIMIT" \
             '$m + { ($id): { name: $id, limit: { context: $ctx, output: $out } } }')"
     done
-    jq -n --arg host "$host" --arg url "$endpoint" --argjson models "$models" '{
+    local display="$name ($host)"
+    jq -n --arg name "$display" --arg url "$endpoint" --argjson models "$models" '{
         package: "@opencode/ai/providers/openai-compatible",
-        name: ("Ollama (" + $host + ")"),
+        name: $name,
         settings: { baseURL: $url },
         models: $models
     }'
@@ -149,22 +162,80 @@ pick_default_model() {
 }
 
 build_config() {
-    local existing="$1" provider="$2" model="$3"
+    local existing="$1" providers="$2" model="$3"
     # Migrate any legacy V1 keys the script used to write, and emit the V2-native
     # shape: `update` (not `autoupdate`), plural `providers` (not singular
     # `provider`), and no `enabled_providers`. Legacy singular providers and
-    # top-level V1 keys are folded in before being removed.
-    jq --arg p "$PROVIDER" --argjson prov "${provider:-null}" --arg model "$model" '
+    # top-level V1 keys are folded in before being removed. `providers` is the merged
+    # {ollama:{...},lmstudio:{...}} object (possibly empty); `model` is the full
+    # "provider/model" default (empty leaves the existing default in place).
+    jq --argjson provs "${providers:-"{}"}" --arg model "$model" '
         (.providers // {}) as $base
         | (.provider // {}) as $legacy
         | del(.provider, .autoupdate, .enabled_providers)
         + { "$schema": "https://opencode.ai/config.json", update: "disable", share: "disabled" }
-        | if $prov != null then
-            .providers = ($base + $legacy + { ($p): $prov })
-            | .model = ($p + "/" + $model)
-          elif (($base + $legacy)) != {} then
-            .providers = ($base + $legacy)
-          else . end' <<<"$existing"
+        | .providers = ($base + $legacy + $provs)
+        | if $model != "" then .model = $model else . end' <<<"$existing"
+}
+
+# Probe the Ollama endpoint and, when LMSTUDIO_ENDPOINT is set, an LM Studio endpoint
+# once, build a merged providers object, and pick the default model. Results are stashed
+# in the globals declared near the top so the agent/command bootstrap and the config write
+# reuse them without a second probe.
+#
+# Precedence: when LM Studio is configured and serves a model, the default is that model
+# (LMSTUDIO_MODEL when named and present, else its first); otherwise the Ollama default,
+# honoured from OPENCODE_LOCAL_MODEL, then the config's current choice, then its first.
+# This keeps machines without LM Studio on Ollama.
+# @return 0
+resolve_default_model() {
+    local ollama_endpoint lms_endpoint ollama_models=() lms_models=()
+    local ollama_json lms_json lms_model existing line
+
+    ollama_endpoint="$(local_endpoint)"
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && ollama_models+=("$line")
+    done < <(list_models "$ollama_endpoint")
+
+    lms_endpoint=""
+    if [[ -n "${LMSTUDIO_ENDPOINT:-}" ]]; then
+        lms_endpoint="$(normalize_endpoint "$LMSTUDIO_ENDPOINT")"
+        while IFS= read -r line; do
+            [[ -n "$line" ]] && lms_models+=("$line")
+        done < <(list_models "$lms_endpoint")
+    fi
+
+    ollama_json="null"
+    if [[ ${#ollama_models[@]} -gt 0 ]]; then
+        ollama_json="$(build_provider "$ollama_endpoint" "Ollama" "${ollama_models[@]}")"
+    fi
+    lms_json="null"
+    if [[ ${#lms_models[@]} -gt 0 ]]; then
+        lms_json="$(build_provider "$lms_endpoint" "LM Studio" "${lms_models[@]}")"
+    fi
+
+    PROVIDER_MERGED_JSON="$(jq -n --argjson o "$ollama_json" --argjson l "$lms_json" '
+        (if $o != null then {ollama: $o} else {} end)
+        + (if $l != null then {lmstudio: $l} else {} end)')"
+
+    if [[ ${#lms_models[@]} -gt 0 ]]; then
+        lms_model="${LMSTUDIO_MODEL:-}"
+        if [[ -n "$lms_model" ]] && ! printf '%s\n' "${lms_models[@]}" | grep -qxF -- "$lms_model"; then
+            pfb warn "  LMSTUDIO_MODEL=$lms_model is not served by $lms_endpoint; using its first model instead." >&2
+        fi
+        [[ -n "$lms_model" ]] || lms_model="${lms_models[0]}"
+        RESOLVED_MODEL="lmstudio/$lms_model"
+        DEFAULT_PROVIDER="lmstudio"
+    elif [[ ${#ollama_models[@]} -gt 0 ]]; then
+        existing="$(read_existing "$(target_config)")"
+        RESOLVED_MODEL="ollama/$(pick_default_model "$existing" "${ollama_models[@]}")"
+        DEFAULT_PROVIDER="ollama"
+    else
+        pfb warn "  No models at $ollama_endpoint${lms_endpoint:+ or $lms_endpoint}; writing baseline without a local provider." >&2
+        pfb warn "  Set LOCAL_ENDPOINT/OLLAMA_HOST (Ollama) or LMSTUDIO_ENDPOINT (LM Studio) and rerun to add one." >&2
+        RESOLVED_MODEL=""
+        DEFAULT_PROVIDER=""
+    fi
 }
 
 target_config() {
@@ -229,9 +300,9 @@ bootstrap_agents() {
     # backup-then-overwrite, see bootstrap_agent).
     bootstrap_agent advisor \
 '---
-description: Architecture advisor for design decisions and code organization. Uses qwen3.8:27b for heavy thinking.
+description: Architecture advisor for design decisions and code organization. Uses the default local model for heavy thinking.
 mode: subagent
-model: ollama/qwen3.8:27b
+model: {{DEFAULT_MODEL}}
 steps: 16
 ---
 
@@ -315,6 +386,16 @@ Reference real examples. Avoid generic "looks good" feedback. Be specific about 
 bootstrap_agent() {
     local name="$1" content
     content="$2"
+    # Substitute the default-model sentinel with the model resolved by
+    # resolve_default_model, so each agent follows the machine's default. When no
+    # model was resolved, drop the line so the frontmatter stays valid. A `#`
+    # delimiter avoids the `/` in "provider/model"; sed is used rather than
+    # parameter expansion so the `}}` in the sentinel does not mis-parse.
+    if [[ -n "$RESOLVED_MODEL" ]]; then
+        content="$(printf '%s\n' "$content" | sed "s#{{DEFAULT_MODEL}}#${RESOLVED_MODEL}#g")"
+    else
+        content="$(printf '%s\n' "$content" | sed '/{{DEFAULT_MODEL}}/d')"
+    fi
     local file="$AGENTS_DIR/${name}.md"
     mkdir -p "$AGENTS_DIR"
 
@@ -351,7 +432,7 @@ Review the staged diff for correctness, security, and missing tests.
     bootstrap_command triage \
 '---
 description: Triage a GitHub issue — label, assign, find duplicates, suggest next action.
-model: ollama/qwen3.8:27b
+model: {{DEFAULT_MODEL}}
 agent: plan
 ---
 Review this issue and triage it:
@@ -384,6 +465,13 @@ Scope: the affected subsystem or file group (optional).'
 bootstrap_command() {
     local name="$1" content
     content="$2"
+    # Substitute the default-model sentinel with the resolved model, mirroring
+    # bootstrap_agent; drop the line when no model was resolved.
+    if [[ -n "$RESOLVED_MODEL" ]]; then
+        content="$(printf '%s\n' "$content" | sed "s#{{DEFAULT_MODEL}}#${RESOLVED_MODEL}#g")"
+    else
+        content="$(printf '%s\n' "$content" | sed '/{{DEFAULT_MODEL}}/d')"
+    fi
     local file="$COMMANDS_DIR/${name}.md"
     mkdir -p "$COMMANDS_DIR"
 
@@ -456,34 +544,23 @@ bootstrap_mcp() {
 }
 
 write_config() {
-    local target existing endpoint provider="" model="" new
-    local -a models=()
+    local target existing new
     target="$(target_config)"
     if ! existing="$(read_existing "$target")"; then
         pfb error "Cannot parse $target as JSON. Whole-line // comments are fine; inline comments and trailing commas are not. Fix it or move it aside, then rerun."
         return 2
     fi
 
-    endpoint="$(local_endpoint)"
-    while IFS= read -r line; do [[ -n "$line" ]] && models+=("$line"); done < <(list_models "$endpoint")
-    if [[ ${#models[@]} -gt 0 ]]; then
-        model="$(pick_default_model "$existing" "${models[@]}")"
-        provider="$(build_provider "$endpoint" "${models[@]}")"
-    else
-        pfb warn "  No Ollama models at $endpoint; writing baseline without a local provider."
-        pfb warn "  Set LOCAL_ENDPOINT, OLLAMA_HOST or ~/.config/ollama_host and rerun to add one."
-    fi
-
-    new="$(build_config "$existing" "$provider" "$model")"
+    new="$(build_config "$existing" "$PROVIDER_MERGED_JSON" "$RESOLVED_MODEL")"
     if [[ -f "$target" && "$(cat "$target")" == "$new" ]]; then
         pfb info "  $(basename "$target") already up to date"
         return 0
     fi
     backup_if_exists "$target"
     printf '%s\n' "$new" > "$target"
-    if [[ -n "$provider" ]]; then
-        pfb success "  Wrote $(basename "$target") ($PROVIDER/$model default; ${#models[@]} model(s) via $endpoint)"
-        pfb info "  Change the default with OPENCODE_LOCAL_MODEL=<id> $(basename "$0"), or /models inside opencode"
+    if [[ -n "$RESOLVED_MODEL" ]]; then
+        pfb success "  Wrote $(basename "$target") ($RESOLVED_MODEL default via $DEFAULT_PROVIDER)"
+        pfb info "  Change the default with LMSTUDIO_ENDPOINT/LMSTUDIO_MODEL (LM Studio) or OPENCODE_LOCAL_MODEL (Ollama), or /models inside opencode"
     else
         pfb success "  Wrote $(basename "$target") (baseline)"
     fi
@@ -511,6 +588,10 @@ main() {
     backup_if_exists "$AGENTS_LINK"
     ln -sfn "$SOURCE" "$AGENTS_LINK"
     pfb success "  Linked AGENTS.md"
+
+    # -- resolve the default model (probes Ollama, and LM Studio when configured) --
+    # Done before the agents/commands so their {{DEFAULT_MODEL}} sentinel resolves.
+    resolve_default_model
 
     # -- Phase 2: agents --
     bootstrap_agents

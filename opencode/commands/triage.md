@@ -1,6 +1,6 @@
 ---
 description: Triage a GitHub issue — label, assign, find duplicates, suggest next action.
-model: ollama/qwen3.8:27b
+model: lmstudio/qwen3.8-27b-splash
 agent: plan
 ---
 
