@@ -73,6 +73,21 @@ export FZF_ALT_C_OPTS="--preview 'tree -C {}'"
 
 # ── PACKAGE MANAGER ───────────────────────────────────────────────────────────
 
+not_dreamhost() {
+    # Return 1 when the hostname belongs to a DreamHost machine — never auto-update those
+    local host
+    host=$(hostname -f 2>/dev/null || hostname 2>/dev/null || echo unknown)
+    host="${host,,}"   # case-insensitive match
+    case "$host" in
+        *.dreamhost.com|*.dreamhostps.com|*.dreamservers.com)
+            return 1
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+}
+
 if [[ "$OSTYPE" == 'darwin'* ]]; then
     # @ref https://brew.sh/
     [ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null
@@ -95,6 +110,7 @@ if [[ "$OSTYPE" == 'darwin'* ]]; then
     fi
 else
     apt_update() {
+        not_dreamhost || return 0
         sudo apt update
         if [[ -f /etc/rpi-issue ]]; then
             sudo apt full-upgrade   # Raspberry Pi OS
