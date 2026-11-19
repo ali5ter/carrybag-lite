@@ -12,6 +12,10 @@
 #   • commands/ — slash-command definitions (frontmatter .md + shell blocks)
 #   • MCP config — optional hindsight server entry in opencode.json
 #
+# Phase 3 (v3.3.0): reruns preserve existing per-model limit.context values
+#   (an explicit OPENCODE_CONTEXT_LIMIT still wins), and .env.local is sourced
+#   before the limit defaults so it can override them (Issue #92).
+#
 # Parallel architecture (Issue #32): Claude Code owns ~/.claude/ (settings.json,
 # hooks, marketplace, statusline). OpenCode owns ~/.config/opencode/ (provider
 # config, agents, commands, MCP, skills). Both share CLAUDE.md → AGENTS.md,
@@ -19,8 +23,8 @@
 # modify Claude Code's config, and vice versa.
 #
 # Author: Alister Lewis-Bowen <alister@lewis-bowen.org>
-# Version: 3.2.0
-# Date: 2026-11-09
+# Version: 3.3.0
+# Date: 2026-11-19
 # License: MIT
 #
 # Usage: ./opencode/install.sh
@@ -35,8 +39,9 @@
 # (a second provider, id "lmstudio"); Ollama stays a fallback provider. Machines
 # without LM Studio (no LMSTUDIO_ENDPOINT) keep the Ollama default unchanged.
 #   Backs up any existing file before replacing it; running twice is idempotent.
-#   Keys the script does not manage are preserved; comments are stripped before
-#   parsing.
+#   Keys the script does not manage are preserved, as are hand-edited
+#   limit.context values (an explicit OPENCODE_CONTEXT_LIMIT wins); comments
+#   are stripped before parsing.
 #
 # Dependencies: bash 4.0+, curl, jq, md5 (or shasum); optional: pfb
 #
@@ -59,6 +64,17 @@ CONFIG_JSON="$OPENCODE_DIR/opencode.json"
 AGENTS_LINK="$OPENCODE_DIR/AGENTS.md"
 OLLAMA_HOST_FILE="$HOME/.config/ollama_host"
 PROVIDER="ollama"
+
+# Source machine-specific overrides from .env.local (gitignored) *before* the
+# limit defaults below, so a .env.local value of OPENCODE_CONTEXT_LIMIT /
+# OPENCODE_OUTPUT_LIMIT overrides the built-in default (Issue #92). Also sets
+# HINDSIGHT_MCP_URL_DEFAULT for bootstrap_mcp() below.
+_env_file="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/.env.local"
+if [[ -r "$_env_file" ]]; then
+    # shellcheck source=/dev/null
+    source "$_env_file"
+fi
+
 CONTEXT_LIMIT="${OPENCODE_CONTEXT_LIMIT:-131072}"
 OUTPUT_LIMIT="${OPENCODE_OUTPUT_LIMIT:-32768}"
 CURL_TIMEOUT=5
@@ -68,14 +84,9 @@ CURL_TIMEOUT=5
 RESOLVED_MODEL=""
 DEFAULT_PROVIDER=""
 PROVIDER_MERGED_JSON="{}"
-
-# Source machine-specific overrides from .env.local (gitignored).
-# Sets HINDSIGHT_MCP_URL_DEFAULT for bootstrap_mcp() below.
-_env_file="$(dirname "$(dirname "${BASH_SOURCE[0]}")")/.env.local"
-if [[ -r "$_env_file" ]]; then
-    # shellcheck source=/dev/null
-    source "$_env_file"
-fi
+# The current opencode.json, read lazily once and shared by build_provider() and the
+# default-model pick so a run parses the file a single time.
+EXISTING_CONFIG=""
 
 type pfb >/dev/null 2>&1 || pfb() { echo "$2"; }
 
@@ -121,11 +132,21 @@ model_context_length() {
 }
 
 build_provider() {
-    local endpoint="$1" name="$2" host models="{}" model arch context
-    shift 2
+    local endpoint="$1" name="$2" provider_id="$3" host models="{}" model arch context existing prev
+    shift 3
     host="${endpoint#http://}"; host="${host#https://}"; host="${host%/v1}"
+    existing="$(existing_config)"
     for model in "$@"; do
         context="$CONTEXT_LIMIT"
+        # A hand-edited limit.context survives a rerun; an explicit
+        # OPENCODE_CONTEXT_LIMIT (environment or .env.local) wins over it (Issue #92).
+        if [[ -z "${OPENCODE_CONTEXT_LIMIT:-}" ]]; then
+            prev="$(jq -r --arg id "$provider_id" --arg m "$model" \
+                '(.providers[$id]?.models[$m]?.limit.context? // empty) | tostring' <<<"$existing" 2>/dev/null || true)"
+            if [[ "$prev" =~ ^[0-9]+$ ]]; then
+                context="$prev"
+            fi
+        fi
         arch="$(model_context_length "$endpoint" "$model")"
         if [[ "$arch" =~ ^[0-9]+$ && "$arch" -lt "$context" ]]; then
             context="$arch"
@@ -207,11 +228,11 @@ resolve_default_model() {
 
     ollama_json="null"
     if [[ ${#ollama_models[@]} -gt 0 ]]; then
-        ollama_json="$(build_provider "$ollama_endpoint" "Ollama" "${ollama_models[@]}")"
+        ollama_json="$(build_provider "$ollama_endpoint" "Ollama" "ollama" "${ollama_models[@]}")"
     fi
     lms_json="null"
     if [[ ${#lms_models[@]} -gt 0 ]]; then
-        lms_json="$(build_provider "$lms_endpoint" "LM Studio" "${lms_models[@]}")"
+        lms_json="$(build_provider "$lms_endpoint" "LM Studio" "lmstudio" "${lms_models[@]}")"
     fi
 
     PROVIDER_MERGED_JSON="$(jq -n --argjson o "$ollama_json" --argjson l "$lms_json" '
@@ -248,6 +269,16 @@ read_existing() {
     # Strip whole-line // comments, collapse to single line, fix trailing commas
     # before } and ] so jq can parse the result.
     sed -E 's#^[[:space:]]*//.*$##' "$file" | tr '\n' ' ' | sed 's/, *}/}/g; s/, *\]/]/g' | jq -e 'if type == "object" then . else error("not an object") end' 2>/dev/null
+}
+
+existing_config() {
+    # The current opencode.json, parsed once per run; {} when absent or unparseable.
+    # An unparseable file is still caught in write_config(), which exits 2.
+    if [[ -z "$EXISTING_CONFIG" ]]; then
+        EXISTING_CONFIG="$(read_existing "$(target_config)" || true)"
+        [[ -n "$EXISTING_CONFIG" ]] || EXISTING_CONFIG="{}"
+    fi
+    printf '%s' "$EXISTING_CONFIG"
 }
 
 link_plugin_skills() {
@@ -420,7 +451,11 @@ bootstrap_agent() {
 
 bootstrap_commands() {
     # Phase 2: refresh the standard command files on every run (Carrybag-owned;
-    # backup-then-overwrite, see bootstrap_command).
+    # backup-then-overwrite, see bootstrap_command). Each body is an OpenCode
+    # template: its backticks and $1 are literal content, expanded when the
+    # command runs, never by the installer. Shellcheck 0.11 mis-reads the
+    # backticks in single quotes as expressions, so each call needs the directive.
+    # shellcheck disable=SC2016
     bootstrap_command review \
 '---
 description: Review the staged diff for correctness, security, and missing tests.
@@ -429,6 +464,7 @@ Review the staged diff for correctness, security, and missing tests.
 
 !`git diff --cached --stat && echo && git diff --cached --`'
 
+    # shellcheck disable=SC2016
     bootstrap_command triage \
 '---
 description: Triage a GitHub issue — label, assign, find duplicates, suggest next action.
@@ -441,6 +477,7 @@ Review this issue and triage it:
 
 Label if appropriate, suggest next action, and check for duplicates.'
 
+    # shellcheck disable=SC2016
     bootstrap_command status \
 '---
 description: Produce a workspace status snapshot.
@@ -449,6 +486,7 @@ Produce a workspace status snapshot: branch, uncommitted changes, recent commits
 
 !`git branch --show-current && echo && git status --short && echo && git log --oneline -10 && echo && ls -la node_modules/.package-lock.json 2>/dev/null | head -3 || echo "No node_modules lock"`'
 
+    # shellcheck disable=SC2016
     bootstrap_command commit-msg \
 '---
 description: Generate a conventional commit message from the staged diff.
@@ -617,4 +655,5 @@ main() {
     pfb info "  Commands: $(find "$COMMANDS_DIR" -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
 }
 
-main "$@"
+# Run the script if it is being executed directly
+[ "${BASH_SOURCE[0]}" -ef "$0" ] && main "$@"

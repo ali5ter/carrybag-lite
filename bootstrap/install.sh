@@ -882,6 +882,8 @@ config_opencode() {
     # shared-server setup. LMSTUDIO_ENDPOINT/LMSTUDIO_MODEL are forwarded when set (empty
     # by default); the installer makes LM Studio the default model only when it serves a
     # model, so machines without it keep the Ollama default.
+    # OPENCODE_CONTEXT_LIMIT/OPENCODE_OUTPUT_LIMIT are forwarded when set
+    # (empty = the installer's built-in default).
     # @param None
     # @return 0 on success, 1 on failure
     # @example config_opencode
@@ -891,6 +893,8 @@ config_opencode() {
         OPENCODE_LOCAL_MODEL="${OPENCODE_LOCAL_MODEL:-$OPENCODE_MODEL_DEFAULT}" \
         LMSTUDIO_ENDPOINT="${LMSTUDIO_ENDPOINT:-}" \
         LMSTUDIO_MODEL="${LMSTUDIO_MODEL:-}" \
+        OPENCODE_CONTEXT_LIMIT="${OPENCODE_CONTEXT_LIMIT:-}" \
+        OPENCODE_OUTPUT_LIMIT="${OPENCODE_OUTPUT_LIMIT:-}" \
         "$repo_dir/opencode/install.sh"
     else
         pfb warn "OpenCode configuration directory not found at $repo_dir/opencode"

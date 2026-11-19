@@ -211,7 +211,8 @@ The endpoint is resolved in this order: `LOCAL_ENDPOINT`, then `OLLAMA_HOST`, th
 `localhost:11434`. When it responds, the installer writes a `providers.ollama` entry (package
 `@opencode/ai/providers/openai-compatible`, `settings.baseURL` pointing at the endpoint) listing every model the
 server serves, each with its own context and output limits (`OPENCODE_CONTEXT_LIMIT` and `OPENCODE_OUTPUT_LIMIT`,
-default 131072 and 32768; context is capped at the model's own architecture limit), plus a default `model`.
+default 131072 and 32768; context is capped at the model's own architecture limit, and an existing `limit.context`
+in the config survives a rerun unless `OPENCODE_CONTEXT_LIMIT` is set), plus a default `model`.
 A second, optional provider is written the same way when `LMSTUDIO_ENDPOINT` is set and that endpoint serves a
 model: a `providers.lmstudio` entry that also becomes the default. This is the Studio's lane for its local LM
 Studio build — machines without LM Studio leave `LMSTUDIO_ENDPOINT` unset and stay on Ollama unchanged.
@@ -221,7 +222,7 @@ when it is named and present), otherwise `OPENCODE_LOCAL_MODEL` for Ollama when 
 the model the config already used, otherwise the first in the list. The `providers` block alone enables the local
 lane — no API key or `/connect` is needed, so `opencode auth list` showing nothing is expected. No cloud provider is
 configured, so requests stay local. Rerun `./opencode/install.sh` after adding models to a server; the `providers`
-block is rebuilt each time.
+block is rebuilt each time — new models get the defaults, existing per-model `limit.context` values are preserved.
 
 `bash_profile` exports `OPENCODE_DISABLE_AUTOUPDATE=1` and `OPENCODE_DISABLE_MODELS_FETCH=1` when `opencode` is
 present. Claude Code-specific hooks have no OpenCode event-system equivalent, so OpenCode sessions run without them.
@@ -322,6 +323,8 @@ harmless, so a bare install keeps the built-in defaults. The variables:
 | `OPENCODE_MODEL_DEFAULT` | Preferred OpenCode default model (Ollama) |
 | `LMSTUDIO_ENDPOINT` | LM Studio server URL; adds a second provider and makes it the OpenCode default |
 | `LMSTUDIO_MODEL` | Preferred OpenCode default model on the LM Studio endpoint |
+| `OPENCODE_CONTEXT_LIMIT` | Per-model context window for the OpenCode providers, in tokens; an explicit value beats a preserved `limit.context` |
+| `OPENCODE_OUTPUT_LIMIT` | Per-model output limit for the OpenCode providers, in tokens |
 | `HINDSIGHT_MCP_URL_DEFAULT` | Hindsight MCP server URL (also read as `HINDSIGHT_URL`) |
 | `STARSHIP_HOSTNAME_ALIASES` | Semicolon-separated `host:alias` pairs for the prompt and statusline |
 
