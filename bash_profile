@@ -98,6 +98,10 @@ if [[ "$OSTYPE" == 'darwin'* ]]; then
     fi
     export BASH_SILENCE_DEPRECATION_WARNING=1
     export HOMEBREW_NO_ASK=1
+    # Never let brew implicitly run `brew update` before a command — the
+    # once-daily brew_update() below is the only tap sync, so nothing stalls
+    # mid-work on slow machines and taps stay at most one day old.
+    export HOMEBREW_NO_AUTO_UPDATE=1
     brew_update() {
         brew update && brew upgrade && brew autoremove && brew cleanup
     }
